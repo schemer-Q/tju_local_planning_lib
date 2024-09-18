@@ -1,0 +1,14 @@
+{
+  "project": {
+    "version": "0.0.1",
+
+    "dependencies": {
+      "dev": {
+        "jian": {
+          "version": "1.0.23",
+          "enable": true
+        }
+      }
+    }
+  }
+}

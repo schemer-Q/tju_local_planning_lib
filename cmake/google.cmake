@@ -1,0 +1,9 @@
+# glog gflags
+find_package(gflags REQUIRED)
+find_package(GTest)
+if (NOT GTest_FOUND)
+  message("GTest not found. test set off")
+  set(ENABLE_TEST OFF)
+endif ()
+message(STATUS "gflags version: ${gflags_VERSION} ${gflags_INCLUDE_DIR} ")
+include_directories(${gflags_INCLUDE_DIR})

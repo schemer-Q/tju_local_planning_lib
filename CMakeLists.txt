@@ -16,6 +16,10 @@ include(CMakePackageConfigHelpers)
 include(CMakeDependentOption)
 include(CheckCCompilerFlag)
 include(GNUInstallDirs)
+if (NOT PACKAGE_HUB)
+  trunk_make_package(${TARGET_NAME} ${PROJECT_VERSION} ${PROJECT_DESCRIPTION})
+endif ()
+
 
 ########################################################
 # Platform
@@ -68,6 +72,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/eigen.cmake)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/perception)
 
 add_subdirectory(perception/common)
+add_subdirectory(perception/tools/log)
 # add_subdirectory(algo)
 # add_subdirectory(deprecated_algo)
 add_subdirectory(perception/app)
@@ -90,7 +95,8 @@ endif()
 ########################################################
 configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/${TARGET_NAME}Config.cmake.in
         "${PROJECT_BINARY_DIR}/${TARGET_NAME}Config.cmake"
-        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET_NAME})
+        INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET_NAME}"
+        PATH_VARS CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR CMAKE_INSTALL_PREFIX)
 
 write_basic_package_version_file("${PROJECT_BINARY_DIR}/${TARGET_NAME}ConfigVersion.cmake"
         VERSION ${project_version}

@@ -20,16 +20,25 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
 enum ErrorCode : uint32_t {
   SUCCESS = 0,
-  DATA_BUFFER_ROLLBACK = 1,
-  DATA_BUFFER_EXTRACT_FAILED_FOR_EMPTY = 2,
-  DATA_BUFFER_EXTRACT_FAILED_FOR_TIMEOUT = 3,
+  // 基础错误 [1-9]
+  FUNCTION_NOT_IMPLEMENTED = 1,  ///< 函数未实现
+  PARAMETER_ERROR = 2,           ///< 参数错误
+  UNINITIALIZED = 3,            ///< 未正确初始化
+  // 数据缓冲区错误 [10-19]
+  DATA_BUFFER_ROLLBACK = 10,
+  DATA_BUFFER_EXTRACT_FAILED_FOR_EMPTY = 11,
+  DATA_BUFFER_EXTRACT_FAILED_FOR_TIMEOUT = 12,
+  // 传感器错误 [20-29]
+  SENSOR_DATA_TYPE_NOT_FOUND = 20,
 };
 
 const std::unordered_map<ErrorCode, std::string> error_code_to_string = {
     {ErrorCode::SUCCESS, "SUCCESS"},
+    {ErrorCode::FUNCTION_NOT_IMPLEMENTED, "FUNCTION_NOT_IMPLEMENTED"},
     {ErrorCode::DATA_BUFFER_ROLLBACK, "DATA_BUFFER_ROLLBACK"},
     {ErrorCode::DATA_BUFFER_EXTRACT_FAILED_FOR_EMPTY, "DATA_BUFFER_EXTRACT_FAILED_FOR_EMPTY"},
     {ErrorCode::DATA_BUFFER_EXTRACT_FAILED_FOR_TIMEOUT, "DATA_BUFFER_EXTRACT_FAILED_FOR_TIMEOUT"},
+    {ErrorCode::SENSOR_DATA_TYPE_NOT_FOUND, "SENSOR_DATA_TYPE_NOT_FOUND"},
 };
 
 [[__maybe_unused__]] static std::string get_error_code_string(const ErrorCode& error_code) {

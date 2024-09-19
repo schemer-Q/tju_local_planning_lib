@@ -2,6 +2,7 @@
  * @file data_buffer.hpp
  * @author WangXu (xuwang_note@hotmail.com)
  * @brief 数据缓存
+ * @details 支持线程安全下的数据缓存、按照时间戳提取数据功能
  * @version 0.1
  * @date 2024-09-18
  *
@@ -18,6 +19,7 @@
 
 #include "common/error/code.hpp"
 #include "common/macros.h"
+#include "tools/log/t_log.h"
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
@@ -85,6 +87,7 @@ class DataBuffer {
         buffer_.clear();
         dropped_times_ = 0;
       }
+      TWARNING << "Buffer: " << name_ << " roll back.";
       return ErrorCode::DATA_BUFFER_ROLLBACK;
     }
 
@@ -105,6 +108,7 @@ class DataBuffer {
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (buffer_.empty()) {
+      TERROR << "Buffer: " << name_ << " is empty.";
       return ErrorCode::DATA_BUFFER_EXTRACT_FAILED_FOR_EMPTY;
     }
 
@@ -114,12 +118,14 @@ class DataBuffer {
       // 如果所有数据都早于请求时间
       auto last = std::prev(buffer_.end());
       if (time - last->time > max_time_delay_) {
+        TERROR << "Buffer: " << name_ << " extract failed for timeout.";
         return ErrorCode::DATA_BUFFER_EXTRACT_FAILED_FOR_TIMEOUT;
       }
       data = *last;
     } else if (it == buffer_.begin()) {
       // 如果所有数据都晚于请求时间
       if (it->time - time > max_time_delay_) {
+        TERROR << "Buffer: " << name_ << " extract failed for timeout.";
         return ErrorCode::DATA_BUFFER_EXTRACT_FAILED_FOR_TIMEOUT;
       }
       data = *it;
@@ -184,9 +190,11 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
  * @brief 注册传感器数据类型
  * @tparam DataType 传感器数据类型
  * @note DataType 需要满足以下条件:
- * 1. 智能指针类型
+ * 1. 指针类型
  */
 #define REGISTOR_SENSOR_DATA(DataName, DataType)                                         \
   struct DataName : public TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE::SensorData<DataType> { \
     using TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE::SensorData<DataType>::SensorData;       \
-  };
+  };                                                                                     \
+  typedef TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE::DataBuffer<DataName> DataName##Buffer;  \
+  typedef std::shared_ptr<DataName##Buffer> DataName##BufferPtr;

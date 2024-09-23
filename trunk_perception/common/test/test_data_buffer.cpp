@@ -11,7 +11,7 @@
 
 #include <gtest/gtest.h>
 
-#include "common/tools/data_buffer.hpp"
+#include "trunk_perception/common/tools/data_buffer.hpp"
 
 REGISTOR_SENSOR_DATA(WrappedData, std::shared_ptr<int>)
 

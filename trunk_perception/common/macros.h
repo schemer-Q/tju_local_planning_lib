@@ -12,7 +12,7 @@
 #pragma once
 
 
-#define EPS 1e-6
+#define EPSILON 1e-6
 
 
 #define TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN \

@@ -21,21 +21,22 @@
 #include <unordered_map>
 #include <vector>
 
-#include "common/data_manager/data_wrapper/pointcloud_data.h"
-#include "common/data_manager/sensor_wrapper/base.h"
-#include "common/error/code.hpp"
-#include "common/macros.h"
-#include "common/types/point.h"
-#include "tools/log/t_log.h"
+#include "trunk_perception/common/data_manager/data_wrapper/pointcloud_data.h"
+#include "trunk_perception/common/data_manager/sensor_wrapper/base.h"
+#include "trunk_perception/common/error/code.hpp"
+#include "trunk_perception/common/macros.h"
+#include "trunk_perception/common/types/point.h"
+#include "trunk_perception/tools/log/t_log.h"
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
-class Lidar : public SensorWrapper {
+class LidarMetaInfo {
  public:
-  struct MetaData {
-    std::shared_ptr<Eigen::Isometry3f> pose_ptr;
-  };
+  std::shared_ptr<Eigen::Isometry3f> pose_ptr;
+};
 
+class Lidar : public SensorWrapper<PointCloudT, PointCloudData, LidarMetaInfo> {
+ public:
   Lidar() = default;
   ~Lidar() = default;
 
@@ -50,9 +51,9 @@ class Lidar : public SensorWrapper {
     pointcloud_types_ = types;
     for (const auto& type : pointcloud_types_) {
       // 没有做重复类型检查，如果重复，会覆盖之前的类型
-      m_type_buffer_[type] = std::make_shared<PointCloudDataBuffer>(type, buffer_size, max_time_delay);
+      m_type_buffer_[type] = std::make_shared<PointCloudDataBuffer>(buffer_size, name_, max_time_delay);
     }
-    meta_ = std::make_shared<MetaData>();
+    meta_ = std::make_shared<LidarMetaInfo>();
     return ErrorCode::SUCCESS;
   }
 
@@ -61,24 +62,21 @@ class Lidar : public SensorWrapper {
    *
    * @param type [in] 数据类型
    * @param timestamp [in] 时间戳, 单位为秒
-   * @param data [in] 原始数据指针, e.g. std::shared_ptr<PointCloudT>. 注意pcl中的指针为boost::shared_ptr
+   * @param data [in] 原始数据指针
    * @return uint32_t 错误码
    */
-  virtual uint32_t push(const std::string& type, const double& timestamp,
-                        const std::shared_ptr<const void>& data) override {
+  uint32_t push(const std::string& type, const double& timestamp, const std::shared_ptr<PointCloudT>& data) override {
     auto it = m_type_buffer_.find(type);
     if (it == m_type_buffer_.end()) {  // 没有找到对应的类型
       TERROR << "Lidar: " << name_ << " push failed for type not found.";
       return ErrorCode::SENSOR_DATA_TYPE_NOT_FOUND;
     }
-    // 判断data类型为PointCloudT::Ptr
-    const auto pointcloud_data = std::dynamic_pointer_cast<const PointCloudT>(data);
-    if (!pointcloud_data) {
-      TFATAL << "Lidar: " << name_ << " push failed for data type mismatch or nullptr.";
+    if (!data) {
+      TFATAL << "Lidar: " << name_ << " push failed for data is nullptr.";
       return ErrorCode::PARAMETER_ERROR;
     }
 
-    return it->second->push(PointCloudData(timestamp, pointcloud_data));
+    return it->second->push(PointCloudData(timestamp, data));
   }
 
   /**
@@ -86,18 +84,21 @@ class Lidar : public SensorWrapper {
    *
    * @param type [in] 数据类型
    * @param timestamp [in] 时间戳, 单位为秒
-   * @param data [out] 传感器数据封装, e.g. std::shared_ptr<PointCloudData>
+   * @param data [out] 传感器数据
    * @return uint32_t 错误码
    */
-  uint32_t extractByTime(const std::string& type, const double& timestamp, std::shared_ptr<void>& data) override {
+  uint32_t extractByTime(const std::string& type, const double& timestamp, std::shared_ptr<PointCloudData>& data) override {
     auto it = m_type_buffer_.find(type);
     if (it == m_type_buffer_.end()) {  // 没有找到对应的类型
       TERROR << "Lidar: " << name_ << " extractByTime failed for type not found.";
       return ErrorCode::SENSOR_DATA_TYPE_NOT_FOUND;
     }
-    auto pointcloud_data = std::make_shared<PointCloudData>();
-    uint32_t result = it->second->extractByTime(timestamp, *pointcloud_data);
-    data = pointcloud_data;
+    data = std::make_shared<PointCloudData>();
+    uint32_t result = it->second->extractByTime(timestamp, *data);
+    if (result != ErrorCode::SUCCESS) {
+      TERROR << "Lidar: " << name_ << " extractByTime failed for extract failed.";
+      data = nullptr;
+    }
     return result;
   }
 
@@ -107,17 +108,33 @@ class Lidar : public SensorWrapper {
    * @param meta [in] 传感器元数据指针, e.g. std::shared_ptr<SensorMeta>
    * @return uint32_t 错误码
    */
-  uint32_t updateMeta(const std::shared_ptr<const void>& meta) override {
-    const auto sensor_meta = std::dynamic_pointer_cast<const MetaData>(meta);
-    if (!sensor_meta) {
-      TFATAL << "Lidar: " << name_ << " updateMeta failed for data type mismatch or nullptr.";
+  uint32_t updateMeta(const std::shared_ptr<LidarMetaInfo>& meta) override {
+    if (!meta) {
+      TFATAL << "Lidar: " << name_ << " updateMeta failed for input meta is nullptr.";
       return ErrorCode::PARAMETER_ERROR;
     }
     if (!meta_) {
       TERROR << "Lidar: " << name_ << " updateMeta failed for meta is nullptr.";
       return ErrorCode::UNINITIALIZED;
     }
-    meta_->pose_ptr = sensor_meta->pose_ptr;
+    meta_ = meta;
+    return ErrorCode::SUCCESS;
+  }
+
+  /**
+   * @brief 更新传感器元数据
+   *
+   * @param name [in] info名称
+   * @param info [in] info数据指针, e.g. std::shared_ptr<Eigen::Isometry3f>
+   * @return uint32_t 错误码
+   */
+  uint32_t updateMeta(const std::string& name, const std::shared_ptr<void>& info) override {
+    if (name == "pose") {
+      meta_->pose_ptr = std::static_pointer_cast<Eigen::Isometry3f>(info);
+    } else {
+      TERROR << "Lidar: " << name_ << " updateMeta failed for name not found.";
+      return ErrorCode::PARAMETER_ERROR;
+    }
     return ErrorCode::SUCCESS;
   }
 
@@ -127,12 +144,12 @@ class Lidar : public SensorWrapper {
    * @param meta [out] 传感器元数据指针, e.g. std::shared_ptr<SensorMeta>
    * @return uint32_t 错误码
    */
-  uint32_t getMeta(std::shared_ptr<void>& meta) override {
+  uint32_t getMeta(std::shared_ptr<LidarMetaInfo>& meta) override {
     if (!meta_) {
       TERROR << "Lidar: " << name_ << " getMeta failed for meta is nullptr.";
       return ErrorCode::UNINITIALIZED;
     }
-    meta = std::make_shared<MetaData>(*meta_);
+    meta = std::make_shared<LidarMetaInfo>(*meta_);
     return ErrorCode::SUCCESS;
   }
 
@@ -142,7 +159,7 @@ class Lidar : public SensorWrapper {
    * @param pose [in] 位姿
    * @return 错误码
    */
-  uint32_t setPose(const Eigen::Isometry3f& pose) {
+  uint32_t setPose(const Eigen::Isometry3f& pose) override {
     meta_->pose_ptr = std::make_shared<Eigen::Isometry3f>(pose);
     return ErrorCode::SUCCESS;
   }
@@ -152,7 +169,7 @@ class Lidar : public SensorWrapper {
    *
    * @return 位姿
    */
-  std::shared_ptr<const Eigen::Isometry3f> pose() const { return meta_->pose_ptr; }
+  std::shared_ptr<const Eigen::Isometry3f> pose() const override { return meta_->pose_ptr; }
 
   /**
    * @brief 获取传感器名称
@@ -161,30 +178,6 @@ class Lidar : public SensorWrapper {
    */
   const std::string& name() const override { return name_; }
 
-  /**
-   * @brief 激光雷达不支持无类型列表初始化
-   */
-  uint32_t init(const std::string& name, const uint32_t& buffer_size, const double& max_time_delay) override {
-    TFATAL << "Lidar: " << name << " init failed for no type list.";
-    return ErrorCode::FUNCTION_NOT_IMPLEMENTED;
-  }
-
-  /**
-   * @brief 激光雷达不支持无类型列表初始化
-   */
-  uint32_t push(const double& timestamp, const std::shared_ptr<const void>& data) override {
-    TFATAL << "Lidar: " << name_ << " push failed for no type list.";
-    return ErrorCode::FUNCTION_NOT_IMPLEMENTED;
-  }
-
-  /**
-   * @brief 激光雷达不支持无类型列表初始化
-   */
-  uint32_t extractByTime(const double& timestamp, std::shared_ptr<void>& data) override {
-    TFATAL << "Lidar: " << name_ << " extractByTime failed for no type list.";
-    return ErrorCode::FUNCTION_NOT_IMPLEMENTED;
-  }
-
  private:
   std::string name_;                           ///< 传感器名称
   uint32_t buffer_size_;                       ///< 数据缓冲区大小
@@ -192,7 +185,7 @@ class Lidar : public SensorWrapper {
   std::vector<std::string> pointcloud_types_;  ///< 点云类型, 如: orig, tf, preprocessed, etc.
 
   std::unordered_map<std::string, PointCloudDataBufferPtr> m_type_buffer_;
-  std::shared_ptr<MetaData> meta_;  ///< 传感器元数据
+  std::shared_ptr<LidarMetaInfo> meta_;  ///< 传感器元数据
 };
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END

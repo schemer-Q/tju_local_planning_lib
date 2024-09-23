@@ -63,19 +63,18 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/google.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/pcl.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/opencv.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/eigen.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/yaml.cmake)
 
 
 
 ########################################################
 # add subdirectory
 ########################################################
-include_directories(${CMAKE_CURRENT_LIST_DIR}/perception)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-add_subdirectory(perception/common)
-add_subdirectory(perception/tools/log)
-# add_subdirectory(algo)
-# add_subdirectory(deprecated_algo)
-add_subdirectory(perception/app)
+add_subdirectory(trunk_perception/common)
+add_subdirectory(trunk_perception/tools/log)
+add_subdirectory(trunk_perception/app)
 
 ########################################################
 # test
@@ -86,13 +85,22 @@ if (ENABLE_TEST)
     message(STATUS "GTEST_INCLUDE_DIRS: ${GTEST_INCLUDE_DIRS}")
     message(STATUS "GTEST_LIBRARIES: ${GTEST_LIBRARIES}")
     enable_testing()
-    add_subdirectory(perception/common/test)
+    add_subdirectory(trunk_perception/common/test)
 endif()
 
 
 ########################################################
 # install settings
 ########################################################
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/trunk_perception
+  DESTINATION include
+  FILES_MATCHING
+  PATTERN "*.hpp"
+  PATTERN "*.h"
+  PATTERN "*.yaml"
+  )
+
 configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/${TARGET_NAME}Config.cmake.in
         "${PROJECT_BINARY_DIR}/${TARGET_NAME}Config.cmake"
         INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET_NAME}"
@@ -104,4 +112,4 @@ write_basic_package_version_file("${PROJECT_BINARY_DIR}/${TARGET_NAME}ConfigVers
 
 install(FILES ${PROJECT_BINARY_DIR}/${TARGET_NAME}Config.cmake
         ${PROJECT_BINARY_DIR}/${TARGET_NAME}ConfigVersion.cmake
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET_NAME})
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/${TARGET_NAME})

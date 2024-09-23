@@ -16,7 +16,7 @@
 #include <pcl/point_types.h>
 #include <memory>
 
-#include "common/macros.h"
+#include "trunk_perception/common/macros.h"
 
 struct PointXYZIRADT {
   PCL_ADD_POINT4D;

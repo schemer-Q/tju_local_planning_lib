@@ -14,7 +14,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "common/macros.h"
+#include "trunk_perception/common/macros.h"
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 

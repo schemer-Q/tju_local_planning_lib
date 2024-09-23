@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "common/macros.h"
+#include "trunk_perception/common/macros.h"
 #include "jian/jian.h"
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN

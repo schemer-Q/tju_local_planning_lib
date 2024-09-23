@@ -10,6 +10,8 @@
  *
  */
 
+#pragma once
+
 #include <sys/types.h>
 #include <cstddef>
 #include <cstdint>
@@ -17,9 +19,9 @@
 #include <mutex>
 #include <set>
 
-#include "common/error/code.hpp"
-#include "common/macros.h"
-#include "tools/log/t_log.h"
+#include "trunk_perception/common/error/code.hpp"
+#include "trunk_perception/common/macros.h"
+#include "trunk_perception/tools/log/t_log.h"
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
@@ -31,7 +33,7 @@ struct SensorData {
   explicit SensorData(const double& time = 0.0, const T& data = nullptr) : time(time), data(data) {}
 
   bool operator<(const SensorData& other) const {
-    if (std::abs(time - other.time) < EPS) {
+    if (std::abs(time - other.time) < EPSILON) {
       return false;
     }
     return time < other.time;
@@ -187,7 +189,7 @@ class DataBuffer {
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
 
 /**
- * @brief 注册传感器数据类型
+ * @brief 注册传感器数据类型(将数据用传感器统一接口封装便于统一管理)
  * @tparam DataType 传感器数据类型
  * @note DataType 需要满足以下条件:
  * 1. 指针类型

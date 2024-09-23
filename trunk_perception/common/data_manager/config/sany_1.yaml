@@ -1,0 +1,13 @@
+# 三一新疆项目车辆传感器配置文件
+VEHICLE_NAME: "SANY_1"
+Sensors:
+  - Type: "LIDAR"
+    Name: "LIDAR_0"
+    SubTypes: ["origin", "tf", "ground", "noground"]
+    BufferSize: 5
+    MaxTimeDelay: 0.3
+  - Type: "CAMERA"
+    Name: "CAMERA_0_F60"
+    SubTypes: ["origin", "undistorted"]
+    BufferSize: 5
+    MaxTimeDelay: 0.3

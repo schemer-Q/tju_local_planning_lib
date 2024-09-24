@@ -85,11 +85,12 @@ class DataBuffer {
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (!buffer_.empty() && buffer_.rbegin()->time > data.time) {
+      TWARNING << "Buffer: " << name_ << " roll back. New data time: " << data.time
+               << " is earlier than old data time: " << buffer_.rbegin()->time;
       if (++dropped_times_ > max_dropped_times_) {
         buffer_.clear();
         dropped_times_ = 0;
       }
-      TWARNING << "Buffer: " << name_ << " roll back.";
       return ErrorCode::DATA_BUFFER_ROLLBACK;
     }
 
@@ -120,14 +121,16 @@ class DataBuffer {
       // 如果所有数据都早于请求时间
       auto last = std::prev(buffer_.end());
       if (time - last->time > max_time_delay_) {
-        TERROR << "Buffer: " << name_ << " extract failed for timeout.";
+        TERROR << "Buffer: " << name_ << " extract failed for timeout. Time: " << time
+               << " is later than old data time: " << last->time;
         return ErrorCode::DATA_BUFFER_EXTRACT_FAILED_FOR_TIMEOUT;
       }
       data = *last;
     } else if (it == buffer_.begin()) {
       // 如果所有数据都晚于请求时间
       if (it->time - time > max_time_delay_) {
-        TERROR << "Buffer: " << name_ << " extract failed for timeout.";
+        TERROR << "Buffer: " << name_ << " extract failed for timeout. Time: " << time
+               << " is earlier than earliest data time: " << it->time;
         return ErrorCode::DATA_BUFFER_EXTRACT_FAILED_FOR_TIMEOUT;
       }
       data = *it;

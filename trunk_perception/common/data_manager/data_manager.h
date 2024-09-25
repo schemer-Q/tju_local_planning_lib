@@ -31,6 +31,10 @@ enum SensorType {
   CAMERA,
 };
 
+/**
+ * @brief 数据管理器，管理当前车型所有传感器数据和多线程共享数据
+ * 
+ */
 class DataManager {
  public:
   static DataManager& instance();
@@ -90,21 +94,95 @@ class DataManager {
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
 
+/**
+ * @def DATA_MANAGER
+ * @brief 获取DataManager的单例实例
+ */
 #define DATA_MANAGER TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE::DataManager::instance()
 
+/**
+ * @def REGISTER_SENSORS_WITH_FILE
+ * @brief 注册传感器，线程不安全
+ * @param file_path 传感器配置文件路径
+ * @return 错误码
+ */
 #define REGISTER_SENSORS_WITH_FILE(file_path) DATA_MANAGER.registerSensorsByFile(file_path)
+
+/**
+ * @def REGISTER_SENSORS_WITH_CONFIG
+ * @brief 注册传感器，线程不安全
+ * @param config 传感器配置
+ * @return 错误码
+ */
 #define REGISTER_SENSORS_WITH_CONFIG(config) DATA_MANAGER.registerSensorsByConfig(config)
 
+/**
+ * @def PUSH_SENSOR_DATA
+ * @brief 向数据管理器中添加数据，线程安全
+ * @param sensor_name 传感器名称
+ * @param type 数据类型
+ * @param timestamp 数据时间戳
+ * @param data 数据
+ * @return 错误码
+ */
 #define PUSH_SENSOR_DATA(sensor_name, type, timestamp, data) DATA_MANAGER.push(sensor_name, type, timestamp, data)
 
+/**
+ * @def GET_SENSOR_DATA_BY_TIME
+ * @brief 从数据管理器中提取数据，线程安全
+ * @param sensor_name 传感器名称
+ * @param type 数据类型
+ * @param timestamp 数据时间戳
+ * @param data 数据
+ * @return 错误码
+ */
 #define GET_SENSOR_DATA_BY_TIME(sensor_name, type, timestamp, data) \
   DATA_MANAGER.extractByTime(sensor_name, type, timestamp, data)
 
+/**
+ * @def SET_SENSOR_POSE
+ * @brief 设置传感器位姿，线程不安全
+ * @param sensor_name 传感器名称
+ * @param pose 传感器位姿
+ * @return 错误码
+ */
 #define SET_SENSOR_POSE(sensor_name, pose) DATA_MANAGER.setSensorPose(sensor_name, pose)
+
+/**
+ * @def GET_SENSOR_POSE
+ * @brief 获取传感器位姿，线程不安全
+ * @param sensor_name 传感器名称
+ * @return 传感器位姿
+ */
 #define GET_SENSOR_POSE(sensor_name) DATA_MANAGER.getSensorPose(sensor_name)
 
+/**
+ * @def SET_CAMERA_INTRINSICS
+ * @brief 设置相机内参，线程不安全
+ * @param sensor_name 传感器名称
+ * @param camera_info 相机内参
+ * @return 错误码
+ */
 #define SET_CAMERA_INTRINSICS(sensor_name, camera_info) DATA_MANAGER.setCameraIntrinsics(sensor_name, camera_info)
+
+/**
+ * @def GET_CAMERA_INTRINSICS
+ * @brief 获取相机内参，线程不安全
+ * @param sensor_name 传感器名称
+ * @return 相机内参
+ */
 #define GET_CAMERA_INTRINSICS(sensor_name) DATA_MANAGER.getCameraIntrinsics(sensor_name)
 
+/**
+ * @def UPDATE_OD_LIDAR_FRAME
+ * @brief 更新od lidar帧，线程不安全
+ * @param od_lidar_frame od lidar帧
+ */
 #define UPDATE_OD_LIDAR_FRAME(od_lidar_frame) DATA_MANAGER.setOdLidarFrame(od_lidar_frame)
+
+/**
+ * @def GET_OD_LIDAR_FRAME
+ * @brief 获取od lidar帧，线程不安全
+ * @return od lidar帧
+ */
 #define GET_OD_LIDAR_FRAME() DATA_MANAGER.getOdLidarFrame()

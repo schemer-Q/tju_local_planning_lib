@@ -19,7 +19,7 @@ std::uint32_t PreprocessBase::Init(const YAML::Node& config) {
     lidar_name_ = config["Name"].as<std::string>();
   } catch (const std::exception& e) {
     TFATAL << "PreprocessBase::Init failed, " << e.what();
-    return ErrorCode::YAML_CONFIG_ERRPR;
+    return ErrorCode::YAML_CONFIG_ERROR;
   }
   return ErrorCode::SUCCESS;
 }

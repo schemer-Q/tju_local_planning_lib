@@ -22,7 +22,7 @@
 #include "trunk_perception/common/types/point.h"
 #include "trunk_perception/tools/log/t_log.h"
 #include "trunk_perception/tools/system/utils.hpp"
-
+#include "trunk_perception/common/data_manager/data_wrapper/od_lidar_frame.h"
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
 enum SensorType {
@@ -68,6 +68,14 @@ class DataManager {
 
   std::shared_ptr<CameraInfo> getCameraIntrinsics(const std::string& sensor_name) const;
 
+  void updateOdLidarFrame(const std::shared_ptr<OdLidarFrame>& od_lidar_frame) {
+    od_lidar_frame_ = od_lidar_frame;
+  }
+
+  std::shared_ptr<OdLidarFrame> getOdLidarFrame() const {
+    return od_lidar_frame_;
+  }
+
  private:
   DataManager();
 
@@ -75,6 +83,9 @@ class DataManager {
   std::unordered_map<std::string, std::shared_ptr<Camera>> cameras_;
   std::unordered_map<std::string, SensorType> m_name_to_type_;
   std::string vehicle_name_ = "";
+
+  // 多线程任务共享数据
+  std::shared_ptr<OdLidarFrame> od_lidar_frame_ = nullptr;
 };
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
@@ -94,3 +105,6 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
 
 #define SET_CAMERA_INTRINSICS(sensor_name, camera_info) DATA_MANAGER.setCameraIntrinsics(sensor_name, camera_info)
 #define GET_CAMERA_INTRINSICS(sensor_name) DATA_MANAGER.getCameraIntrinsics(sensor_name)
+
+#define UPDATE_OD_LIDAR_FRAME(od_lidar_frame) DATA_MANAGER.setOdLidarFrame(od_lidar_frame)
+#define GET_OD_LIDAR_FRAME() DATA_MANAGER.getOdLidarFrame()

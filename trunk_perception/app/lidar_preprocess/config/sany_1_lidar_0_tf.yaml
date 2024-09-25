@@ -1,1 +1,3 @@
-Name: "LIDAR_0"
+Type: BASE
+Config:
+  Name: "LIDAR_0"

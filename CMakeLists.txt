@@ -4,6 +4,8 @@ file(READ "${CMAKE_CURRENT_LIST_DIR}/config.json" config_json)
 
 # get project version
 string(JSON project_version GET ${config_json} project version)
+string(JSON sdk_lidarnetsdk_version GET ${config_json} project dependencies sdk lidarnetsdk version)
+string(JSON sdk_lidarnetsdk_enable GET ${config_json} project dependencies sdk lidarnetsdk enable)
 
 project(trunk_perception
         VERSION ${project_version}
@@ -59,6 +61,7 @@ option(ENABLE_TEST "enable test" ON)
 # Dependency
 ########################################################
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/trunk_basic.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/trunk.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/google.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/pcl.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/opencv.cmake)

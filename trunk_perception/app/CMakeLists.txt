@@ -1,1 +1,2 @@
 add_subdirectory(lidar_preprocess)
+add_subdirectory(object_detection_lidar)

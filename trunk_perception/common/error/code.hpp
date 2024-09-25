@@ -24,7 +24,7 @@ enum ErrorCode : uint32_t {
   FUNCTION_NOT_IMPLEMENTED = 1,  ///< 函数未实现
   PARAMETER_ERROR = 2,           ///< 参数错误
   UNINITIALIZED = 3,             ///< 未正确初始化
-  YAML_CONFIG_ERRPR = 4,         ///< YAML配置文件错误
+  YAML_CONFIG_ERROR = 4,         ///< YAML配置文件错误
   // 数据缓冲区错误 [10-19]
   DATA_BUFFER_ROLLBACK = 10,
   DATA_BUFFER_EXTRACT_FAILED_FOR_EMPTY = 11,
@@ -33,6 +33,8 @@ enum ErrorCode : uint32_t {
   SENSOR_DATA_TYPE_NOT_FOUND = 20,
   SENSOR_POSE_NOT_FOUND = 21,
   POINT_CLOUD_INVALID = 22,
+  // Object Detection Lidar 错误 [30-39]
+  LIDAR_NET_SDK_INIT_FAILED = 30,
 };
 
 const std::unordered_map<ErrorCode, std::string> error_code_to_string = {
@@ -40,13 +42,14 @@ const std::unordered_map<ErrorCode, std::string> error_code_to_string = {
     {ErrorCode::FUNCTION_NOT_IMPLEMENTED, "FUNCTION_NOT_IMPLEMENTED"},
     {ErrorCode::PARAMETER_ERROR, "PARAMETER_ERROR"},
     {ErrorCode::UNINITIALIZED, "UNINITIALIZED"},
-    {ErrorCode::YAML_CONFIG_ERRPR, "YAML_CONFIG_ERRPR"},
+    {ErrorCode::YAML_CONFIG_ERROR, "YAML_CONFIG_ERROR"},
     {ErrorCode::DATA_BUFFER_ROLLBACK, "DATA_BUFFER_ROLLBACK"},
     {ErrorCode::DATA_BUFFER_EXTRACT_FAILED_FOR_EMPTY, "DATA_BUFFER_EXTRACT_FAILED_FOR_EMPTY"},
     {ErrorCode::DATA_BUFFER_EXTRACT_FAILED_FOR_TIMEOUT, "DATA_BUFFER_EXTRACT_FAILED_FOR_TIMEOUT"},
     {ErrorCode::SENSOR_DATA_TYPE_NOT_FOUND, "SENSOR_DATA_TYPE_NOT_FOUND"},
     {ErrorCode::SENSOR_POSE_NOT_FOUND, "SENSOR_POSE_NOT_FOUND"},
     {ErrorCode::POINT_CLOUD_INVALID, "POINT_CLOUD_INVALID"},
+    {ErrorCode::LIDAR_NET_SDK_INIT_FAILED, "LIDAR_NET_SDK_INIT_FAILED"},
 };
 
 [[__maybe_unused__]] static std::string get_error_code_string(const ErrorCode& error_code) {

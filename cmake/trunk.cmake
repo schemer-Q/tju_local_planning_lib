@@ -1,0 +1,7 @@
+if (${sdk_lidarnetsdk_enable})
+    find_package(LidarNetSdk EXACT ${sdk_lidarnetsdk_version} REQUIRED)
+    message(STATUS "LidarNetSdk version: ${LidarNetSdk_VERSION}")
+    message(STATUS "LidarNetSdk libraries: ${LidarNetSdk_LIBRARIES}")
+    message(STATUS "LidarNetSdk include dirs: ${LidarNetSdk_INCLUDE_DIRS}")
+    include_directories(${LidarNetSdk_INCLUDE_DIRS})
+endif()

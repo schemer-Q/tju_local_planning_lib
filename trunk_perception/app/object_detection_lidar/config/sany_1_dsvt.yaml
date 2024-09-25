@@ -1,0 +1,4 @@
+Type: OdLidarLidarNetSdk
+Config: 
+  ModelConfig: /home/wangxu/Code/2_model/dsvt/sany/1.18/dsvt_config.toml
+  Lidar: LIDAR_0

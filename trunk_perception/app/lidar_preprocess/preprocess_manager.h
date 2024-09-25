@@ -11,10 +11,11 @@
 
 #pragma once
 
+#include <yaml-cpp/yaml.h>
+
 #include "preprocess_base.h"
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
-
 
 /**
  * @brief 激光雷达预处理工厂类
@@ -26,10 +27,18 @@ class PreprocessManager {
   /**
    * @brief 创建预处理类
    *
-   * @param type 预处理类型, 如"BASE"
+   * @param file 预处理配置文件路径
    * @return std::shared_ptr<PreprocessBase> 预处理类指针
    */
-  static std::shared_ptr<PreprocessBase> Create(const std::string& type);
+  static std::shared_ptr<PreprocessBase> Create(const std::string &file);
+
+  /**
+   * @brief 创建预处理类
+   *
+   * @param config 预处理配置
+   * @return std::shared_ptr<PreprocessBase> 预处理类指针
+   */
+  static std::shared_ptr<PreprocessBase> Create(const YAML::Node &config);
 };
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

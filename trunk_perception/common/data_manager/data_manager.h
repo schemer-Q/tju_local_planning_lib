@@ -13,6 +13,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "trunk_perception/common/data_manager/data_wrapper/od_lidar_frame.h"
+#include "trunk_perception/common/data_manager/data_wrapper/odometry_data.h"
 #include "trunk_perception/common/data_manager/data_wrapper/pointcloud_data.h"
 #include "trunk_perception/common/data_manager/sensor_wrapper/base.h"
 #include "trunk_perception/common/data_manager/sensor_wrapper/camera.hpp"
@@ -31,11 +33,12 @@ enum SensorType {
   UNKNOWN,
   LIDAR,
   CAMERA,
+  ODOMETRY,
 };
 
 /**
  * @brief 数据管理器，管理当前车型所有传感器数据和多线程共享数据
- * 
+ *
  */
 class DataManager {
  public:
@@ -45,6 +48,9 @@ class DataManager {
 
   uint32_t registerSensor(const SensorType& type, const std::string& name, const std::vector<std::string>& types,
                           const uint32_t& buffer_size, const double& max_time_delay);
+
+  uint32_t registerOthers(const SensorType& type, const std::string& name, const uint32_t& buffer_size,
+                          const double& max_time_delay);
 
   uint32_t registerSensorsByConfig(const YAML::Node& config);
 
@@ -60,11 +66,15 @@ class DataManager {
   uint32_t push(const std::string& sensor_name, const std::string& data_type, const double& timestamp,
                 const std::shared_ptr<Image>& data);
 
+  uint32_t push(const double& timestamp, const std::shared_ptr<Odometry>& data);
+
   uint32_t extractByTime(const std::string& sensor_name, const std::string& data_type, const double& timestamp,
                          std::shared_ptr<PointCloudData>& data);
 
   uint32_t extractByTime(const std::string& sensor_name, const std::string& data_type, const double& timestamp,
                          std::shared_ptr<ImageData>& data);
+
+  uint32_t extractByTime(const double& timestamp, std::shared_ptr<OdometryData>& data);
 
   uint32_t setSensorPose(const std::string& sensor_name, const Eigen::Isometry3f& pose);
 
@@ -84,9 +94,7 @@ class DataManager {
     od_lidar_frame_ = od_lidar_frame;
   }
 
-  std::shared_ptr<OdLidarFrame> getOdLidarFrame() const {
-    return od_lidar_frame_;
-  }
+  std::shared_ptr<OdLidarFrame> getOdLidarFrame() const { return od_lidar_frame_; }
 
   void updateLdFrame(const std::shared_ptr<LDFrame>& ld_frame) {
     ld_frame_ = ld_frame;
@@ -103,6 +111,8 @@ class DataManager {
   std::unordered_map<std::string, std::shared_ptr<Camera>> cameras_;
   std::unordered_map<std::string, SensorType> m_name_to_type_;
   std::string vehicle_name_ = "";
+
+  std::shared_ptr<OdometryDataBuffer> odometry_data_buffer_ = nullptr;
 
   // 多线程任务共享数据
   std::shared_ptr<OdLidarFrame> od_lidar_frame_ = nullptr;
@@ -145,6 +155,15 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
 #define PUSH_SENSOR_DATA(sensor_name, type, timestamp, data) DATA_MANAGER.push(sensor_name, type, timestamp, data)
 
 /**
+ * @def PUSH_ODOMETRY_DATA
+ * @brief 向数据管理器中添加数据，线程安全
+ * @param timestamp 数据时间戳
+ * @param data 数据
+ * @return 错误码
+ */
+#define PUSH_ODOMETRY_DATA(timestamp, data) DATA_MANAGER.push(timestamp, data)
+
+/**
  * @def GET_SENSOR_DATA_BY_TIME
  * @brief 从数据管理器中提取数据，线程安全
  * @param sensor_name 传感器名称
@@ -155,6 +174,15 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
  */
 #define GET_SENSOR_DATA_BY_TIME(sensor_name, type, timestamp, data) \
   DATA_MANAGER.extractByTime(sensor_name, type, timestamp, data)
+
+/**
+ * @def GET_ODOMETRY_DATA_BY_TIME
+ * @brief 从数据管理器中提取数据，线程安全
+ * @param timestamp 数据时间戳
+ * @param data 数据
+ * @return 错误码
+ */
+#define GET_ODOMETRY_DATA_BY_TIME(timestamp, data) DATA_MANAGER.extractByTime(timestamp, data)
 
 /**
  * @def SET_SENSOR_POSE

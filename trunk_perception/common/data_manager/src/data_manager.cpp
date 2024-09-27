@@ -12,6 +12,7 @@ static std::unordered_map<std::string, SensorType> sensor_type_map = {
     {"UNKNOWN", SensorType::UNKNOWN},
     {"LIDAR", SensorType::LIDAR},
     {"CAMERA", SensorType::CAMERA},
+    {"ODOMETRY", SensorType::ODOMETRY},
 };
 
 static SensorType stringToSensorType(const std::string& type) {
@@ -66,6 +67,21 @@ uint32_t DataManager::registerSensor(const SensorType& type, const std::string& 
   return ret;
 }
 
+uint32_t DataManager::registerOthers(const SensorType& type, const std::string& name, const uint32_t& buffer_size,
+                                     const double& max_time_delay) {
+  uint32_t ret = ErrorCode::SUCCESS;
+  switch (type) {
+    case SensorType::ODOMETRY:
+      odometry_data_buffer_ = std::make_shared<OdometryDataBuffer>(buffer_size, name, max_time_delay);
+      break;
+    default:
+      TFATAL << "Invalid data type: " << type;
+      ret = ErrorCode::PARAMETER_ERROR;
+      break;
+  }
+  return ret;
+}
+
 uint32_t DataManager::registerSensorsByConfig(const YAML::Node& config) {
   try {
     if (config["VEHICLE_NAME"]) {
@@ -88,6 +104,16 @@ uint32_t DataManager::registerSensorsByConfig(const YAML::Node& config) {
       TERROR << "No Sensors found in config.";
       return ErrorCode::PARAMETER_ERROR;
     }
+    if (config["Others"]) {
+      for (const auto& param : config["Others"]) {
+        const std::string type = param["Type"].as<std::string>();
+        SensorType others_type = stringToSensorType(type);
+        const std::string name = param["Name"].as<std::string>();
+        const uint32_t buffer_size = param["BufferSize"].as<uint32_t>();
+        const double max_time_delay = param["MaxTimeDelay"].as<double>();
+        registerOthers(others_type, name, buffer_size, max_time_delay);
+      }
+    }
   } catch (const YAML::Exception& e) {
     TERROR << "Failed to register sensors by config: " << e.what();
   }
@@ -107,8 +133,8 @@ std::string DataManager::getVehicleName() const { return vehicle_name_; }
 
 void DataManager::setVehicleName(const std::string& vehicle_name) { vehicle_name_ = vehicle_name; }
 
-uint32_t DataManager::push(const std::string& sensor_name, const std::string& data_type,
-                           const double& timestamp, const std::shared_ptr<PointCloudT>& data) {
+uint32_t DataManager::push(const std::string& sensor_name, const std::string& data_type, const double& timestamp,
+                           const std::shared_ptr<PointCloudT>& data) {
   if (lidars_.find(sensor_name) == lidars_.end()) {
     TERROR << "Lidar " << sensor_name << " does not exist.";
     return ErrorCode::PARAMETER_ERROR;
@@ -116,13 +142,27 @@ uint32_t DataManager::push(const std::string& sensor_name, const std::string& da
   return lidars_[sensor_name]->push(data_type, timestamp, data);
 }
 
-uint32_t DataManager::push(const std::string& sensor_name, const std::string& data_type,
-                           const double& timestamp, const std::shared_ptr<Image>& data) {
+uint32_t DataManager::push(const std::string& sensor_name, const std::string& data_type, const double& timestamp,
+                           const std::shared_ptr<Image>& data) {
   if (cameras_.find(sensor_name) == cameras_.end()) {
     TERROR << "Camera " << sensor_name << " does not exist.";
     return ErrorCode::PARAMETER_ERROR;
   }
   return cameras_[sensor_name]->push(data_type, timestamp, data);
+}
+
+uint32_t DataManager::push(const double& timestamp, const std::shared_ptr<Odometry>& data) {
+  if (!odometry_data_buffer_) {
+    TFATAL << "Odometry data buffer is nullptr.";
+    return ErrorCode::PARAMETER_ERROR;
+  }
+
+  if (!data) {
+    TFATAL << "Odometry push failed for data is nullptr.";
+    return ErrorCode::PARAMETER_ERROR;
+  }
+
+  return odometry_data_buffer_->push(OdometryData(timestamp, data));
 }
 
 uint32_t DataManager::extractByTime(const std::string& sensor_name, const std::string& data_type,
@@ -141,6 +181,21 @@ uint32_t DataManager::extractByTime(const std::string& sensor_name, const std::s
     return ErrorCode::PARAMETER_ERROR;
   }
   return cameras_[sensor_name]->extractByTime(data_type, timestamp, data);
+}
+
+uint32_t DataManager::extractByTime(const double& timestamp, std::shared_ptr<OdometryData>& data) {
+  if (!odometry_data_buffer_) {
+    TFATAL << "Odometry data buffer is nullptr.";
+    return ErrorCode::PARAMETER_ERROR;
+  }
+
+  data = std::make_shared<OdometryData>();
+  uint32_t result = odometry_data_buffer_->extractByTime(timestamp, *data);
+  if (result != ErrorCode::SUCCESS) {
+    TERROR << "Odometry extractByTime failed for extract failed.";
+    data = nullptr;
+  }
+  return result;
 }
 
 uint32_t DataManager::setSensorPose(const std::string& sensor_name, const Eigen::Isometry3f& pose) {

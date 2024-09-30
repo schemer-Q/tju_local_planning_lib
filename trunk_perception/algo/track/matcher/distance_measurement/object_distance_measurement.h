@@ -13,7 +13,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "trunk_perception/algo/track/tracklet.h"
+#include "trunk_perception/algo/track/common/tracklet.h"
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 

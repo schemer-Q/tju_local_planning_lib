@@ -13,7 +13,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "trunk_perception/algo/track/tracklet.h"
+#include "trunk_perception/algo/track/common/tracklet.h"
 #include "trunk_perception/common/macros.h"
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
@@ -60,31 +60,31 @@ class MatcherRegistry {
     return instance;
   }
 
-  void Register(const std::string& name, std::unique_ptr<MatcherBase>& mathcer) {
-    factories[name] = std::move(mathcer);
+  void Register(const std::string& name, std::function<std::unique_ptr<MatcherBase>()> matcher) {
+    factories[name] = std::move(matcher);
   }
 
   std::unique_ptr<MatcherBase> Create(const std::string& name) {
     if (factories.find(name) == factories.end()) {
       return nullptr;
     }
-    return std::move(factories[name]);
+    return factories[name]();
   }
 
  private:
-  std::unordered_map<std::string, std::unique_ptr<MatcherBase>> factories;
+  std::unordered_map<std::string, std::function<std::unique_ptr<MatcherBase>()>> factories;
 };
 
-#define REGISTER_MATCHER(NAME, TYPE)                                   \
-  namespace {                                                          \
-  struct Register##TYPE {                                              \
-   public:                                                             \
-    Register##TYPE() {                                                 \
-      std::unique_ptr<MatcherBase> matcher = std::make_unique<TYPE>(); \
-      MatcherRegistry::Get().Register(NAME, matcher);                  \
-    }                                                                  \
-  };                                                                   \
-  static Register##TYPE staticRegister##TYPE;                          \
+#define REGISTER_MATCHER(NAME, TYPE)                                                                \
+  namespace {                                                                                       \
+  struct Register##TYPE {                                                                           \
+   public:                                                                                          \
+    Register##TYPE() {                                                                              \
+      auto lambda_func = []() -> std::unique_ptr<MatcherBase> { return std::make_unique<TYPE>(); }; \
+      MatcherRegistry::Get().Register(NAME, lambda_func);                                           \
+    }                                                                                               \
+  };                                                                                                \
+  static Register##TYPE staticRegister##TYPE;                                                       \
   }
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

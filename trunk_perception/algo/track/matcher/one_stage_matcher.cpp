@@ -82,4 +82,6 @@ void OneStageMatcher::solve(std::vector<TrackObjectPair>* assignments, std::vect
                                 unassigned_tracks, unassigned_objects);
 }
 
+REGISTER_MATCHER("OneStageMatcher", OneStageMatcher)
+
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

@@ -53,4 +53,38 @@ class MatcherBase {
                     std::vector<size_t>* unassigned_objects) = 0;
 };
 
+class MatcherRegistry {
+ public:
+  static MatcherRegistry& Get() {
+    static MatcherRegistry instance;
+    return instance;
+  }
+
+  void Register(const std::string& name, std::unique_ptr<MatcherBase>& mathcer) {
+    factories[name] = std::move(mathcer);
+  }
+
+  std::unique_ptr<MatcherBase> Create(const std::string& name) {
+    if (factories.find(name) == factories.end()) {
+      return nullptr;
+    }
+    return std::move(factories[name]);
+  }
+
+ private:
+  std::unordered_map<std::string, std::unique_ptr<MatcherBase>> factories;
+};
+
+#define REGISTER_MATCHER(NAME, TYPE)                                   \
+  namespace {                                                          \
+  struct Register##TYPE {                                              \
+   public:                                                             \
+    Register##TYPE() {                                                 \
+      std::unique_ptr<MatcherBase> matcher = std::make_unique<TYPE>(); \
+      MatcherRegistry::Get().Register(NAME, matcher);                  \
+    }                                                                  \
+  };                                                                   \
+  static Register##TYPE staticRegister##TYPE;                          \
+  }
+
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

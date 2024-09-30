@@ -9,55 +9,77 @@
  *
  */
 
-#include "one_stage_matcher.h"
+#include "trunk_perception/algo/track/matcher/one_stage_matcher.h"
 #include "trunk_perception/tools/log/t_log.h"
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
 int OneStageMatcher::Init(const YAML::Node& config) {
-  solver_ptr_ = std::make_shared<AssignmentProblemSolver>();
-  distance_measurement_ptr_ = std::make_shared<ObjectDistanceMeasurement>();
+  try {
+    if (config["MatcherOptions"].IsDefined()) {
+      matcher_options_.cost_thresh = config["MatcherOptions"]["cost_thresh"].as<float>();
+      matcher_options_.bound_value = config["MatcherOptions"]["bound_value"].as<float>();
+    }
+  } catch (const std::exception& e) {
+    TFATAL << "[OneStageMatcher] LoadYAMLConfig failed! " << e.what();
+    return 1;
+  }
+
+  // distance measurement instantiation
+  distance_measurement_ptr_ = std::make_unique<ObjectDistanceMeasurement>();
   distance_measurement_ptr_->Init(config);
+
+  // hungarian matcher instantiation
+  hungarian_matcher_ptr_ = std::make_unique<GatedHungarianMatcher<float>>(1000);
+
   return 0;
 }
 
 int OneStageMatcher::Match(const std::vector<Tracklet>& objects_tracked, const std::vector<Object>& objects_detected,
-                           std::vector<int>& assignment) {
+                           std::vector<TrackObjectPair>* assignments, std::vector<size_t>* unassigned_tracks,
+                           std::vector<size_t>* unassigned_objects) {
   // compute cost matrix
-  std::vector<std::vector<double>> costs;
-  computeCostMatrix(objects_tracked, objects_detected, costs);
+  computeCostMatrix(objects_tracked, objects_detected);
 
   // optimizer solve
-  solve(costs, assignment);
+  solve(assignments, unassigned_tracks, unassigned_objects);
 
   return 0;
 }
 
 void OneStageMatcher::computeCostMatrix(const std::vector<Tracklet>& objects_tracked,
-                                        const std::vector<Object>& objects_detected,
-                                        std::vector<std::vector<double>>& costs) {
+                                        const std::vector<Object>& objects_detected) {
+  if (!hungarian_matcher_ptr_) {
+    TFATAL << "[OneStageMatcher.computeCostMatrix] hungarian_matcher_ptr_ is nullptr!";
+    return;
+  }
+
+  if (!distance_measurement_ptr_) {
+    TFATAL << "[OneStageMatcher.computeCostMatrix] distance_measurement_ptr_ is nullptr!";
+    return;
+  }
+
   const size_t sz_track = objects_tracked.size();
   const size_t sz_detect = objects_detected.size();
-  costs = std::vector<std::vector<double>>(sz_track, std::vector<double>(sz_detect, 1.0));
-
+  auto global_costs = hungarian_matcher_ptr_->mutable_global_costs();
+  global_costs->Resize(sz_track, sz_detect);
   for (size_t i = 0; i < sz_track; ++i) {
     for (size_t j = 0; j < sz_detect; ++j) {
-      costs[i][j] = distance_measurement_ptr_->ComputeDistance(objects_tracked[i], objects_detected[j]);
+      (*global_costs)(i, j) = distance_measurement_ptr_->ComputeDistance(objects_tracked[i], objects_detected[j]);
     }
   }
 }
 
-void OneStageMatcher::solve(const std::vector<std::vector<double>>& costs, std::vector<int>& assignment) {
-  assignment.clear();
-  if (costs.size() > 0) {
-    solver_ptr_->Solve(costs, assignment, AssignmentProblemSolver::optimal);
-
-    for (size_t i = 0; i < assignment.size(); ++i) {
-      if (assignment[i] == -1 || costs[i][assignment[i]] >= 0.99) {
-        assignment[i] = -1;
-      }
-    }
+void OneStageMatcher::solve(std::vector<TrackObjectPair>* assignments, std::vector<size_t>* unassigned_tracks,
+                            std::vector<size_t>* unassigned_objects) {
+  if (!hungarian_matcher_ptr_) {
+    TFATAL << "[OneStageMatcher.solve] hungarian_matcher_ptr_ is nullptr!";
+    return;
   }
+
+  const auto opt_flag = GatedHungarianMatcher<float>::OptimizeFlag::OPTMIN;
+  hungarian_matcher_ptr_->Match(matcher_options_.cost_thresh, matcher_options_.cost_thresh, opt_flag, assignments,
+                                unassigned_tracks, unassigned_objects);
 }
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

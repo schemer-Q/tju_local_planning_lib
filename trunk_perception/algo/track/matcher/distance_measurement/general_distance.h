@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "../../tracklet.h"
+#include "trunk_perception/algo/track/tracklet.h"
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 

@@ -11,9 +11,9 @@
 
 #pragma once
 
-#include "distance_measurement/object_distance_measurement.h"
-#include "hungarian/hungarian_algo.h"
-#include "matcher_base.h"
+#include "trunk_perception/algo/track/matcher/distance_measurement/object_distance_measurement.h"
+#include "trunk_perception/algo/track/matcher/graph/gated_hungarian_bigraph_matcher.h"
+#include "trunk_perception/algo/track/matcher/matcher_base.h"
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
@@ -33,36 +33,40 @@ class OneStageMatcher : virtual public MatcherBase {
   /**
    * @brief match objects detected and objects tracked
    *
-   * @param objects_detected detection objects
    * @param objects_tracked tracking objects
-   * @param assignment match result
+   * @param objects_detected detection objects
+   * @param assignments pair assigned tracking objects and detection objects
+   * @param unassigned_tracks unassigned tracking objects
+   * @param unassigned_objects unassigned detection objects
    * @return int
    */
   int Match(const std::vector<Tracklet>& objects_tracked, const std::vector<Object>& objects_detected,
-            std::vector<int>& assignment) override;
+            std::vector<TrackObjectPair>* assignments, std::vector<size_t>* unassigned_tracks,
+            std::vector<size_t>* unassigned_objects) override;
 
  private:
   /**
-   * @brief compute objects tracked and objects detected Cost Matrix
+   * @brief compute objects tracked and objects detected cost matrix
    *
    * @param objects_tracked current tracking objects
    * @param objects_detected current detection objects
-   * @param cost cost matrix
    */
-  void computeCostMatrix(const std::vector<Tracklet>& objects_tracked, const std::vector<Object>& objects_detected,
-                         std::vector<std::vector<double>>& cost);
+  void computeCostMatrix(const std::vector<Tracklet>& objects_tracked, const std::vector<Object>& objects_detected);
 
   /**
-   * @brief
+   * @brief solve assign result tracking objects and detection objects
    *
-   * @param cost
-   * @param assignment
+   * @param assignments pair assigned tracking objects and detection objects
+   * @param unassigned_tracks unassigned tracking objects
+   * @param unassigned_objects unassigned detection objects
    */
-  void solve(const std::vector<std::vector<double>>& cost, std::vector<int>& assignment);
+  void solve(std::vector<TrackObjectPair>* assignments, std::vector<size_t>* unassigned_tracks,
+             std::vector<size_t>* unassigned_objects);
 
  private:
-  std::shared_ptr<AssignmentProblemSolver> solver_ptr_ = nullptr;                  // optimizer solver
-  std::shared_ptr<ObjectDistanceMeasurement> distance_measurement_ptr_ = nullptr;  // object distance measurement
+  std::unique_ptr<ObjectDistanceMeasurement> distance_measurement_ptr_ = nullptr;
+  std::unique_ptr<GatedHungarianMatcher<float>> hungarian_matcher_ptr_ = nullptr;
+  MatcherOptions matcher_options_;
 };
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

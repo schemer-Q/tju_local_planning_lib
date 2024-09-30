@@ -13,10 +13,17 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "../tracklet.h"
+#include "trunk_perception/algo/track/tracklet.h"
 #include "trunk_perception/common/macros.h"
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
+
+typedef std::pair<size_t, size_t> TrackObjectPair;
+
+struct MatcherOptions {
+  float cost_thresh = 0.99F;
+  float bound_value = 1.0F;
+};
 
 class MatcherBase {
  public:
@@ -34,13 +41,16 @@ class MatcherBase {
   /**
    * @brief match objects detected and objects tracked
    *
-   * @param objects_detected detection objects
    * @param objects_tracked tracking objects
-   * @param assignment match result
+   * @param objects_detected detection objects
+   * @param assignments pair assigned tracking objects and detection objects
+   * @param unassigned_tracks unassigned tracking objects
+   * @param unassigned_objects unassigned detection objects
    * @return int
    */
   virtual int Match(const std::vector<Tracklet>& objects_tracked, const std::vector<Object>& objects_detected,
-                    std::vector<int>& assignment) = 0;
+                    std::vector<TrackObjectPair>* assignments, std::vector<size_t>* unassigned_tracks,
+                    std::vector<size_t>* unassigned_objects) = 0;
 };
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

@@ -9,9 +9,9 @@
  *
  */
 
-#include "object_distance_measurement.h"
-#include "../../common/geometric_algo.h"
-#include "general_distance.h"
+#include "trunk_perception/algo/track/matcher/distance_measurement/object_distance_measurement.h"
+#include "trunk_perception/algo/track/common/geometric_algo.h"
+#include "trunk_perception/algo/track/matcher/distance_measurement/general_distance.h"
 #include "trunk_perception/tools/log/t_log.h"
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN

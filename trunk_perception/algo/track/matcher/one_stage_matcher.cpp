@@ -78,7 +78,7 @@ void OneStageMatcher::solve(std::vector<TrackObjectPair>* assignments, std::vect
   }
 
   const auto opt_flag = GatedHungarianMatcher<float>::OptimizeFlag::OPTMIN;
-  hungarian_matcher_ptr_->Match(matcher_options_.cost_thresh, matcher_options_.cost_thresh, opt_flag, assignments,
+  hungarian_matcher_ptr_->Match(matcher_options_.cost_thresh, matcher_options_.bound_value, opt_flag, assignments,
                                 unassigned_tracks, unassigned_objects);
 }
 

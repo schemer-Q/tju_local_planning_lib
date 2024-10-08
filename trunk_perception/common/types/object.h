@@ -24,7 +24,7 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
 /**
  * @brief 物体类型
- * 
+ *
  */
 enum class ObjectType : std::uint8_t {
   UNKNOWN = 0,
@@ -82,7 +82,7 @@ static std::unordered_map<ObjectType, std::string> ObjectTypeDict = {
 
 /**
  * @brief 检测器类型
- * 
+ *
  */
 enum class DetectorType {
   UNKNOWN = 0,
@@ -93,7 +93,7 @@ enum class DetectorType {
 
 /**
  * @brief 检测器类型字典
- * 
+ *
  */
 static std::unordered_map<DetectorType, std::string> DetectorTypeDict = {
     {DetectorType::LidarModel, "LidarModel"},
@@ -103,11 +103,10 @@ static std::unordered_map<DetectorType, std::string> DetectorTypeDict = {
 
 /**
  * @brief L形特征类
- * 
+ *
  */
 struct alignas(16) LShapeFeature {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   Eigen::Vector2d center_point = Eigen::Vector2d::Zero();     ///< 中心点
   Eigen::Vector2d reference_point = Eigen::Vector2d::Zero();  ///< 最近角点
   Eigen::Vector3d shape = Eigen::Vector3d::Zero();            ///< L1、L2、theta_L1
@@ -115,16 +114,16 @@ struct alignas(16) LShapeFeature {
 
 /**
  * @brief 检测框类
- * 
+ *
  */
 struct BoundingBox {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  Eigen::Vector3f direction = Eigen::Vector3f(1, 0, 0);   ///< 主方向, [x,y,z], 默认[1, 0, 0]表示x轴
-  float theta = 0.0f;                                     ///< 偏航角, [rad]
-  Eigen::Vector3f center = Eigen::Vector3f(0, 0, 0);      ///< 中心点, [m]
-  Eigen::Vector3f size = Eigen::Vector3f(0, 0, 0);        ///< 尺寸, [m]
-  Eigen::Matrix<float, 2, 4> corners2d = Eigen::Matrix<float, 2, 4>::Zero();   ///< 2D 角点, [x,y]
+  Eigen::Vector3f direction = Eigen::Vector3f(1, 0, 0);  ///< 主方向, [x,y,z], 默认[1, 0, 0]表示x轴
+  float theta = 0.0f;                                    ///< 偏航角, [rad]
+  Eigen::Vector3f center = Eigen::Vector3f(0, 0, 0);     ///< 中心点, [m]
+  Eigen::Vector3f size = Eigen::Vector3f(0, 0, 0);       ///< 尺寸, [m]
+  Eigen::Matrix<float, 2, 4> corners2d = Eigen::Matrix<float, 2, 4>::Zero();  ///< 2D 角点, [x,y]
 
   BoundingBox() = default;
   BoundingBox(float x_, float y_, float z_, float l_, float w_, float h_, float rt_)
@@ -133,25 +132,33 @@ struct BoundingBox {
 
 /**
  * @brief 物体类
- * 
+ *
  */
 struct alignas(32) Object {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  int detect_id = -1; ///< 检测器给出的物体ID，给不了的设置为-1
-  double timestamp = 0.0; ///< 时间戳，单位为秒
+  int detect_id = -1;                                  ///< 检测器给出的物体ID，给不了的设置为-1
+  double timestamp = 0.0;                              ///< 时间戳，单位为秒
   DetectorType detector_type = DetectorType::UNKNOWN;  ///< 检测器类型
   BoundingBox bbox;                                    ///< 物体检测框
   Eigen::VectorXf type_probs;                          ///< 物体类型概率
   float confidence = 0.0f;                             ///< 置信度
   ObjectType type = ObjectType::UNKNOWN;               ///< 物体类型
-                                                       
-  PointCloudPtr points_ptr = nullptr;                  ///< 物体点云指针
-                                                       
-  LShapeFeature lshape_feature;                       ///< L形特征
+
+  PointCloudPtr points_ptr = nullptr;  ///< 物体点云指针
+
+  LShapeFeature l_shape_feature;  ///< L形特征
 
   Eigen::Matrix3Xf convex_polygon = Eigen::Matrix3Xf::Zero(3, 0);  ///< 凸包
 
+  // track param
+  size_t track_id = 0UL;                                       ///< track id
+  size_t lifetime = 0UL;                                       ///< track lifetime
+  int consecutive_lost = 0;                                    ///< consecutive lost number
+  Eigen::Vector3f velocity = Eigen::Vector3f::Zero();          ///< object velocity
+  Eigen::Vector3f acceleration = Eigen::Vector3f::Zero();      ///< object acceleration
+  Eigen::Vector3f track_point = Eigen::Vector3f::Zero();       ///< track point
+  Eigen::Matrix4f state_covariance = Eigen::Matrix4f::Zero();  ///< state covariance matrix
 };
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END

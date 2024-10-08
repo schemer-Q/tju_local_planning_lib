@@ -11,3 +11,8 @@ Sensors:
     SubTypes: ["origin", "undistorted"]
     BufferSize: 5
     MaxTimeDelay: 0.3
+Others:
+  - Type: "ODOMETRY"
+    Name: "ODOMETRY"
+    BufferSize: 200
+    MaxTimeDelay: 0.04

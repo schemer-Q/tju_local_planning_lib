@@ -2,3 +2,4 @@
 build/*
 doxygen/*
 .vscode/*
+make_install.sh

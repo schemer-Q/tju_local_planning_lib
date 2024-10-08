@@ -12,8 +12,8 @@
 #pragma once
 
 #include "trunk_perception/common/macros.h"
-#include "trunk_perception/common/types/point.h"
 #include "trunk_perception/common/types/object.h"
+#include "trunk_perception/common/types/point.h"
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
@@ -23,9 +23,11 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
  */
 struct OdLidarFrame {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  double timestamp = 0.0; ///< 时间戳, 单位为秒
-  PointCloudConstPtr pointcloud = nullptr; ///< 点云数据
+  double timestamp = 0.0;                   ///< 时间戳, 单位为秒
+  PointCloudConstPtr pointcloud = nullptr;  ///< 点云数据
   std::vector<Object> detected_objects;
+  Eigen::Isometry3f tf = Eigen::Isometry3f::Identity();
+  std::vector<Object> tracked_objects;
 };
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END

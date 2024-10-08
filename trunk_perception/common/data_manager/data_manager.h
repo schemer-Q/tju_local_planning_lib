@@ -23,6 +23,8 @@
 #include "trunk_perception/tools/log/t_log.h"
 #include "trunk_perception/tools/system/utils.hpp"
 #include "trunk_perception/common/data_manager/data_wrapper/od_lidar_frame.h"
+#include "trunk_perception/common/data_manager/data_wrapper/ld_frame.h"
+
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
 enum SensorType {
@@ -72,12 +74,26 @@ class DataManager {
 
   std::shared_ptr<CameraInfo> getCameraIntrinsics(const std::string& sensor_name) const;
 
+  uint32_t getMetaInfo(const std::string& sensor_name, std::shared_ptr<CameraMetaInfo>& meta);
+
+  std::shared_ptr<CameraUndistort> getCameraUndistort(const std::string& sensor_name);
+
+  std::shared_ptr<StandardCameraProjection> getCameraProjection(const std::string& sensor_name);
+
   void updateOdLidarFrame(const std::shared_ptr<OdLidarFrame>& od_lidar_frame) {
     od_lidar_frame_ = od_lidar_frame;
   }
 
   std::shared_ptr<OdLidarFrame> getOdLidarFrame() const {
     return od_lidar_frame_;
+  }
+
+  void updateLdFrame(const std::shared_ptr<LDFrame>& ld_frame) {
+    ld_frame_ = ld_frame;
+  }
+
+  std::shared_ptr<LDFrame> getLdFrame() const {
+    return ld_frame_;
   }
 
  private:
@@ -90,6 +106,7 @@ class DataManager {
 
   // 多线程任务共享数据
   std::shared_ptr<OdLidarFrame> od_lidar_frame_ = nullptr;
+  std::shared_ptr<LDFrame> ld_frame_ = nullptr;
 };
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
@@ -173,6 +190,32 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
  */
 #define GET_CAMERA_INTRINSICS(sensor_name) DATA_MANAGER.getCameraIntrinsics(sensor_name)
 
+
+/**
+ * @def GET_META_INFO
+ * @brief 获取传感器元数据，线程不安全
+ * @param sensor_name 传感器名称
+ * @param meta 传感器元数据
+ * @return 错误码
+ */
+#define GET_META_INFO(sensor_name, meta) DATA_MANAGER.getMetaInfo(sensor_name, meta)
+
+/**
+ * @def GET_CAMERA_UNDISTORT
+ * @brief 获取相机去畸变工具，线程不安全
+ * @param sensor_name 传感器名称
+ * @return 相机去畸变工具
+ */
+#define GET_CAMERA_UNDISTORT(sensor_name) DATA_MANAGER.getCameraUndistort(sensor_name)
+
+/**
+ * @def GET_CAMERA_PROJECTION
+ * @brief 获取相机投影工具，线程不安全
+ * @param sensor_name 传感器名称
+ * @return 相机投影工具
+ */
+#define GET_CAMERA_PROJECTION(sensor_name) DATA_MANAGER.getCameraProjection(sensor_name)
+
 /**
  * @def UPDATE_OD_LIDAR_FRAME
  * @brief 更新od lidar帧，线程不安全
@@ -186,3 +229,17 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
  * @return od lidar帧
  */
 #define GET_OD_LIDAR_FRAME() DATA_MANAGER.getOdLidarFrame()
+
+/**
+ * @def UPDATE_LD_FRAME
+ * @brief 更新ld帧，线程不安全
+ * @param ld_frame ld帧
+ */
+#define UPDATE_LD_FRAME(ld_frame) DATA_MANAGER.updateLdFrame(ld_frame)
+
+/**
+ * @def GET_LD_FRAME
+ * @brief 获取ld帧，线程不安全
+ * @return ld帧
+ */
+#define GET_LD_FRAME() DATA_MANAGER.getLdFrame()

@@ -11,29 +11,18 @@
 
 #pragma once
 
+#include <memory>
 #include <opencv2/opencv.hpp>
 
 #include "trunk_perception/common/data_manager/data_wrapper/image_data.h"
 #include "trunk_perception/common/data_manager/sensor_wrapper/base.h"
 #include "trunk_perception/common/macros.h"
+#include "trunk_perception/common/tools/camera_undistort.hpp"
+#include "trunk_perception/common/tools/standard_camera_projection.hpp"
+#include "trunk_perception/common/types/camera_info.h"
 #include "trunk_perception/common/types/image.h"
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
-
-struct CameraInfo {
- public:
-  int IMG_W;
-  int IMG_H;
-  double fx;
-  double fy;
-  double cx;
-  double cy;
-  cv::Mat K;
-  cv::Mat D;
-
-  typedef std::shared_ptr<CameraInfo> Ptr;
-  typedef std::shared_ptr<const CameraInfo> ConstPtr;
-};
 
 class CameraMetaInfo {
  public:
@@ -119,6 +108,8 @@ class Camera : public SensorWrapper<Image, ImageData, CameraMetaInfo> {
       return ErrorCode::UNINITIALIZED;
     }
     meta_ = meta;
+    initProjection();
+    initUndistort();
     return ErrorCode::SUCCESS;
   }
 
@@ -157,6 +148,8 @@ class Camera : public SensorWrapper<Image, ImageData, CameraMetaInfo> {
       TERROR << "Camera: " << name_ << " updateMeta failed for name not found.";
       return ErrorCode::PARAMETER_ERROR;
     }
+    initProjection();
+    initUndistort();
     return ErrorCode::SUCCESS;
   }
 
@@ -183,8 +176,27 @@ class Camera : public SensorWrapper<Image, ImageData, CameraMetaInfo> {
    */
   uint32_t setPose(const Eigen::Isometry3f& pose) override {
     meta_->pose_ptr = std::make_shared<Eigen::Isometry3f>(pose);
+    initProjection();
     return ErrorCode::SUCCESS;
   }
+
+  void initProjection() {
+    if (camera_projection_) return;
+    if (meta_ && meta_->camera_info_ptr && meta_->pose_ptr) {
+      camera_projection_ = std::make_shared<StandardCameraProjection>(*meta_->camera_info_ptr, *meta_->pose_ptr);
+    }
+  }
+
+  void initUndistort() {
+    if (camera_undistort_) return;
+    if (meta_ && meta_->camera_info_ptr) {
+      camera_undistort_ = std::make_shared<CameraUndistort>(*meta_->camera_info_ptr);
+    }
+  }
+
+  std::shared_ptr<CameraUndistort> getUndistort() { return camera_undistort_; }
+
+  std::shared_ptr<StandardCameraProjection> getProjection() { return camera_projection_; }
 
   /**
    * @brief 获取传感器位姿, 线程不安全
@@ -207,6 +219,8 @@ class Camera : public SensorWrapper<Image, ImageData, CameraMetaInfo> {
   std::vector<std::string> types_;                                     ///< 图像类型, 如: orig, undistorted, etc.
   std::unordered_map<std::string, ImageDataBufferPtr> m_type_buffer_;  ///< 图像数据缓冲区
   std::shared_ptr<CameraMetaInfo> meta_;                               ///< 传感器元数据
+  std::shared_ptr<StandardCameraProjection> camera_projection_ = nullptr;  ///< 相机投影工具
+  std::shared_ptr<CameraUndistort> camera_undistort_ = nullptr;                     ///< 相机去畸变工具
 };
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END

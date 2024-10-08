@@ -6,6 +6,8 @@ file(READ "${CMAKE_CURRENT_LIST_DIR}/config.json" config_json)
 string(JSON project_version GET ${config_json} project version)
 string(JSON sdk_lidarnetsdk_version GET ${config_json} project dependencies sdk lidarnetsdk version)
 string(JSON sdk_lidarnetsdk_enable GET ${config_json} project dependencies sdk lidarnetsdk enable)
+string(JSON sdkbevlaneconedethighway_version GET ${config_json} project dependencies sdk sdkbevlaneconedethighway version)
+string(JSON sdkbevlaneconedethighway_enable GET ${config_json} project dependencies sdk sdkbevlaneconedethighway enable)
 
 project(trunk_perception
         VERSION ${project_version}

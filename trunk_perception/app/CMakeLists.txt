@@ -1,2 +1,4 @@
 add_subdirectory(lidar_preprocess)
+add_subdirectory(camera_preprocess)
 add_subdirectory(object_detection_lidar)
+add_subdirectory(lane_detection)

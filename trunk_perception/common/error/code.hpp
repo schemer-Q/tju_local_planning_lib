@@ -33,8 +33,14 @@ enum ErrorCode : uint32_t {
   SENSOR_DATA_TYPE_NOT_FOUND = 20,
   SENSOR_POSE_NOT_FOUND = 21,
   POINT_CLOUD_INVALID = 22,
+  IMAGE_DATA_INVALID = 23,
   // Object Detection Lidar 错误 [30-39]
   LIDAR_NET_SDK_INIT_FAILED = 30,
+  // 车道线检测错误 [40-49]
+  LANE_DETECTOR_INIT_CAMERA_PARAMS_FAILED = 40,
+  LANE_DETECTOR_SDK_INIT_FAILED = 41,
+  LANE_DETECTOR_SDK_INFER_FAILED = 42,
+
 };
 
 const std::unordered_map<ErrorCode, std::string> error_code_to_string = {
@@ -49,7 +55,11 @@ const std::unordered_map<ErrorCode, std::string> error_code_to_string = {
     {ErrorCode::SENSOR_DATA_TYPE_NOT_FOUND, "SENSOR_DATA_TYPE_NOT_FOUND"},
     {ErrorCode::SENSOR_POSE_NOT_FOUND, "SENSOR_POSE_NOT_FOUND"},
     {ErrorCode::POINT_CLOUD_INVALID, "POINT_CLOUD_INVALID"},
+    {ErrorCode::IMAGE_DATA_INVALID, "IMAGE_DATA_INVALID"},
     {ErrorCode::LIDAR_NET_SDK_INIT_FAILED, "LIDAR_NET_SDK_INIT_FAILED"},
+    {ErrorCode::LANE_DETECTOR_INIT_CAMERA_PARAMS_FAILED, "LANE_DETECTOR_INIT_CAMERA_PARAMS_FAILED"},
+    {ErrorCode::LANE_DETECTOR_SDK_INIT_FAILED, "LANE_DETECTOR_SDK_INIT_FAILED"},
+    {ErrorCode::LANE_DETECTOR_SDK_INFER_FAILED, "LANE_DETECTOR_SDK_INFER_FAILED"},
 };
 
 [[__maybe_unused__]] static std::string get_error_code_string(const ErrorCode& error_code) {

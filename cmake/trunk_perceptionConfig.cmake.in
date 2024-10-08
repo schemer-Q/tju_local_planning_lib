@@ -8,5 +8,7 @@ set(TRUNK_PERCEPTION_LIBRARIES
   trunk_perception_common
   trunk_perception_log
   trunk_perception_app_lidar_preprocess
+  trunk_perception_app_camera_preprocess
   trunk_perception_app_object_detection_lidar
+  trunk_perception_app_lane_detection
 )

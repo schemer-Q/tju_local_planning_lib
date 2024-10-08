@@ -195,4 +195,29 @@ std::shared_ptr<CameraInfo> DataManager::getCameraIntrinsics(const std::string& 
   return meta->camera_info_ptr;
 }
 
+uint32_t DataManager::getMetaInfo(const std::string& sensor_name, std::shared_ptr<CameraMetaInfo>& meta) {
+  if (cameras_.find(sensor_name) == cameras_.end()) {
+    TERROR << "Sensor " << sensor_name << " does not exist.";
+    return ErrorCode::PARAMETER_ERROR;
+  }
+  return cameras_[sensor_name]->getMeta(meta);
+}
+
+std::shared_ptr<CameraUndistort> DataManager::getCameraUndistort(const std::string& sensor_name) {
+  if (cameras_.find(sensor_name) == cameras_.end()) {
+    TERROR << "Sensor " << sensor_name << " does not exist.";
+    return nullptr;
+  }
+  return cameras_[sensor_name]->getUndistort();
+}
+
+std::shared_ptr<StandardCameraProjection> DataManager::getCameraProjection(const std::string& sensor_name) {
+  if (cameras_.find(sensor_name) == cameras_.end()) {
+    TERROR << "Sensor " << sensor_name << " does not exist.";
+    return nullptr;
+  }
+  return cameras_[sensor_name]->getProjection();
+}
+
+
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END

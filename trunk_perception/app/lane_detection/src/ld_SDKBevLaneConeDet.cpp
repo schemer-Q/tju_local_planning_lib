@@ -285,30 +285,15 @@ uint32_t LaneDetectorSDKBevLaneConeDet::InitCameraParams() {
   }
 
   Eigen::Quaternionf quat(meta->pose_ptr->rotation());
-  camera_param_->Quaternion[0] = quat.w();
-  camera_param_->Quaternion[1] = quat.x();
-  camera_param_->Quaternion[2] = quat.y();
-  camera_param_->Quaternion[3] = quat.z();
+  camera_param_->Quaternion[0] = quat.x();
+  camera_param_->Quaternion[1] = quat.y();
+  camera_param_->Quaternion[2] = quat.z();
+  camera_param_->Quaternion[3] = quat.w();
   camera_param_->x = meta->pose_ptr->translation().x();
   camera_param_->y = meta->pose_ptr->translation().y();
   camera_param_->z = meta->pose_ptr->translation().z();
   camera_param_->image_height = meta->camera_info_ptr->IMG_H;
   camera_param_->image_width = meta->camera_info_ptr->IMG_W;
-
-  // // debug: print camera_param_
-  // TINFO << "camera_param_->Intrinsic: " << camera_param_->Intrinsic[0] << ", " << camera_param_->Intrinsic[1] << ", "
-  //       << camera_param_->Intrinsic[2] << ", " << camera_param_->Intrinsic[3] << ", " << camera_param_->Intrinsic[4] << ", "
-  //       << camera_param_->Intrinsic[5] << ", " << camera_param_->Intrinsic[6] << ", " << camera_param_->Intrinsic[7] << ", "
-  //       << camera_param_->Intrinsic[8];
-  // TINFO << "camera_param_->DistortionFactor: " << camera_param_->DistortionFactor[0] << ", "
-  //       << camera_param_->DistortionFactor[1] << ", " << camera_param_->DistortionFactor[2] << ", "
-  //       << camera_param_->DistortionFactor[3] << ", " << camera_param_->DistortionFactor[4];
-  // TINFO << "camera_param_->Quaternion: " << camera_param_->Quaternion[0] << ", " << camera_param_->Quaternion[1] << ", "
-  //       << camera_param_->Quaternion[2] << ", " << camera_param_->Quaternion[3];
-  // TINFO << "camera_param_->x: " << camera_param_->x << ", camera_param_->y: " << camera_param_->y << ", camera_param_->z: "
-  //       << camera_param_->z;
-  // TINFO << "camera_param_->image_height: " << camera_param_->image_height
-  //       << ", camera_param_->image_width: " << camera_param_->image_width;
 
   camera_undistort_ = GET_CAMERA_UNDISTORT(name_);
   if (!camera_undistort_) {

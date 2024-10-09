@@ -59,6 +59,14 @@ std::uint32_t OdLidarPostProcessSany::Run(const double& ts) {
     return ret;
   }
 
+  // 计算前后帧变换TF
+  if (last_odometry_ptr_) {
+    frame->tf = calculateTransformMatrix(last_odometry_ptr_, odometry_data_ptr->data);
+  } else {
+    frame->tf = Eigen::Isometry3f::Identity();
+  }
+  last_odometry_ptr_ = odometry_data_ptr->data;
+
   // track
   if (track_switch_) {
     tracker_->Track(frame);

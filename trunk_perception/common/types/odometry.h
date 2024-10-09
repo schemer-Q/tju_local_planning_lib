@@ -11,17 +11,28 @@
 
 #pragma once
 
+#include <memory>
 #include <Eigen/Geometry>
+#include "trunk_perception/common/macros.h"
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
+/**
+ * @brief 里程计数据
+ * 
+ */
 struct Odometry {
   double time = 0.0;
-  Eigen::Vector3d position;        // 位置
-  Eigen::Quaterniond orientation;  // 姿态
-  Eigen::Vector3d linear;          // 线速度
-  Eigen::Vector3d angular;         // 角速度
+  Eigen::Vector3d position;        ///< 位置
+  Eigen::Quaterniond orientation;  ///< 姿态
+  Eigen::Vector3d linear;          ///< 线速度
+  Eigen::Vector3d angular;         ///< 角速度
 
+  /**
+   * @brief 返回位姿矩阵
+   * 
+   * @return Eigen::Matrix4d 
+   */
   Eigen::Matrix4d Matrix() const {
     Eigen::Matrix4d mat = Eigen::Matrix4d::Identity();
     mat.block<3, 3>(0, 0) = orientation.matrix();

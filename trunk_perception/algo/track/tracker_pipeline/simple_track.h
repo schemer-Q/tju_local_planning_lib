@@ -23,6 +23,7 @@ struct SimpleTrackParams {
   int min_lifetime_output = 3;
   int max_consecutive_lost_num = 5;
   int min_consecutive_valid_num = 3;
+  std::vector<float> origin_xy_offset = {0.0F, 0.0F};
   std::string matcher_method = "";
   std::string traker_method = "";
   YAML::Node traker_params;

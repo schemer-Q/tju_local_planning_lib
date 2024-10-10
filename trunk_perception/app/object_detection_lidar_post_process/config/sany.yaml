@@ -7,6 +7,7 @@ Config:
       min_lifetime_output: 3
       max_consecutive_lost_num: 5
       min_consecutive_valid_num: 3
+      origin_xy_offset: [16.0, 2.0] # [x方向的矢量偏移量，y方向的绝对值偏移量]
       IDManager:
         start_id: 1
         max_id: 1000

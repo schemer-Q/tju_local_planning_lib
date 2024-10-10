@@ -53,6 +53,8 @@ int SimpleTrack::Init(const YAML::Node& config) {
 }
 
 int SimpleTrack::Track(std::shared_ptr<OdLidarFrame>& frame) {
+  // detection objects preprocess
+  preprocess(frame->detected_objects);
   const auto& objects_detected = frame->detected_objects;
 
   // Transform to current frame
@@ -80,6 +82,38 @@ int SimpleTrack::Track(std::shared_ptr<OdLidarFrame>& frame) {
   outputTrackResult(frame->tracked_objects);
 
   return 0;
+}
+
+void SimpleTrack::preprocess(std::vector<Object>& objects) {
+  for (auto& object : objects) {
+    auto& bbox = object.bbox;
+
+    // 按距离从最近点重新排列角点
+    int nearest_id = 0;
+    bbox.corners2d.colwise().squaredNorm().minCoeff(&nearest_id);
+    if (nearest_id != 0) {
+      const auto temp = bbox.corners2d;
+      const int sz = bbox.corners2d.cols();
+      for (int i = 0; i < sz; ++i) {
+        bbox.corners2d.col(i) = temp.col((nearest_id + i) % sz);
+      }
+    }
+
+    // 计算bbox航向向量
+    object.bbox.direction << std::cos(object.bbox.theta), std::sin(object.bbox.theta), 0.0f;
+
+    // 计算LShape feature
+    computeLShapeFeature(object.bbox, object.l_shape_feature);
+
+    // output tracking point to display
+    object.track_point = Eigen::Vector3f::Zero();
+    if (params_.traker_method == "NearestCornerTrackerCV") {
+      object.track_point.head(2) = object.l_shape_feature.reference_point.cast<float>();
+    } else {
+      TFATAL << "[SimpleTrack] traker_method is error!";
+      return;
+    }
+  }
 }
 
 void SimpleTrack::transformToCurrentFrame(const Eigen::Isometry3f& tf) {

@@ -29,8 +29,8 @@ void computeLShapeFeature(const BoundingBox& bbox, LShapeFeature& shape_feature)
 /**
  * @brief 计算两个多边形之间的重叠率
  *
- * @param polygon1 多变型1
- * @param polygon2 多变型2
+ * @param polygon1 多边形1
+ * @param polygon2 多边形2
  * @param scale 分辨率
  * @return double 重叠率
  */

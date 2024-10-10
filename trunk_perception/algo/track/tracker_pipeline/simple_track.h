@@ -23,7 +23,6 @@ struct SimpleTrackParams {
   int min_lifetime_output = 3;
   int max_consecutive_lost_num = 5;
   int min_consecutive_valid_num = 3;
-  std::vector<float> origin_xy_offset = {0.0F, 0.0F};
   std::string matcher_method = "";
   std::string traker_method = "";
   YAML::Node traker_params;
@@ -58,6 +57,13 @@ class SimpleTrack : virtual public TrackerPipelineInterface {
   inline void SetIDManager(const IDManagerPtr& id_manager_ptr) override { id_manager_ptr_ = id_manager_ptr; }
 
  private:
+  /**
+   * @brief detection objects preprocess
+   *
+   * @param objects detection objects
+   */
+  void preprocess(std::vector<Object>& objects);
+
   /**
    * @brief transform tracker parameters from previous frame to current frame
    *

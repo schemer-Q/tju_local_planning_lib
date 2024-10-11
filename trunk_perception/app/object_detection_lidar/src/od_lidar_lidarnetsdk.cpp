@@ -138,6 +138,10 @@ std::uint32_t OdLidarLidarNetSdk::Run(const double& ts) {
     obj.type_probs = bbox.type_probs;
     obj.confidence = bbox.confidence;
     obj.type = ConvertSDKObjectType(bbox.type);
+    obj.convex_polygon.resize(3, bbox.corners2d.cols());
+    for (auto i = 0; i < bbox.corners2d.cols(); ++i) {
+      obj.convex_polygon.col(i) << bbox.corners2d(0, i), bbox.corners2d(1, i), 0.0F;
+    }
     od_lidar_frame->detected_objects.emplace_back(obj);
   }
 
@@ -147,8 +151,6 @@ std::uint32_t OdLidarLidarNetSdk::Run(const double& ts) {
   return ErrorCode::SUCCESS;
 }
 
-std::any OdLidarLidarNetSdk::GetData(const std::string& key) {
-  return nullptr;
-}
+std::any OdLidarLidarNetSdk::GetData(const std::string& key) { return nullptr; }
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

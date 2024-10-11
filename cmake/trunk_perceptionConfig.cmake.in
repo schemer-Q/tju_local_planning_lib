@@ -11,4 +11,5 @@ set(TRUNK_PERCEPTION_LIBRARIES
   trunk_perception_app_camera_preprocess
   trunk_perception_app_object_detection_lidar
   trunk_perception_app_lane_detection
+  trunk_perception_app_lane_detection_post
 )

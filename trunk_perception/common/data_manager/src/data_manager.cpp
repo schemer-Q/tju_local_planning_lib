@@ -154,7 +154,7 @@ uint32_t DataManager::push(const std::string& sensor_name, const std::string& da
 uint32_t DataManager::push(const double& timestamp, const std::shared_ptr<Odometry>& data) {
   if (!odometry_data_buffer_) {
     TFATAL << "Odometry data buffer is nullptr.";
-    return ErrorCode::PARAMETER_ERROR;
+    return ErrorCode::UNINITIALIZED;
   }
 
   if (!data) {
@@ -186,7 +186,7 @@ uint32_t DataManager::extractByTime(const std::string& sensor_name, const std::s
 uint32_t DataManager::extractByTime(const double& timestamp, std::shared_ptr<OdometryData>& data) {
   if (!odometry_data_buffer_) {
     TFATAL << "Odometry data buffer is nullptr.";
-    return ErrorCode::PARAMETER_ERROR;
+    return ErrorCode::UNINITIALIZED;
   }
 
   data = std::make_shared<OdometryData>();

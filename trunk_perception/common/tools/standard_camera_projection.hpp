@@ -58,6 +58,10 @@ class StandardCameraProjection {
     return img_point;
   }
 
+  bool IsPointInView(const cv::Point2f& img_point) const {
+    return img_point.x >= 0 && img_point.x < camera_info_.IMG_W && img_point.y >= 0 && img_point.y < camera_info_.IMG_H;
+  }
+
  private:
   Eigen::Matrix3f K_matrix_;
   CameraInfo camera_info_;

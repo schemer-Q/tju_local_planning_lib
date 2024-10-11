@@ -40,7 +40,9 @@ enum ErrorCode : uint32_t {
   LANE_DETECTOR_INIT_CAMERA_PARAMS_FAILED = 40,
   LANE_DETECTOR_SDK_INIT_FAILED = 41,
   LANE_DETECTOR_SDK_INFER_FAILED = 42,
-
+  // 车道线跟踪错误 [50-59]
+  LANE_TRACKER_INIT_FAILED = 50,
+  LANE_TRACKER_ODOMETRY_NOT_FOUND = 51,
 };
 
 const std::unordered_map<ErrorCode, std::string> error_code_to_string = {
@@ -60,6 +62,8 @@ const std::unordered_map<ErrorCode, std::string> error_code_to_string = {
     {ErrorCode::LANE_DETECTOR_INIT_CAMERA_PARAMS_FAILED, "LANE_DETECTOR_INIT_CAMERA_PARAMS_FAILED"},
     {ErrorCode::LANE_DETECTOR_SDK_INIT_FAILED, "LANE_DETECTOR_SDK_INIT_FAILED"},
     {ErrorCode::LANE_DETECTOR_SDK_INFER_FAILED, "LANE_DETECTOR_SDK_INFER_FAILED"},
+    {ErrorCode::LANE_TRACKER_INIT_FAILED, "LANE_TRACKER_INIT_FAILED"},
+    {ErrorCode::LANE_TRACKER_ODOMETRY_NOT_FOUND, "LANE_TRACKER_ODOMETRY_NOT_FOUND"},
 };
 
 [[__maybe_unused__]] static std::string get_error_code_string(const ErrorCode& error_code) {

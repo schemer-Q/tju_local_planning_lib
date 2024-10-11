@@ -1,6 +1,6 @@
 #include "trunk_perception/app/lane_detection/algo/MathUtil.h"
+#include <Eigen/Dense>
 #include "trunk_perception/tools/log/t_log.h"
-
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 
@@ -53,9 +53,62 @@ bool PolyFitting(const std::vector<float>& xs, const std::vector<float>& ys, con
   cv::Mat mat_k = cv::Mat::zeros(x_num, 1, CV_64F);
   mat_k = (mat_u.t() * mat_u).inv() * mat_u.t() * mat_y;
   out = mat_k;
-  
+
   return true;
 }
+
+std::vector<PolynomialCoefficients> FitParallelLines(const std::vector<std::vector<std::pair<float, float>>>& points,
+                                                     bool weighted, int poly_num) {
+  int num_lines = points.size();
+  int num_pts = 0;
+  for (const auto& pts : points) {
+    num_pts += pts.size();
+  }
+
+  Eigen::MatrixXd X(num_pts, num_lines + poly_num);  // Design matrix
+  Eigen::VectorXd Y(num_pts);                        // Response vector
+  Eigen::VectorXd weights(num_pts);                  // Weights vector
+
+  // Fill in the design matrix
+  int tmp_pt_idx = 0;
+  for (size_t line_idx = 0; line_idx < points.size(); ++line_idx) {
+    const auto& line_pts = points[line_idx];
+    for (const auto pt : line_pts) {
+      float x = pt.first;
+      float y = pt.second;
+      X.row(tmp_pt_idx).setZero();
+      X(tmp_pt_idx, line_idx) = 1;
+      float multiply_x = x;
+      for (int i = 0; i < poly_num; i++) {
+        X(tmp_pt_idx, num_lines + i) = multiply_x;
+        multiply_x *= x;
+      }
+
+      Y(tmp_pt_idx) = y;
+      if (weighted) {
+        weights(tmp_pt_idx) = 1;
+      } else {
+        weights(tmp_pt_idx) = 0.2 * 1.0 / (1.0 + std::abs(x * x)) + 0.8 * 1.0 / (1.0 + std::abs(y * y));
+      }
+      tmp_pt_idx += 1;
+    }
+  }
+  Eigen::MatrixXd W = weights.asDiagonal();
+  Eigen::MatrixXd WX = W * X;
+  Eigen::VectorXd WY = W * Y;
+  Eigen::VectorXd result = (WX.transpose() * WX).ldlt().solve(WX.transpose() * WY);
+
+  // get result
+  std::vector<PolynomialCoefficients> results(num_lines);
+  for (size_t line_idx = 0; line_idx < points.size(); ++line_idx) {
+    results[line_idx].a0 = result(line_idx);
+    if (poly_num >= 1) results[line_idx].a1 = result(num_lines);
+    if (poly_num >= 2) results[line_idx].a2 = result(num_lines + 1);
+    if (poly_num >= 3) results[line_idx].a3 = result(num_lines + 2);
+  }
+  return results;
+}
+
 }  // namespace ld_algo
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

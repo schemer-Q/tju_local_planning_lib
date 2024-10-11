@@ -1,0 +1,4 @@
+Type: BEVLanePost
+Config:
+  Name: "CAMERA_0_F60"
+  # 还有很多参数没有放出来，具体看bev_lane_post_impl.h

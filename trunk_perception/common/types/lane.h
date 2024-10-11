@@ -113,7 +113,6 @@ struct LaneLineVision {
   };
 
   void clear() {
-    DistortPointsImg.clear();
     OriginPointsImg.clear();
     OriginPointsWorld.clear();
 
@@ -138,15 +137,21 @@ struct LaneLineVision {
   }
 
   /// from detecting module
-  // origin distort points
-  std::vector<cv::Point2f> DistortPointsImg;
-  // points used for image curve fitting
-  std::vector<cv::Point2f> OriginPointsImg;
-  // points used for world curve fitting
-  std::vector<cv::Point3f> OriginPointsWorld;
-  GenerateType lane_generate_type = GenerateType::DETECTED;
-  LaneLineType lane_line_type = LaneLineType::UNINITED_TYPE;
-  LaneLineColor lane_line_color = LaneLineColor::UNINITED_COLOR;
+  std::vector<cv::Point2f> OriginPointsImg; ///< 原始图像（畸变）点
+  std::vector<cv::Point3f> OriginPointsWorld; ///< 世界坐标系下的点
+  GenerateType lane_generate_type = GenerateType::DETECTED; ///< 检测 OR 补偿 TODO: 补偿没有移植
+  LaneLineType lane_line_type = LaneLineType::UNINITED_TYPE; ///< 车道线类型
+  LaneLineColor lane_line_color = LaneLineColor::UNINITED_COLOR;  ///< 车道线颜色
+
+  /* x = a0 + a1*y + a2*y^2 + a3*a3^3 */
+  float a0 = 0.0f;  ///< BEV车道线拟合多项式系数，常数项系数
+  float a1 = 0.0f;  ///< BEV车道线拟合多项式系数，一次项系数
+  float a2 = 0.0f;  ///< BEV车道线拟合多项式系数，二次项系数
+  float a3 = 0.0f;  ///< BEV车道线拟合多项式系数，三次项系数
+
+  /// from post process module
+
+  // TODO: 暂时还没有用到，从原SDK中移植过来的
   LaneLineConfidence lane_line_conf = LaneLineConfidence::BAD;
   float lane_conf = 0.;  ///< 置信度 0~1
   LaneLinePositionIndex lane_line_position = LaneLinePositionIndex::UNINITED_INDEX;
@@ -154,11 +159,6 @@ struct LaneLineVision {
   LaneInstance laneInstance;
 
   /// update from tracking module
-  /* x = a0 + a1*y + a2*y^2 + a3*a3^3 */
-  float a0 = 0.0f;
-  float a1 = 0.0f;
-  float a2 = 0.0f;
-  float a3 = 0.0f;
   float bottom_x = 0.0;  // 图像中心线对应的x坐标
   float ave_x = 0.0f;
   float ave_y = 0.0f;

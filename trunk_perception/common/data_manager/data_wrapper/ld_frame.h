@@ -19,7 +19,8 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
 struct LDFrame {
     double timestamp = 0.0; ///< 时间戳, 单位为秒
-    std::vector<LaneLineVision> lanes_detected; ///< 检测到的车道线
+    std::vector<LaneLineVision> lanes_detected;  ///< 当前帧检测结果
+    std::vector<LaneLineVision> lanes_tracked;  ///< 当前帧跟踪结果
 };
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END

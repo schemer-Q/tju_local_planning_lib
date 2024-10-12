@@ -1,0 +1,23 @@
+Type: OdLidarPostProcessSany
+Config:
+  Tracker:
+    Switch: true
+    TrackerPipelineMethod: SimpleTrack
+    TrackerPipelineParams:
+      min_lifetime_output: 3
+      max_consecutive_lost_num: 5
+      min_consecutive_valid_num: 3
+      origin_xy_offset: [16.0, 2.0] # [x方向的矢量偏移量，y方向的绝对值偏移量]
+      IDManager:
+        start_id: 1
+        max_id: 1000
+      MatcherMethod: OneStageMatcher
+      MatcherParams:
+        MatcherOptions:
+          cost_thresh: 0.99
+          bound_value: 1.00
+        method: NORMAL_DISTANCE # NORMAL_DISTANCE、FUSION_DISTANCE
+        max_distance: 5.0 # 前后帧最大距离(m)
+        max_velocity: 50 # 障碍物最大速度(m/s)
+      TrackerMethod: NearestCornerTrackerCV
+      TrackerParams:

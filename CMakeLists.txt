@@ -80,6 +80,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory(trunk_perception/common)
 add_subdirectory(trunk_perception/tools/log)
 add_subdirectory(trunk_perception/app)
+add_subdirectory(trunk_perception/algo)
 
 ########################################################
 # test

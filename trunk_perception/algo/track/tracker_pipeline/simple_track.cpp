@@ -23,6 +23,13 @@ int SimpleTrack::Init(const YAML::Node& config) {
     params_.min_lifetime_output = config["min_lifetime_output"].as<int>();
     params_.max_consecutive_lost_num = config["max_consecutive_lost_num"].as<int>();
     params_.min_consecutive_valid_num = config["min_consecutive_valid_num"].as<int>();
+    if (config["origin_xy_offset"].IsDefined()) {
+      params_.origin_xy_offset = config["origin_xy_offset"].as<std::vector<float>>();
+    }
+    if (params_.origin_xy_offset.size() != 2) {
+      TFATAL << "[SimpleTrack.Init] origin_xy_offset size [" << params_.origin_xy_offset.size() << "] is error!";
+      return 1;
+    }
 
     // ID manager init
     if (config["IDManager"].IsDefined()) {
@@ -53,6 +60,8 @@ int SimpleTrack::Init(const YAML::Node& config) {
 }
 
 int SimpleTrack::Track(std::shared_ptr<OdLidarFrame>& frame) {
+  // detection objects preprocess
+  preprocess(frame->detected_objects);
   const auto& objects_detected = frame->detected_objects;
 
   // Transform to current frame
@@ -80,6 +89,43 @@ int SimpleTrack::Track(std::shared_ptr<OdLidarFrame>& frame) {
   outputTrackResult(frame->tracked_objects);
 
   return 0;
+}
+
+void SimpleTrack::preprocess(std::vector<Object>& objects) {
+  for (auto& object : objects) {
+    auto& bbox = object.bbox;
+
+    // 按距离从最近点重新排列角点
+    int nearest_id = 0;
+    Eigen::Vector2f origin_xy_offset = Eigen::Vector2f::Zero();
+    if (std::abs(bbox.center.y()) > params_.origin_xy_offset[1]) {
+      origin_xy_offset = Eigen::Vector2f(params_.origin_xy_offset[0], 0.0);
+    }
+    Eigen::Matrix<float, 2, 4> corners_tmp = bbox.corners2d.colwise() - origin_xy_offset;
+    corners_tmp.colwise().squaredNorm().minCoeff(&nearest_id);
+    if (nearest_id != 0) {
+      const auto temp = bbox.corners2d;
+      const int sz = bbox.corners2d.cols();
+      for (int i = 0; i < sz; ++i) {
+        bbox.corners2d.col(i) = temp.col((nearest_id + i) % sz);
+      }
+    }
+
+    // 计算bbox航向向量
+    object.bbox.direction << std::cos(object.bbox.theta), std::sin(object.bbox.theta), 0.0f;
+
+    // 计算LShape feature
+    computeLShapeFeature(object.bbox, object.l_shape_feature);
+
+    // output tracking point to display
+    object.track_point = Eigen::Vector3f::Zero();
+    if (params_.traker_method == "NearestCornerTrackerCV") {
+      object.track_point.head(2) = object.l_shape_feature.reference_point.cast<float>();
+    } else {
+      TFATAL << "[SimpleTrack] traker_method is error!";
+      return;
+    }
+  }
 }
 
 void SimpleTrack::transformToCurrentFrame(const Eigen::Isometry3f& tf) {

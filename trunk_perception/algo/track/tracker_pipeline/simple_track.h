@@ -59,6 +59,13 @@ class SimpleTrack : virtual public TrackerPipelineInterface {
 
  private:
   /**
+   * @brief detection objects preprocess
+   *
+   * @param objects detection objects
+   */
+  void preprocess(std::vector<Object>& objects);
+
+  /**
    * @brief transform tracker parameters from previous frame to current frame
    *
    * @param tf

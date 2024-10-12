@@ -50,7 +50,9 @@ int SimpleTrack::Init(const YAML::Node& config) {
 
     // tracker method param
     params_.traker_method = config["TrackerMethod"].as<std::string>();
-    params_.traker_params = config["TrackerParams"];
+    if (config["TrackerParams"].IsDefined()) {
+      params_.traker_params = config["TrackerParams"];
+    }
   } catch (const std::exception& e) {
     TFATAL << "[SimpleTrack] LoadYAMLConfig failed! " << e.what();
     return 1;

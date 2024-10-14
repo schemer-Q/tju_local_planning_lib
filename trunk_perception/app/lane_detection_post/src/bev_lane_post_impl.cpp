@@ -38,7 +38,7 @@ std::uint32_t BevLanePostImpl::Run(const double& ts) {
   // 原SDK: 转移矩阵失效时，标记tracklet为lost，会被删除
   // 这里: Odom获取失败，放弃当前帧的跟踪，返回错误码，已有tacklet不会被删除
   std::shared_ptr<OdometryData> odometry;
-  if (GET_ODOMETRY_DATA_BY_TIME(ts, odometry) != ErrorCode::SUCCESS) {
+  if (GET_ODOMETRY_DATA_BY_TIME(ld_frame->timestamp, odometry) != ErrorCode::SUCCESS) {
     return ErrorCode::LANE_TRACKER_ODOMETRY_NOT_FOUND;
   }
   if (odometry == nullptr || odometry->data == nullptr) {

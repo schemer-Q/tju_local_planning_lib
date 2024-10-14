@@ -29,6 +29,10 @@ std::uint32_t BevLanePostImpl::Init(const YAML::Node& config) {
 std::uint32_t BevLanePostImpl::Run(const double& ts) {
   // 获取当前帧数据
   auto ld_frame = GET_LD_FRAME();
+  if (ld_frame == nullptr) {
+    TWARNING << "BevLanePostImpl::Run() ld_frame is nullptr";
+    return ErrorCode::LANE_TRACKER_LD_FRAME_NOT_FOUND;
+  }
 
   // NOTE: 这里跟原SDK有区别
   // 原SDK: 转移矩阵失效时，标记tracklet为lost，会被删除

@@ -186,6 +186,11 @@ class DataBuffer {
     std::cout << "Start time: " << buffer_.begin()->time << std::endl;
     std::cout << "End time: " << buffer_.rbegin()->time << std::endl;
     std::cout << "Size: " << buffer_.size() << std::endl;
+
+    // print all data timestamp
+    // for (const auto& data : buffer_) {
+    //   printf("Data timestamp: %.4lf\n", data.time);
+    // }
   }
 };
 

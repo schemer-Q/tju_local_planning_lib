@@ -43,6 +43,7 @@ enum ErrorCode : uint32_t {
   // 车道线跟踪错误 [50-59]
   LANE_TRACKER_INIT_FAILED = 50,
   LANE_TRACKER_ODOMETRY_NOT_FOUND = 51,
+  LANE_TRACKER_LD_FRAME_NOT_FOUND = 52,
 };
 
 const std::unordered_map<ErrorCode, std::string> error_code_to_string = {

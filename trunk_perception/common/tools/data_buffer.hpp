@@ -67,8 +67,8 @@ class DataBuffer {
   explicit DataBuffer(const uint32_t& buffer_size, const std::string& name = "", const double& max_time_delay = 0.5,
                       const uint32_t& max_dropped_times = 2)
       : buffer_size_(buffer_size),
-        name_(name),
         max_time_delay_(max_time_delay),
+        name_(name),
         max_dropped_times_(max_dropped_times) {}
 
   /**

@@ -194,7 +194,7 @@ void SimpleTrack::addObjectToTrack(const Object& object_detected) {
   Tracklet track;
   track.current_tracking_object = object_detected;
   track.current_tracking_object.track_id = id_manager_ptr_->ExtractID();
-  track.current_tracking_object.lifetime = 1UL;
+  track.current_tracking_object.lifetime = 1;
   track.state = TrackletState::UNCONFIRMED;
   track.tracker_method_ptr = TrackerMethodRegistry::Get().Create(params_.traker_method);
   if (!track.tracker_method_ptr) {

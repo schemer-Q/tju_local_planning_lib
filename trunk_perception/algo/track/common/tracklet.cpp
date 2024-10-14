@@ -39,7 +39,7 @@ void Tracklet::Predict(const double timestamp) {
 void Tracklet::Update(const Object& object) {
   tracker_method_ptr->Update(object, current_tracking_object);
 
-  current_tracking_object.lifetime += 1UL;
+  current_tracking_object.lifetime += 1;
   current_tracking_object.consecutive_lost = 0;
   current_tracking_object.detect_id = object.detect_id;
   current_tracking_object.timestamp = object.timestamp;

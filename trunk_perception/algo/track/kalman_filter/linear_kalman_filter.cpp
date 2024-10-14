@@ -16,7 +16,7 @@ TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
 LinearKalmanFilter::LinearKalmanFilter(const Eigen::MatrixXd& A, const Eigen::MatrixXd& H, const Eigen::MatrixXd& P,
                                        const Eigen::MatrixXd& Q, const Eigen::MatrixXd& R)
-    : A_(A), H_(H), P_(P), Q_(Q), R_(R), initialized_(false), X_(Eigen::VectorXd::Zero(A.rows())) {}
+    : initialized_(false), X_(Eigen::VectorXd::Zero(A.rows())), A_(A), H_(H), P_(P), Q_(Q), R_(R) {}
 
 int LinearKalmanFilter::init(const Eigen::VectorXd& x0) {
   if (X_.size() != x0.size()) {

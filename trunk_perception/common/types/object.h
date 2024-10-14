@@ -153,7 +153,7 @@ struct alignas(32) Object {
 
   // track param
   size_t track_id = 0UL;                                       ///< track id
-  size_t lifetime = 0UL;                                       ///< track lifetime
+  int lifetime = 0;                                       ///< track lifetime
   int consecutive_lost = 0;                                    ///< consecutive lost number
   Eigen::Vector3f velocity = Eigen::Vector3f::Zero();          ///< object velocity
   Eigen::Vector3f acceleration = Eigen::Vector3f::Zero();      ///< object acceleration

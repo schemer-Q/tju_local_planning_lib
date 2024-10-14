@@ -271,7 +271,7 @@ class LaneTracklet {
   float near_x_limit_ = -10.0;
   float y_limit_ = 20.0;
   size_t fit_pt_num_limit_ = 5;
-  size_t max_fusion_pt_age_ = 120000;  ///< 最大融合点年龄, 100min
+  int max_fusion_pt_age_ = 120000;  ///< 最大融合点年龄, 100min
 };
 
 };  // namespace ld_post

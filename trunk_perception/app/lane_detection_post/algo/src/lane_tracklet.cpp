@@ -13,7 +13,8 @@ using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
 
 LaneTracklet::LaneTracklet(const int& tracklet_id, const LaneLineVision& lane, const Eigen::Matrix4d& cur_pose,
                            const std::string& camera_name)
-    : tracklet_id_(tracklet_id), latest_lane_(lane), latest_pose_(cur_pose), camera_name_(camera_name) {
+    : camera_name_(camera_name), tracklet_id_(tracklet_id), latest_lane_(lane), latest_pose_(cur_pose) {
+  InitCameraProjection();
   InitFusionPtGridOccupancy();
   InitFusionPts();
   InitAnchors();
@@ -23,6 +24,9 @@ LaneTracklet::LaneTracklet(const int& tracklet_id, const LaneLineVision& lane, c
 LaneTracklet::~LaneTracklet() = default;
 
 void LaneTracklet::Predict(const Eigen::Matrix4d& cur_pose) {
+  TDEBUG << "LaneTracklet::Predict() start: " << tracklet_id_;
+  TDEBUG << "hits_: " << hits_ << " age_: " << age_ << " lost_age_: " << lost_age_;
+
   predict_with_history_ = false;
   age_++;
   lost_age_++;  // update时，会置零
@@ -31,13 +35,15 @@ void LaneTracklet::Predict(const Eigen::Matrix4d& cur_pose) {
   coeff_pred_ = coeff_kf_.predict();
 
   // 计算latest_pose到current_pose的变换矩阵
-  Eigen::Matrix4d latest_to_cur_pose = cur_pose * latest_pose_.inverse();
+  Eigen::Matrix4d latest_to_cur_pose = cur_pose.inverse() * latest_pose_;
+  TDEBUG << "latest_to_cur_pose: \n" << latest_to_cur_pose;
 
   // 通过预测anchor位置并重新拟合，将车道线方程预测到当前帧
   PredictFusionPts(latest_to_cur_pose);
   if (predict_with_history_) {
     latest_pose_ = cur_pose;
   }
+  TDEBUG << "LaneTracklet::Predict() end";
 }
 
 void LaneTracklet::InitFusionPtGridOccupancy() {
@@ -152,7 +158,7 @@ void LaneTracklet::PredictFusionPts(const Eigen::Matrix4d& latset_to_cur_pose) {
 
   // pt num限制
   if (refit_pts_.size() < fit_pt_num_limit_) {
-    TWARNING << "LaneTracklet::PredictFusionPts refit failed! valid pt num < " << fit_pt_num_limit_ << "!!!";
+    TWARNING << "LaneTracklet::PredictFusionPts " << tracklet_id_ << " refit failed! valid pt num " << refit_pts_.size() << " < " << fit_pt_num_limit_ << "!!!";
     return;
   }
 
@@ -265,7 +271,6 @@ void LaneTracklet::Update(const LaneLineVision& det_lane) {
   cv::Scalar show_color = latest_lane_.lane_line_show_color;
   LaneLinePositionIndex lane_index = latest_lane_.lane_line_position;
   // update tracked obj
-  // TODO: 将predict部分的信息全部丢了？
   latest_lane_ = det_lane;
   latest_lane_.age = age_;
   latest_lane_.track_id = tracklet_id_;

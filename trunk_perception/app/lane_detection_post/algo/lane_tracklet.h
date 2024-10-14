@@ -222,9 +222,9 @@ class LaneTracklet {
   int tracklet_id_;
   LaneLineVision latest_lane_;   ///< 最新的车道线，检测 -> 预测 -> 更新
   Eigen::Matrix4d latest_pose_;  ///< 最新的自车位姿
-  size_t age_;                   ///< predict times，即更新的次数
-  size_t hits_;                  ///< update times,即存在关联观测的次数
-  size_t lost_age_;              ///< 丢失关联观测的次数
+  size_t age_ = 0;               ///< predict times，即更新的次数
+  size_t hits_ = 0;              ///< update times,即存在关联观测的次数
+  size_t lost_age_ = 0;          ///< 丢失关联观测的次数
 
   cv::KalmanFilter bev_anchor_kf_;  ///< 车道线在bev图像上的anchor点y跟踪滤波器, 9个y值
   cv::Mat bev_anchor_measurement_;  ///< 测量值

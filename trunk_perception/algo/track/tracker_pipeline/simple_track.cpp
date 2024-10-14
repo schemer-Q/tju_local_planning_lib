@@ -32,10 +32,10 @@ int SimpleTrack::Init(const YAML::Node& config) {
     }
 
     // ID manager init
-    if (config["IDManager"].IsDefined()) {
+    if (config["IDPool"].IsDefined()) {
       id_manager_ptr_ = std::make_shared<IDManager>();
       if (id_manager_ptr_) {
-        id_manager_ptr_->Init(config["IDManager"]);
+        id_manager_ptr_->Init(config["IDPool"]);
       }
     }
 

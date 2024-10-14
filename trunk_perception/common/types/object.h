@@ -113,6 +113,16 @@ struct alignas(16) LShapeFeature {
 };
 
 /**
+ * @brief 尾边中点特征
+ *
+ */
+struct TailCenterFeature {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  Eigen::Matrix<double, 2, 4> edge_center_points = Eigen::Matrix<double, 2, 4>::Zero();  // 各边的中点(从尾边顺时针排列)
+  Eigen::Vector2d tail_center_point = Eigen::Vector2d::Zero();                           // 尾边中心点
+};
+
+/**
  * @brief 检测框类
  *
  */
@@ -147,9 +157,11 @@ struct alignas(32) Object {
 
   PointCloudPtr points_ptr = nullptr;  ///< 物体点云指针
 
+  Eigen::Matrix3Xf convex_polygon = Eigen::Matrix3Xf::Zero(3, 0);  ///< 凸包
+
   LShapeFeature l_shape_feature;  ///< L形特征
 
-  Eigen::Matrix3Xf convex_polygon = Eigen::Matrix3Xf::Zero(3, 0);  ///< 凸包
+  TailCenterFeature tail_center_feature; ///< 尾边中心点特征
 
   // track param
   size_t track_id = 0UL;                                       ///< track id

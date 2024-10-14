@@ -65,12 +65,19 @@ void BevLanePostImpl::EstimatePolyFittingNum() {
 }
 
 void BevLanePostImpl::Predict() {
+  TDEBUG << "BevLanePostImpl::Predict() start";
+  TDEBUG << "tracklets_ num: " << tracklets_.size();
   for (auto& tracklet : tracklets_) {
     tracklet->Predict(cur_pose_);
   }
+  TDEBUG << "BevLanePostImpl::Predict() end";
 }
 
 void BevLanePostImpl::Associate(const std::vector<LaneLineVision>& lanes_detected) {
+  TDEBUG << "BevLanePostImpl::Associate() start";
+  TDEBUG << ">>>>>>>>>>>>> tracklets_ num: " << tracklets_.size();
+  TDEBUG << ">>>>>>>>>>>>> lanes_detected num: " << lanes_detected.size();
+
   associate_tracklet_ids_.clear();
   associate_det_ids_.clear();
 
@@ -106,6 +113,10 @@ void BevLanePostImpl::Associate(const std::vector<LaneLineVision>& lanes_detecte
       associate_tracklet_ids_.push_back(i);
     }
   }
+
+  TDEBUG << ">>>>>>>>>> associate_tracklet_ids_: " << associate_tracklet_ids_;
+  TDEBUG << ">>>>>>>>>> associate_det_ids_: " << associate_det_ids_;
+  TDEBUG << "BevLanePostImpl::Associate() end";
 }
 
 float BevLanePostImpl::LaneSimilarity(const LaneTrackletPtr& tracklet, const LaneLineVision& lanes_detected) {
@@ -228,8 +239,8 @@ void BevLanePostImpl::LanePositionProcess() {
   });
 
   // 获取右侧第一根车道线位置
-  auto iter_right_1_ = std::find_if(tracklets_.begin(), tracklets_.end(),
-                                    [&](const LaneTrackletPtr& tracklet) { return tracklet->GetFitA0() < 0; });
+  iter_right_1_ = std::find_if(tracklets_.begin(), tracklets_.end(),
+                               [&](const LaneTrackletPtr& tracklet) { return tracklet->GetFitA0() < 0; });
 
   EgoLaneProcess();
 

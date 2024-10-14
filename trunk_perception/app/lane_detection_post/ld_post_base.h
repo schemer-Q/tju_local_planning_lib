@@ -22,12 +22,12 @@ TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
  */
 class LdPostBase : public AppBase {
  public:
-  LdPostBase();
-  ~LdPostBase();
+  LdPostBase() = default;
+  ~LdPostBase() override = default;
 
-  std::uint32_t Init(const YAML::Node& config) override;
-  std::uint32_t Run(const double& ts) override;
-  std::any GetData(const std::string& key) override;
+  std::uint32_t Init(const YAML::Node& config) override = 0;
+  std::uint32_t Run(const double& ts) override = 0;
+  std::any GetData(const std::string& key) override = 0;
 };
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

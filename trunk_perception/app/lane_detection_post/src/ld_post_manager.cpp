@@ -1,5 +1,6 @@
 
 #include "trunk_perception/app/lane_detection_post/ld_post_manager.h"
+#include "trunk_perception/app/lane_detection_post/bev_lane_post_impl.h"
 #include "trunk_perception/common/error/code.hpp"
 #include "trunk_perception/common/macros.h"
 #include "trunk_perception/tools/log/t_log.h"
@@ -17,20 +18,20 @@ std::shared_ptr<LdPostBase> LdPostManager::Create(const YAML::Node& config) {
 
   std::shared_ptr<LdPostBase> processor = nullptr;
 
-  // if (config["Type"].as<std::string>() == "BASE") {
-  //   processor = std::make_shared<LdPostBase>();
-  // } else {
-  //   TFATAL << "LdPostManager::Create: processor type not supported: " << config["Type"].as<std::string>();
-  //   return nullptr;
-  // }
+  if (config["Type"].as<std::string>() == "BEVLanePost") {
+    processor = std::make_shared<BevLanePostImpl>();
+  } else {
+    TFATAL << "LdPostManager::Create: processor type not supported: " << config["Type"].as<std::string>();
+    return nullptr;
+  }
 
-  // if (processor) {
-  //   auto ret = processor->Init(config["Config"]);
-  //   if (ret != ErrorCode::SUCCESS) {
-  //     TFATAL << "LdPostManager::Create: init processor failed, error code: " << ret;
-  //     return nullptr;
-  //   }
-  // }
+  if (processor) {
+    auto ret = processor->Init(config["Config"]);
+    if (ret != ErrorCode::SUCCESS) {
+      TFATAL << "LdPostManager::Create: init processor failed, error code: " << ret;
+      return nullptr;
+    }
+  }
 
   return processor;
 }

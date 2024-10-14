@@ -30,7 +30,7 @@ class BevLanePostImpl : public LdPostBase {
   using LaneTrackletPtr = std::shared_ptr<ld_post::LaneTracklet>;
 
   BevLanePostImpl();
-  ~BevLanePostImpl();
+  ~BevLanePostImpl() override;
 
   std::uint32_t Init(const YAML::Node& config) override;
   std::uint32_t Run(const double& ts) override;

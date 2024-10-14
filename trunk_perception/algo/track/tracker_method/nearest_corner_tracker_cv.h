@@ -63,29 +63,9 @@ class NearestCornerTrackerCV : virtual public TrackerMethodBase {
    *
    * @param from_angle angle
    * @param to_angle angle
-   * @return int
-   *    @retval 0 normal
-   *    @retval -1 counter clockwise switch
-   *    @retval 1 clockwise switch
-   */
-
-  /**
-   * @brief detect whether corner point is switch
-   *
-   * @param from_angle angle
-   * @param to_angle angle
    * @return SwitchDirection
    */
   SwitchDirection detectCornerPointSwitch(const double from_angle, const double to_angle);
-
-  /**
-   * @brief find two angle interval
-   *
-   * @param new_angle angle
-   * @param old_angle angle
-   * @return double [-pi, pi]
-   */
-  double normalAngle(const double new_angle, const double old_angle);
 
   /**
    * @brief Get the Track Model object

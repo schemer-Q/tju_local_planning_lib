@@ -119,10 +119,15 @@ void SimpleTrack::preprocess(std::vector<Object>& objects) {
     // 计算LShape feature
     computeLShapeFeature(object.bbox, object.l_shape_feature);
 
+    // 计算尾边中心点特征
+    computeTailCenterFeature(object.bbox, object.tail_center_feature);
+
     // output tracking point to display
     object.track_point = Eigen::Vector3f::Zero();
     if (params_.traker_method == "NearestCornerTrackerCV") {
       object.track_point.head(2) = object.l_shape_feature.reference_point.cast<float>();
+    } else if (params_.traker_method == "TailCenterTrackerCV") {
+      object.track_point.head(2) = object.tail_center_feature.tail_center_point.cast<float>();
     } else {
       TFATAL << "[SimpleTrack] traker_method is error!";
       return;

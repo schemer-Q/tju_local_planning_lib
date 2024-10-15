@@ -50,6 +50,7 @@ void Tracklet::Update(const Object& object) {
   current_tracking_object.type = object.type;
   current_tracking_object.points_ptr = object.points_ptr;
   current_tracking_object.l_shape_feature = object.l_shape_feature;
+  current_tracking_object.tail_center_feature = object.tail_center_feature;
   current_tracking_object.convex_polygon = object.convex_polygon;
 }
 
@@ -103,6 +104,18 @@ void Tracklet::TransformToCurrent(const Eigen::Isometry3f& tf) {
     Eigen::Vector3d direction = Eigen::Vector3d(std::cos(shape(2)), std::sin(shape(2)), 0.0);
     direction = tf.rotation().cast<double>() * direction;
     shape(2) = std::atan2(direction(1), direction(0));
+  }
+
+  // tail point feature
+  {
+    auto& tail_center_point = current_tracking_object.tail_center_feature.tail_center_point;
+    tail_center_point = (tf.cast<double>() * Eigen::Vector3d(tail_center_point(0), tail_center_point(1), 0.0)).head(2);
+
+    auto& edge_center_points = current_tracking_object.tail_center_feature.edge_center_points;
+    for (int i = 0; i < edge_center_points.cols(); ++i) {
+      const Eigen::Vector3d point(edge_center_points(0, i), edge_center_points(1, i), 0.0);
+      edge_center_points.col(i) = (tf.cast<double>() * point).head(2);
+    }
   }
 
   // tracker method

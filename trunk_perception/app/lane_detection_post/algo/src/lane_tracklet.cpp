@@ -1,4 +1,5 @@
 #include "trunk_perception/app/lane_detection_post/algo/lane_tracklet.h"
+#include <numeric>
 #include "trunk_perception/app/lane_detection/algo/MathUtil.h"
 #include "trunk_perception/common/data_manager/data_manager.h"
 #include "trunk_perception/common/error/code.hpp"
@@ -158,7 +159,8 @@ void LaneTracklet::PredictFusionPts(const Eigen::Matrix4d& latset_to_cur_pose) {
 
   // pt num限制
   if (refit_pts_.size() < fit_pt_num_limit_) {
-    TWARNING << "LaneTracklet::PredictFusionPts " << tracklet_id_ << " refit failed! valid pt num " << refit_pts_.size() << " < " << fit_pt_num_limit_ << "!!!";
+    TWARNING << "LaneTracklet::PredictFusionPts " << tracklet_id_ << " refit failed! valid pt num " << refit_pts_.size()
+             << " < " << fit_pt_num_limit_ << "!!!";
     return;
   }
 
@@ -358,7 +360,7 @@ bool LaneTracklet::CheckFusionPtValid(const FusionPt& pt) {
   // get index
   if (in_grid_check) {
     if (pt.loc.x < occupied_grid_x_middle_) {  // dense
-      in_dense_grid = true;                           // in_dense_grid
+      in_dense_grid = true;                    // in_dense_grid
       occ_x_idx = int((pt.loc.x - occupied_grid_x_start_) / occupied_x_step_dense_);
       if (occupied_x_grids_dense_[occ_x_idx] == 1) {
         return false;
@@ -372,8 +374,7 @@ bool LaneTracklet::CheckFusionPtValid(const FusionPt& pt) {
     }
   }
 
-  float offset = std::sqrt(std::pow((pt.loc.x - pt.init_loc.x), 2) +
-                           std::pow((pt.loc.y - pt.init_loc.y), 2));
+  float offset = std::sqrt(std::pow((pt.loc.x - pt.init_loc.x), 2) + std::pow((pt.loc.y - pt.init_loc.y), 2));
   float threshold = 0.0f;
   float init_x = pt.init_loc.x;
   float abs_init_y = std::fabs(pt.init_loc.y);
@@ -444,8 +445,8 @@ bool LaneTracklet::IsLost() {
   //   return true;
   // }
 
-  //TODO: 这里需要参数化
-  // pts过少
+  // TODO: 这里需要参数化
+  //  pts过少
   if (fusion_pts_.size() < 5) {
     return true;
   }

@@ -1,8 +1,12 @@
 # TrunkPerception
 
-[![构建状态](https://img.shields.io/travis/username/TrunkPerception.svg)](https://travis-ci.org/username/TrunkPerception)  [![代码覆盖率](https://img.shields.io/codecov/c/github/username/TrunkPerception.svg)](https://codecov.io/gh/username/TrunkPerception)  [![许可证](https://img.shields.io/github/license/username/TrunkPerception.svg)](LICENSE)
+[![PIPELINE](http://git-rd.trunk.tech/wangxu/trunk_perception_lib/badges/master/pipeline.svg)](http://git-rd.trunk.tech/wangxu/trunk_perception_lib)  [![代码覆盖率](https://img.shields.io/codecov/c/github/username/TrunkPerception.svg)](http://git-rd.trunk.tech/wangxu/trunk_perception_lib)
 
 `TrunkPerception`负责为`L2` `L4`项目及`港口`(计划)自动驾驶系统提供感知算法实现，包括物体检测跟踪功能、车道线检测跟踪功能等。
+
+## 文档
+
+[TrunkPerception 说明文档](http://10.11.3.9:8888/pplib/html/index.html)
 
 ## 使用示例
 
@@ -19,7 +23,7 @@
 - [x] 激光物体跟踪功能
 - [x] 视觉车道线检测功能[BEVLaneDet]
 - [x] 视觉车道线跟踪功能
-- [ ] CI[编译&发版]
+- [x] CI[编译&发版]
 
 ### V0.2.0版本
 

@@ -6,6 +6,7 @@ target_link_libraries(trunk_perception_app_object_detection_lidar
   yaml-cpp
   ${LidarNetSdk_LIBRARIES}
   ${PCL_LIBRARIES}
+  stdc++fs
 )
 
 ########################

@@ -6,6 +6,7 @@ target_link_libraries(trunk_perception_app_object_detection_lidar_post_process
   trunk_perception_algo_track
   yaml-cpp
   ${PCL_LIBRARIES}
+  stdc++fs
 )
 
 ########################

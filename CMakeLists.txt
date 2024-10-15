@@ -36,6 +36,13 @@ endif()
 string(TOLOWER ${PLATFORM} ${PLATFORM})
 message(STATUS "Compile on platform: ${PLATFORM}")
 
+# 获取GCC版本
+message(STATUS "GCC C++ Compiler Version: ${CMAKE_CXX_COMPILER_VERSION}")
+if (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "9.0")
+  add_definitions(-DOLD_GCC=1)
+else()
+  add_definitions(-DOLD_GCC=0)
+endif()
 
 ########################################################
 # Global Settings

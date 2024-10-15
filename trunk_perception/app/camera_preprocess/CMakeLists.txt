@@ -7,6 +7,7 @@ target_link_libraries(trunk_perception_app_camera_preprocess
   trunk_perception_log
   yaml-cpp
   ${OpenCV_LIBRARIES}
+  stdc++fs
 )
 
 ########################

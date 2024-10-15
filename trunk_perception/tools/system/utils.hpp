@@ -12,7 +12,11 @@
 #pragma once
 
 #include <string>
+#ifdef OLD_GCC
+#include <experimental/filesystem>
+#else
 #include <filesystem>
+#endif
 
 #include "trunk_perception/common/macros.h"
 
@@ -26,7 +30,11 @@ TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
  * @return false 文件不存在
  */
 inline bool is_file_exist(const std::string& path) {
+#ifdef OLD_GCC
+    return std::experimental::filesystem::exists(path);
+#else
     return std::filesystem::exists(path);
+#endif
 }
 
 

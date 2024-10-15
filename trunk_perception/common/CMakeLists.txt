@@ -7,7 +7,8 @@ target_link_libraries(trunk_perception_common PUBLIC
   trunk_perception_log
   yaml-cpp
   ${OpenCV_LIBS}
-  ${PCL_LIBRARIES})
+  ${PCL_LIBRARIES}
+  stdc++fs)
 
 ########################
 # install

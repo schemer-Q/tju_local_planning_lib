@@ -7,6 +7,7 @@ target_link_libraries(trunk_perception_app_lidar_preprocess
   trunk_perception_log
   yaml-cpp
   ${PCL_LIBRARIES}
+  stdc++fs
 )
 
 ########################

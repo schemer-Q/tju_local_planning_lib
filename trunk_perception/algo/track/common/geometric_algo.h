@@ -17,6 +17,7 @@ TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
 using common::BoundingBox;
 using common::LShapeFeature;
+using common::TailCenterFeature;
 
 constexpr float RAD2DEG = 180.0F / M_PI;
 constexpr float DEG2RAD = M_PI / 180.0F;
@@ -60,5 +61,13 @@ T getAngleDiff(const T from_angle, const T to_angle) {
     return static_cast<T>(0.0);
   }
 }
+
+/**
+ * @brief 计算尾边中心点特征
+ *
+ * @param bbox BoundingBox信息
+ * @param feature 尾边中心点特征
+ */
+void computeTailCenterFeature(const BoundingBox& bbox, TailCenterFeature& feature);
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

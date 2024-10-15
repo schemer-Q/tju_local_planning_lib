@@ -1,12 +1,12 @@
 /**
  * @file geometric_algo.cpp
  * @author Fan Dongsheng (fandongsheng@trunk.tech)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-09-30
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
 #include <opencv2/core.hpp>
@@ -79,6 +79,22 @@ double getOverlapRate(const Eigen::MatrixXf& polygon1, const Eigen::MatrixXf& po
   const double v1 = cv::sum(im_1).val[0];
   const double v2 = cv::sum(im_2).val[0];
   return inner / (std::min(v1, v2) + 1E-6);
+}
+
+void computeTailCenterFeature(const BoundingBox& bbox, TailCenterFeature& feature) {
+  const auto& corners2d = bbox.corners2d;
+  const int sz = corners2d.cols();
+  auto edge_center_points_tmp = corners2d;
+  for (int i = 0; i < sz; ++i) {
+    edge_center_points_tmp.col(i) = (corners2d.col(i) + corners2d.col((i + 1) % sz)) * 0.5F;
+  }
+
+  int nearest_id = 0;
+  edge_center_points_tmp.row(0).minCoeff(&nearest_id);
+  for (int i = 0; i < sz; ++i) {
+    feature.edge_center_points.col(i) = edge_center_points_tmp.col((nearest_id + i) % sz).cast<double>();
+  }
+  feature.tail_center_point = feature.edge_center_points.col(0);
 }
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

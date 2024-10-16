@@ -19,6 +19,12 @@
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
+struct TailCenterTrackerCVParams {
+  float fov_angle = 120.0F;
+  float x_offset = 5.77F;
+  float y_offset = 1.6F;
+};
+
 class TailCenterTrackerCV : virtual public TrackerMethodBase {
  public:
   TailCenterTrackerCV() = default;
@@ -64,8 +70,20 @@ class TailCenterTrackerCV : virtual public TrackerMethodBase {
    */
   void getTrackModel(Object& object);
 
+  /**
+   * @brief determine object which in fov bound
+   *
+   * @param object
+   * @return true in fov bound
+   * @return false not in fov bound
+   */
+  bool outFovBound(const Object& object);
+
  private:
+  TailCenterTrackerCVParams params_;                             // 配置参数
   std::shared_ptr<LinearKalmanFilter> motion_filter_ = nullptr;  // 运动状态滤波器
+  float fov_tan_theta_ = std::tan(M_PI_2f32 - 60.0F * DEG2RAD);  // 常量值
+  bool track_point_out_fov_bound_ = false;                       // 跟踪点是否超出fov边界
 };
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

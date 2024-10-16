@@ -20,3 +20,7 @@ Config:
         max_distance: 5.0 # 前后帧最大距离(m)
         max_velocity: 50 # 障碍物最大速度(m/s)
       TrackerMethod: TailCenterTrackerCV # NearestCornerTrackerCV、TailCenterTrackerCV
+      TrackerParams:
+        fov_angle: 120.0
+        x_offset: 7.5
+        y_offset: 1.6

@@ -17,6 +17,14 @@
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
 int TailCenterTrackerCV::Init(const YAML::Node& config, const Object& object) {
+  // init param
+  {
+    params_.fov_angle = config["fov_angle"].as<float>();
+    params_.x_offset = config["x_offset"].as<float>();
+    params_.y_offset = config["y_offset"].as<float>();
+    fov_tan_theta_ = std::tan(M_PI_2f32 - 0.5F * params_.fov_angle * DEG2RAD);
+  }
+
   // init kalman filter
   {
     constexpr int num_state = 4;
@@ -50,6 +58,11 @@ int TailCenterTrackerCV::Init(const YAML::Node& config, const Object& object) {
     R(0, 0) = R(1, 1) = 1.35;
 
     Eigen::Vector2d init_point = object.tail_center_feature.tail_center_point;
+    track_point_out_fov_bound_ = outFovBound(object);
+    if (track_point_out_fov_bound_) {
+      init_point = object.tail_center_feature.edge_center_points.col(2);
+    }
+
     motion_filter_ = std::make_shared<LinearKalmanFilter>(A, H, P, Q, R);
     Eigen::VectorXd init_motion_state(num_state);
     init_motion_state << init_point, 0.0, 0.0;
@@ -69,6 +82,24 @@ void TailCenterTrackerCV::Predict(const double dt, Object& object_tracked) {
 
 void TailCenterTrackerCV::Update(const Object& object, Object& object_tracked) {
   Eigen::Vector2d measure_point = object.tail_center_feature.tail_center_point;
+  const bool object_out_fov_bound = outFovBound(object);
+  if (track_point_out_fov_bound_) {
+    if (object_out_fov_bound) {
+      measure_point = object.tail_center_feature.edge_center_points.col(2);
+    } else {
+      Eigen::VectorXd new_dynamic_states = motion_filter_->getState();
+      new_dynamic_states.head(2) = object_tracked.tail_center_feature.tail_center_point;
+      motion_filter_->setState(new_dynamic_states);
+    }
+  } else {
+    if (object_out_fov_bound) {
+      Eigen::VectorXd new_dynamic_states = motion_filter_->getState();
+      new_dynamic_states.head(2) = object_tracked.tail_center_feature.edge_center_points.col(2);
+      motion_filter_->setState(new_dynamic_states);
+      measure_point = object.tail_center_feature.edge_center_points.col(2);
+    }
+  }
+  track_point_out_fov_bound_ = object_out_fov_bound;
 
   const double dt = object.timestamp - object_tracked.timestamp;
   Eigen::MatrixXd A = motion_filter_->getStateTransitionMatrix();
@@ -109,6 +140,12 @@ void TailCenterTrackerCV::getTrackModel(Object& object) {
 
   // state covariance matrix
   object.state_covariance = motion_filter_->getStateCovarianceMatrix().topLeftCorner(4, 4).cast<float>();
+}
+
+bool TailCenterTrackerCV::outFovBound(const Object& object) {
+  const auto& pt = object.tail_center_feature.tail_center_point;
+  const float bound_x = std::abs(pt.y() * fov_tan_theta_) + params_.x_offset;
+  return (pt.x() < bound_x && std::abs(pt.y()) > params_.y_offset);
 }
 
 REGISTER_TRACKER_METHOD("TailCenterTrackerCV", TailCenterTrackerCV)

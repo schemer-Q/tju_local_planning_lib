@@ -1,9 +1,9 @@
 /**
- * @file nearest_corner_tracker_cv.h
- * @author Fan Dongsheng
+ * @file tail_middle_tracker_cv.h
+ * @author Fan Dongsheng (fandongsheng@trunk.tech)
  * @brief
  * @version 0.1
- * @date 2024-09-13
+ * @date 2024-10-12
  *
  * @copyright Copyright (c) 2024
  *
@@ -13,17 +13,22 @@
 
 #include <memory>
 
+#include "trunk_perception/algo/track/common/geometric_algo.h"
 #include "trunk_perception/algo/track/kalman_filter/linear_kalman_filter.h"
 #include "trunk_perception/algo/track/tracker_method/tracker_method_base.h"
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
-enum SwitchDirection { NO_SWITCH, CLOCKWISE, COUNTER_CLOCKWISE };
+struct TailCenterTrackerCVParams {
+  float fov_angle = 120.0F;
+  float x_offset = 5.77F;
+  float y_offset = 1.6F;
+};
 
-class NearestCornerTrackerCV : virtual public TrackerMethodBase {
+class TailCenterTrackerCV : virtual public TrackerMethodBase {
  public:
-  NearestCornerTrackerCV() = default;
-  ~NearestCornerTrackerCV() override = default;
+  TailCenterTrackerCV() = default;
+  ~TailCenterTrackerCV() override = default;
 
   /**
    * @brief init tracker method
@@ -59,23 +64,26 @@ class NearestCornerTrackerCV : virtual public TrackerMethodBase {
 
  private:
   /**
-   * @brief detect whether corner point is switch
-   *
-   * @param from_angle angle
-   * @param to_angle angle
-   * @return SwitchDirection
-   */
-  SwitchDirection detectCornerPointSwitch(const double from_angle, const double to_angle);
-
-  /**
    * @brief Get the Track Model object
    *
    * @param object object tracked
    */
   void getTrackModel(Object& object);
 
+  /**
+   * @brief determine object which in fov bound
+   *
+   * @param object
+   * @return true in fov bound
+   * @return false not in fov bound
+   */
+  bool outFovBound(const Object& object);
+
  private:
+  TailCenterTrackerCVParams params_;                             // 配置参数
   std::shared_ptr<LinearKalmanFilter> motion_filter_ = nullptr;  // 运动状态滤波器
+  float fov_tan_theta_ = std::tan(M_PI_2f32 - 60.0F * DEG2RAD);  // 常量值
+  bool track_point_out_fov_bound_ = false;                       // 跟踪点是否超出fov边界
 };
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

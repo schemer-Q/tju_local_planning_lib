@@ -10,6 +10,7 @@
  */
 
 #include "trunk_perception/algo/track/tracker_method/nearest_corner_tracker_cv.h"
+#include "trunk_perception/algo/track/common/geometric_algo.h"
 #include "trunk_perception/tools/log/t_log.h"
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
@@ -104,7 +105,7 @@ void NearestCornerTrackerCV::TransformToCurrent(const Eigen::Isometry3f& tf) {
 }
 
 SwitchDirection NearestCornerTrackerCV::detectCornerPointSwitch(const double from_angle, const double to_angle) {
-  const double angle_diff = normalAngle(from_angle, to_angle);
+  const double angle_diff = getAngleDiff(from_angle, to_angle);
 
   constexpr double SWITCH_ANGLE_THRESH = 0.6;
   if (angle_diff < -SWITCH_ANGLE_THRESH) {
@@ -114,19 +115,6 @@ SwitchDirection NearestCornerTrackerCV::detectCornerPointSwitch(const double fro
   }
 
   return SwitchDirection::NO_SWITCH;
-}
-
-double NearestCornerTrackerCV::normalAngle(const double from_angle, const double to_angle) {
-  const double angle_diff = from_angle - to_angle;
-  if (-M_PI <= angle_diff && angle_diff <= M_PI) {
-    return angle_diff;
-  } else if (angle_diff > M_PI) {
-    return angle_diff - 2 * M_PI;
-  } else if (angle_diff < -M_PI) {
-    return angle_diff + 2 * M_PI;
-  } else {
-    return 0.0;
-  }
 }
 
 void NearestCornerTrackerCV::getTrackModel(Object& object) {

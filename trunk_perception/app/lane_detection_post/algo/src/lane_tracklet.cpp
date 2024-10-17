@@ -6,6 +6,8 @@
 #include "trunk_perception/common/types/lane.h"
 #include "trunk_perception/tools/log/t_log.h"
 
+#include <numeric>
+
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 
 namespace ld_post {

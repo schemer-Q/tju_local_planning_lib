@@ -52,7 +52,7 @@ std::uint32_t PreprocessBase::Run(const double& ts) {
   tf_cloud_ = TransformPointCloud(origin_cloud->data, *tf);
 
   // 保存点云
-  ret = PUSH_SENSOR_DATA(lidar_name_, "tf", ts, tf_cloud_);
+  ret = PUSH_SENSOR_DATA(lidar_name_, "tf", origin_cloud->time, tf_cloud_);
   if (ret != ErrorCode::SUCCESS) {
     TERROR << "PreprocessBase::Run failed, push " << lidar_name_ << " tf cloud failed";
     return ret;

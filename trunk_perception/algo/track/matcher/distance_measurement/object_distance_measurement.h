@@ -18,9 +18,11 @@
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
 struct ObjectDistanceMeasurementParams {
-  std::string method = "";     // NORMAL_DISTANCE、FUSION_DISTANCE
-  float max_distance = 5.0F;   // 前后帧最大距离(m)
-  float max_velocity = 50.0F;  // 障碍物最大速度(m/s)
+  std::string method = "";               // NORMAL_DISTANCE、FUSION_DISTANCE
+  float max_distance = 5.0F;             // 前后帧最大距离(m)
+  float max_velocity = 50.0F;            // 障碍物最大速度(m/s)
+  float max_theta_diff = 0.785F;         // pi/4, heading角度差阈值(rad)
+  float max_projection_distance = 2.0F;  // 在heading垂直方向上的投影距离阈值(m)
 
   // location、direction、bbox size、point num、centroid、iou、box tail
   std::vector<float> weight = {0.3F, 0.1F, 0.1F, 0.1F, 0.01F, 0.1F, 0.2F};

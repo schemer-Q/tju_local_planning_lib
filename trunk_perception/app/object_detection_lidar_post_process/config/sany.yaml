@@ -19,6 +19,8 @@ Config:
         method: NORMAL_DISTANCE # NORMAL_DISTANCE、FUSION_DISTANCE
         max_distance: 5.0 # 前后帧最大距离(m)
         max_velocity: 50 # 障碍物最大速度(m/s)
+        max_theta_diff: 0.785 # pi/4, heading角度差阈值(rad)
+        max_projection_distance: 2.0 # 在heading垂直方向上的投影距离阈值(m)
       TrackerMethod: TailCenterTrackerCV # NearestCornerTrackerCV、TailCenterTrackerCV
       TrackerParams:
         fov_angle: 120.0

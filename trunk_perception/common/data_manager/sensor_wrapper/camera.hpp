@@ -212,6 +212,22 @@ class Camera : public SensorWrapper<Image, ImageData, CameraMetaInfo> {
    */
   const std::string& name() const override { return name_; }
 
+  /**
+   * @brief 获取传感器原始数据最新时间
+   *
+   * @return double 时间
+   */
+  double getLatestOriginDataTime() {
+    const std::string type = "origin";
+    auto it = m_type_buffer_.find(type);
+    if (it == m_type_buffer_.end()) {  // 没有找到对应的类型，返回异常值-1.0
+      TERROR << "Camera: " << name_ << " getLatestOriginDataTime failed for type not found.";
+      return -1.0;
+    }
+
+    return m_type_buffer_[type]->getLatestDataTime();
+  }
+
  private:
   std::string name_;                                                   ///< 传感器名称
   uint32_t buffer_size_;                                               ///< 数据缓冲区大小
@@ -220,7 +236,7 @@ class Camera : public SensorWrapper<Image, ImageData, CameraMetaInfo> {
   std::unordered_map<std::string, ImageDataBufferPtr> m_type_buffer_;  ///< 图像数据缓冲区
   std::shared_ptr<CameraMetaInfo> meta_;                               ///< 传感器元数据
   std::shared_ptr<StandardCameraProjection> camera_projection_ = nullptr;  ///< 相机投影工具
-  std::shared_ptr<CameraUndistort> camera_undistort_ = nullptr;                     ///< 相机去畸变工具
+  std::shared_ptr<CameraUndistort> camera_undistort_ = nullptr;            ///< 相机去畸变工具
 };
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END

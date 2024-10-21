@@ -164,6 +164,20 @@ class DataBuffer {
   uint32_t size() const { return buffer_.size(); }
 
   /**
+   * @brief 获取最新数据的时间
+   *
+   * @return double 时间
+   */
+  double getLatestDataTime() const {
+    if (buffer_.empty()) {  // 如果buffe为空，返回异常值-1.0
+      TERROR << "Buffer: " << name_ << " is empty, getLatestDataTime failed!";
+      return -1.0;
+    }
+
+    return buffer_.rbegin()->time;
+  }
+
+  /**
    * @brief 获取缓冲区数据
    *
    * @return std::set<DataType> 缓冲区数据

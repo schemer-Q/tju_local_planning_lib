@@ -325,4 +325,23 @@ std::shared_ptr<StandardCameraProjection> DataManager::getCameraProjection(const
   return cameras_[sensor_name]->getProjection();
 }
 
+double DataManager::getLatestSensorDataTime(const std::string& sensor_name) {
+  if (m_name_to_type_.find(sensor_name) == m_name_to_type_.end()) {
+    TERROR << "Sensor " << sensor_name << " does not exist.";
+    return -1.0;  // 传感器不存在，返回异常值-1.0
+  }
+
+  switch (m_name_to_type_.at(sensor_name)) {
+    case SensorType::LIDAR:
+      return lidars_[sensor_name]->getLatestOriginDataTime();
+    case SensorType::CAMERA:
+      return cameras_[sensor_name]->getLatestOriginDataTime();
+    case SensorType::ODOMETRY:
+      return odometry_data_buffer_->getLatestDataTime();
+    default:
+      TFATAL << "Invalid sensor type: " << m_name_to_type_[sensor_name];
+      return -1.0;  // 无效传感器类型，返回异常值-1.0
+  }
+}
+
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END

@@ -101,6 +101,8 @@ class DataManager {
 
   std::shared_ptr<StandardCameraProjection> getCameraProjection(const std::string& sensor_name);
 
+  double getLatestSensorDataTime(const std::string& sensor_name);
+
   void updateOdLidarFrame(const std::shared_ptr<OdLidarFrame>& od_lidar_frame) { od_lidar_frame_ = od_lidar_frame; }
 
   std::shared_ptr<OdLidarFrame> getOdLidarFrame() const { return od_lidar_frame_; }
@@ -316,3 +318,10 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
  * @return ld帧
  */
 #define GET_LD_FRAME() DATA_MANAGER.getLdFrame()
+
+/**
+ * @def GET_LATEST_SENSOR_DATA_TIME
+ * @brief 获取传感器数据最新时间，线程安全
+ * @return 时间
+ */
+#define GET_LATEST_SENSOR_DATA_TIME(sensor_name) DATA_MANAGER.getLatestSensorDataTime(sensor_name)

@@ -19,9 +19,12 @@
 #include "trunk_perception/common/data_manager/sensor_wrapper/base.h"
 #include "trunk_perception/common/data_manager/sensor_wrapper/camera.hpp"
 #include "trunk_perception/common/data_manager/sensor_wrapper/lidar.hpp"
+#include "trunk_perception/common/data_manager/sensor_wrapper/radar_ars430.hpp"
+#include "trunk_perception/common/data_manager/sensor_wrapper/radar_crt5p.hpp"
 #include "trunk_perception/common/error/code.hpp"
 #include "trunk_perception/common/macros.h"
 #include "trunk_perception/common/types/point.h"
+#include "trunk_perception/common/types/radar_ars430.h"
 #include "trunk_perception/tools/log/t_log.h"
 #include "trunk_perception/tools/system/utils.hpp"
 #include "trunk_perception/common/data_manager/data_wrapper/od_lidar_frame.h"
@@ -34,6 +37,8 @@ enum SensorType {
   LIDAR,
   CAMERA,
   ODOMETRY,
+  RADAR_ARS430,
+  RADAR_CRT5P,
 };
 
 /**
@@ -68,6 +73,10 @@ class DataManager {
 
   uint32_t push(const double& timestamp, const std::shared_ptr<Odometry>& data);
 
+  uint32_t push(const double& timestamp, const std::shared_ptr<ars430::RadarObjects>& data);
+
+  uint32_t push(const std::string& sensor_name, const double& timestamp, const std::shared_ptr<cr5tp::RadarObjects>& data);
+
   uint32_t extractByTime(const std::string& sensor_name, const std::string& data_type, const double& timestamp,
                          std::shared_ptr<PointCloudData>& data);
 
@@ -75,6 +84,10 @@ class DataManager {
                          std::shared_ptr<ImageData>& data);
 
   uint32_t extractByTime(const double& timestamp, std::shared_ptr<OdometryData>& data);
+
+  uint32_t extractByTime(const double& timestamp, std::shared_ptr<ARS430RadarData>& data);
+
+  uint32_t extractByTime(const std::string& sensor_name, const double& timestamp, std::shared_ptr<CR5TPRadarData>& data);
 
   uint32_t setSensorPose(const std::string& sensor_name, const Eigen::Isometry3f& pose);
 
@@ -109,6 +122,8 @@ class DataManager {
 
   std::unordered_map<std::string, std::shared_ptr<Lidar>> lidars_;
   std::unordered_map<std::string, std::shared_ptr<Camera>> cameras_;
+  std::shared_ptr<ARS430Radar> front_radar_;
+  std::unordered_map<std::string, std::shared_ptr<CR5TPRadar>> corner_radars_;
   std::unordered_map<std::string, SensorType> m_name_to_type_;
   std::string vehicle_name_ = "";
 
@@ -164,6 +179,25 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
 #define PUSH_ODOMETRY_DATA(timestamp, data) DATA_MANAGER.push(timestamp, data)
 
 /**
+ * @def PUSH_FRONT_RADAR_DATA
+ * @brief 向数据管理器中添加前向毫米波雷达数据，线程安全
+ * @param timestamp 数据时间戳
+ * @param data 数据
+ * @return 错误码
+ */
+#define PUSH_FRONT_RADAR_DATA(timestamp, data) DATA_MANAGER.push(timestamp, data)
+
+/**
+ * @def PUSH_CORNER_RADAR_DATA
+ * @brief 向数据管理器中添加角雷达数据，线程安全
+ * @param sensor_name 传感器名称
+ * @param timestamp 数据时间戳
+ * @param data 数据
+ * @return 错误码
+ */
+#define PUSH_CORNER_RADAR_DATA(sensor_name, timestamp, data) DATA_MANAGER.push(sensor_name, timestamp, data)
+
+/**
  * @def GET_SENSOR_DATA_BY_TIME
  * @brief 从数据管理器中提取数据，线程安全
  * @param sensor_name 传感器名称
@@ -183,6 +217,25 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
  * @return 错误码
  */
 #define GET_ODOMETRY_DATA_BY_TIME(timestamp, data) DATA_MANAGER.extractByTime(timestamp, data)
+
+/**
+ * @def GET_FRONT_RADAR_DATA_BY_TIME
+ * @brief 从数据管理器中提取前向毫米波雷达数据，线程安全
+ * @param timestamp 数据时间戳
+ * @param data 数据
+ * @return 错误码
+ */
+#define GET_FRONT_RADAR_DATA_BY_TIME(timestamp, data) DATA_MANAGER.extractByTime(timestamp, data)
+
+/**
+ * @def GET_CORNER_RADAR_DATA_BY_TIME
+ * @brief 从数据管理器中提取角雷达数据，线程安全
+ * @param sensor_name 传感器名称
+ * @param timestamp 数据时间戳
+ * @param data 数据
+ * @return 错误码
+ */
+#define GET_CORNER_RADAR_DATA_BY_TIME(sensor_name, timestamp, data) DATA_MANAGER.extractByTime(sensor_name, timestamp, data)
 
 /**
  * @def SET_SENSOR_POSE

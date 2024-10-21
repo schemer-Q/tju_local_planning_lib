@@ -13,6 +13,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "trunk_perception/common/data_manager/data_wrapper/ld_frame.h"
 #include "trunk_perception/common/data_manager/data_wrapper/od_lidar_frame.h"
 #include "trunk_perception/common/data_manager/data_wrapper/odometry_data.h"
 #include "trunk_perception/common/data_manager/data_wrapper/pointcloud_data.h"
@@ -27,8 +28,6 @@
 #include "trunk_perception/common/types/radar_ars430.h"
 #include "trunk_perception/tools/log/t_log.h"
 #include "trunk_perception/tools/system/utils.hpp"
-#include "trunk_perception/common/data_manager/data_wrapper/od_lidar_frame.h"
-#include "trunk_perception/common/data_manager/data_wrapper/ld_frame.h"
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
@@ -54,9 +53,6 @@ class DataManager {
   uint32_t registerSensor(const SensorType& type, const std::string& name, const std::vector<std::string>& types,
                           const uint32_t& buffer_size, const double& max_time_delay);
 
-  uint32_t registerOthers(const SensorType& type, const std::string& name, const uint32_t& buffer_size,
-                          const double& max_time_delay);
-
   uint32_t registerSensorsByConfig(const YAML::Node& config);
 
   uint32_t registerSensorsByFile(const std::string& file_path);
@@ -75,7 +71,8 @@ class DataManager {
 
   uint32_t push(const double& timestamp, const std::shared_ptr<ars430::RadarObjects>& data);
 
-  uint32_t push(const std::string& sensor_name, const double& timestamp, const std::shared_ptr<cr5tp::RadarObjects>& data);
+  uint32_t push(const std::string& sensor_name, const double& timestamp,
+                const std::shared_ptr<cr5tp::RadarObjects>& data);
 
   uint32_t extractByTime(const std::string& sensor_name, const std::string& data_type, const double& timestamp,
                          std::shared_ptr<PointCloudData>& data);
@@ -87,7 +84,8 @@ class DataManager {
 
   uint32_t extractByTime(const double& timestamp, std::shared_ptr<ARS430RadarData>& data);
 
-  uint32_t extractByTime(const std::string& sensor_name, const double& timestamp, std::shared_ptr<CR5TPRadarData>& data);
+  uint32_t extractByTime(const std::string& sensor_name, const double& timestamp,
+                         std::shared_ptr<CR5TPRadarData>& data);
 
   uint32_t setSensorPose(const std::string& sensor_name, const Eigen::Isometry3f& pose);
 
@@ -103,19 +101,13 @@ class DataManager {
 
   std::shared_ptr<StandardCameraProjection> getCameraProjection(const std::string& sensor_name);
 
-  void updateOdLidarFrame(const std::shared_ptr<OdLidarFrame>& od_lidar_frame) {
-    od_lidar_frame_ = od_lidar_frame;
-  }
+  void updateOdLidarFrame(const std::shared_ptr<OdLidarFrame>& od_lidar_frame) { od_lidar_frame_ = od_lidar_frame; }
 
   std::shared_ptr<OdLidarFrame> getOdLidarFrame() const { return od_lidar_frame_; }
 
-  void updateLdFrame(const std::shared_ptr<LDFrame>& ld_frame) {
-    ld_frame_ = ld_frame;
-  }
+  void updateLdFrame(const std::shared_ptr<LDFrame>& ld_frame) { ld_frame_ = ld_frame; }
 
-  std::shared_ptr<LDFrame> getLdFrame() const {
-    return ld_frame_;
-  }
+  std::shared_ptr<LDFrame> getLdFrame() const { return ld_frame_; }
 
  private:
   DataManager();
@@ -235,7 +227,8 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
  * @param data 数据
  * @return 错误码
  */
-#define GET_CORNER_RADAR_DATA_BY_TIME(sensor_name, timestamp, data) DATA_MANAGER.extractByTime(sensor_name, timestamp, data)
+#define GET_CORNER_RADAR_DATA_BY_TIME(sensor_name, timestamp, data) \
+  DATA_MANAGER.extractByTime(sensor_name, timestamp, data)
 
 /**
  * @def SET_SENSOR_POSE
@@ -270,7 +263,6 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
  * @return 相机内参
  */
 #define GET_CAMERA_INTRINSICS(sensor_name) DATA_MANAGER.getCameraIntrinsics(sensor_name)
-
 
 /**
  * @def GET_META_INFO

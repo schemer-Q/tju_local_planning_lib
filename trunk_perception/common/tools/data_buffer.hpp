@@ -168,7 +168,8 @@ class DataBuffer {
    *
    * @return double 时间
    */
-  double getLatestDataTime() const {
+  double getLatestDataTime() {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (buffer_.empty()) {  // 如果buffe为空，返回异常值-1.0
       TERROR << "Buffer: " << name_ << " is empty, getLatestDataTime failed!";
       return -1.0;

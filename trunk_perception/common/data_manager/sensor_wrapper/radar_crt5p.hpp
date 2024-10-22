@@ -129,6 +129,8 @@ class CR5TPRadar : public SensorWrapper<cr5tp::RadarObjects, CR5TPRadarData, CR5
 
   const std::string& name() const override { return name_; }
 
+  double getLatestOriginDataTime() { return buffer_->getLatestDataTime(); }
+
  private:
   std::string name_;
   uint32_t buffer_size_;

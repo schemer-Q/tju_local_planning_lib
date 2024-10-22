@@ -63,6 +63,10 @@ uint32_t DataManager::registerSensor(const SensorType& type, const std::string& 
       }
       m_name_to_type_[name] = SensorType::CAMERA;
       break;
+    case SensorType::ODOMETRY:
+      odometry_data_buffer_ = std::make_shared<OdometryDataBuffer>(buffer_size, name, max_time_delay);
+      m_name_to_type_[name] = SensorType::ODOMETRY;
+      break;
     case SensorType::RADAR_ARS430:
       if (front_radar_ != nullptr) {
         TERROR << "Front radar already exists.";
@@ -95,21 +99,6 @@ uint32_t DataManager::registerSensor(const SensorType& type, const std::string& 
   return ret;
 }
 
-uint32_t DataManager::registerOthers(const SensorType& type, const std::string& name, const uint32_t& buffer_size,
-                                     const double& max_time_delay) {
-  uint32_t ret = ErrorCode::SUCCESS;
-  switch (type) {
-    case SensorType::ODOMETRY:
-      odometry_data_buffer_ = std::make_shared<OdometryDataBuffer>(buffer_size, name, max_time_delay);
-      break;
-    default:
-      TFATAL << "Invalid data type: " << type;
-      ret = ErrorCode::PARAMETER_ERROR;
-      break;
-  }
-  return ret;
-}
-
 uint32_t DataManager::registerSensorsByConfig(const YAML::Node& config) {
   try {
     if (config["VEHICLE_NAME"]) {
@@ -131,16 +120,6 @@ uint32_t DataManager::registerSensorsByConfig(const YAML::Node& config) {
     } else {
       TERROR << "No Sensors found in config.";
       return ErrorCode::PARAMETER_ERROR;
-    }
-    if (config["Others"]) {
-      for (const auto& param : config["Others"]) {
-        const std::string type = param["Type"].as<std::string>();
-        SensorType others_type = stringToSensorType(type);
-        const std::string name = param["Name"].as<std::string>();
-        const uint32_t buffer_size = param["BufferSize"].as<uint32_t>();
-        const double max_time_delay = param["MaxTimeDelay"].as<double>();
-        registerOthers(others_type, name, buffer_size, max_time_delay);
-      }
     }
   } catch (const YAML::Exception& e) {
     TERROR << "Failed to register sensors by config: " << e.what();
@@ -254,7 +233,7 @@ uint32_t DataManager::extractByTime(const double& timestamp, std::shared_ptr<ARS
 }
 
 uint32_t DataManager::extractByTime(const std::string& sensor_name, const double& timestamp,
-                                   std::shared_ptr<CR5TPRadarData>& data) {
+                                    std::shared_ptr<CR5TPRadarData>& data) {
   if (corner_radars_.find(sensor_name) == corner_radars_.end()) {
     TERROR << "Corner radar " << sensor_name << " does not exist.";
     return ErrorCode::PARAMETER_ERROR;
@@ -346,5 +325,27 @@ std::shared_ptr<StandardCameraProjection> DataManager::getCameraProjection(const
   return cameras_[sensor_name]->getProjection();
 }
 
+double DataManager::getLatestSensorDataTime(const std::string& sensor_name) {
+  if (m_name_to_type_.find(sensor_name) == m_name_to_type_.end()) {
+    TERROR << "Sensor " << sensor_name << " does not exist.";
+    return -1.0;  // 传感器不存在，返回异常值-1.0
+  }
+
+  switch (m_name_to_type_.at(sensor_name)) {
+    case SensorType::LIDAR:
+      return lidars_[sensor_name]->getLatestOriginDataTime();
+    case SensorType::CAMERA:
+      return cameras_[sensor_name]->getLatestOriginDataTime();
+    case SensorType::ODOMETRY:
+      return odometry_data_buffer_->getLatestDataTime();
+    case SensorType::RADAR_ARS430:
+      return front_radar_->getLatestOriginDataTime();
+    case SensorType::RADAR_CRT5P:
+      return corner_radars_[sensor_name]->getLatestOriginDataTime();
+    default:
+      TFATAL << "Invalid sensor type: " << m_name_to_type_[sensor_name];
+      return -1.0;  // 无效传感器类型，返回异常值-1.0
+  }
+}
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END

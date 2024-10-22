@@ -87,7 +87,8 @@ class Lidar : public SensorWrapper<PointCloudT, PointCloudData, LidarMetaInfo> {
    * @param data [out] 传感器数据
    * @return uint32_t 错误码
    */
-  uint32_t extractByTime(const std::string& type, const double& timestamp, std::shared_ptr<PointCloudData>& data) override {
+  uint32_t extractByTime(const std::string& type, const double& timestamp,
+                         std::shared_ptr<PointCloudData>& data) override {
     auto it = m_type_buffer_.find(type);
     if (it == m_type_buffer_.end()) {  // 没有找到对应的类型
       TERROR << "Lidar: " << name_ << " extractByTime failed for type not found.";
@@ -177,6 +178,22 @@ class Lidar : public SensorWrapper<PointCloudT, PointCloudData, LidarMetaInfo> {
    * @return 传感器名称
    */
   const std::string& name() const override { return name_; }
+
+  /**
+   * @brief 获取传感器原始数据最新时间
+   *
+   * @return double 时间
+   */
+  double getLatestOriginDataTime() {
+    const std::string type = "origin";
+    auto it = m_type_buffer_.find(type);
+    if (it == m_type_buffer_.end()) {  // 没有找到对应的类型，返回异常值-1.0
+      TERROR << "Lidar: " << name_ << " getLatestOriginDataTime failed for type not found.";
+      return -1.0;
+    }
+
+    return m_type_buffer_[type]->getLatestDataTime();
+  }
 
  private:
   std::string name_;                           ///< 传感器名称

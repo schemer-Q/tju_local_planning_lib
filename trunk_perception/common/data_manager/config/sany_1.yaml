@@ -11,6 +11,10 @@ Sensors:
     SubTypes: ["origin", "undistorted"]
     BufferSize: 5
     MaxTimeDelay: 0.3
+  - Type: "ODOMETRY"
+    Name: "ODOMETRY"
+    BufferSize: 200
+    MaxTimeDelay: 0.04
   - Type: "RADAR_ARS430"
     Name: "RADAR_0"
     BufferSize: 5
@@ -31,8 +35,3 @@ Sensors:
     Name: "RADAR_11"
     BufferSize: 5
     MaxTimeDelay: 0.3
-Others:
-  - Type: "ODOMETRY"
-    Name: "ODOMETRY"
-    BufferSize: 200
-    MaxTimeDelay: 0.04

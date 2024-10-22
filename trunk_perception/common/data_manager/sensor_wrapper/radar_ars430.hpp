@@ -128,7 +128,9 @@ class ARS430Radar : public SensorWrapper<ars430::RadarObjects, ARS430RadarData, 
   std::shared_ptr<const Eigen::Isometry3f> pose() const override { return meta_->pose_ptr; }
 
   const std::string& name() const override { return name_; }
-  
+
+  double getLatestOriginDataTime() { return buffer_->getLatestDataTime(); }
+
  private:
   std::string name_ = "FRONT_RADAR";
   uint32_t buffer_size_;

@@ -338,6 +338,10 @@ double DataManager::getLatestSensorDataTime(const std::string& sensor_name) {
       return cameras_[sensor_name]->getLatestOriginDataTime();
     case SensorType::ODOMETRY:
       return odometry_data_buffer_->getLatestDataTime();
+    case SensorType::RADAR_ARS430:
+      return front_radar_->getLatestOriginDataTime();
+    case SensorType::RADAR_CRT5P:
+      return corner_radars_[sensor_name]->getLatestOriginDataTime();
     default:
       TFATAL << "Invalid sensor type: " << m_name_to_type_[sensor_name];
       return -1.0;  // 无效传感器类型，返回异常值-1.0

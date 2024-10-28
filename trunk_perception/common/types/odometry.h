@@ -11,15 +11,15 @@
 
 #pragma once
 
-#include <memory>
 #include <Eigen/Geometry>
+#include <memory>
 #include "trunk_perception/common/macros.h"
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
 /**
  * @brief 里程计数据
- * 
+ *
  */
 struct Odometry {
   double time = 0.0;
@@ -28,10 +28,13 @@ struct Odometry {
   Eigen::Vector3d linear;          ///< 线速度
   Eigen::Vector3d angular;         ///< 角速度
 
+  double wheel_speed = 0.0;  ///< 补偿后的车体坐标系下的纵向速度
+  double speed_scale = 0.0;  ///< 定位发布的车体下的速度与vehicle_info2中的wheel_speed的比值
+
   /**
    * @brief 返回位姿矩阵
-   * 
-   * @return Eigen::Matrix4d 
+   *
+   * @return Eigen::Matrix4d
    */
   Eigen::Matrix4d Matrix() const {
     Eigen::Matrix4d mat = Eigen::Matrix4d::Identity();
@@ -45,6 +48,8 @@ struct Odometry {
     orientation.setIdentity();
     linear.setZero();
     angular.setZero();
+    wheel_speed = 0.0;
+    speed_scale = 0.0;
   }
 
   typedef std::shared_ptr<Odometry> Ptr;

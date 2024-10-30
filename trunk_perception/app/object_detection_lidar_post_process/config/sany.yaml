@@ -10,7 +10,7 @@ Config:
       origin_xy_offset: [16.0, 2.0] # [x方向的矢量偏移量，y方向的绝对值偏移量]
       IDPool:
         start_id: 1
-        max_id: 1000
+        max_id: 255
       MatcherMethod: OneStageMatcher
       MatcherParams:
         MatcherOptions:

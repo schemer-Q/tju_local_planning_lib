@@ -29,6 +29,16 @@ Config:
   ClusterDetection:
     Switch: true
     Params:
+      RemoveObjectPoints:
+        Switch: true
+        Params:
+          scale: 5.0
+          x_range: 200.0
+          y_range: 200.0
+          x_offset: 0.0
+          y_offset: 100.0
+          x_dilate: 0.5
+          y_dilate: 0.5
       ClusterMethod: BEVCCL
       ClusterParams:
         map_range_min_x: 0.0

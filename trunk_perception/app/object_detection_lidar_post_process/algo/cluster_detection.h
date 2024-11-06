@@ -1,12 +1,12 @@
 /**
- * @file cluster_detector.h
- * @author Fan Dongsheng
- * @brief
+ * @file cluster_detection.h
+ * @author Fan Dongsheng (fandongsheng@trunk.tech)
+ * @brief 
  * @version 0.1
- * @date 2024-07-01
- *
+ * @date 2024-11-06
+ * 
  * @copyright Copyright (c) 2024
- *
+ * 
  */
 
 #pragma once
@@ -24,7 +24,7 @@ TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 
 using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
 
-struct ClusterDetectorParams {
+struct ClusterDetectionParams {
   // 高度滤除参数
   bool height_filter_switch = true;
   float range_x_threshold = 20.0F;
@@ -43,10 +43,20 @@ struct ClusterDetectorParams {
   float overlap_thresh = 0.1F;
 };
 
-class ClusterDetector {
+struct RemoveObjectPointsParams {
+  float scale = 5.0F;
+  float x_range = 200.0F;
+  float y_range = 200.0F;
+  float x_offset = 0.0F;
+  float y_offset = 100.0F;
+  float x_dilate = 0.0F;
+  float y_dilate = 0.0F;
+};
+
+class ClusterDetection {
  public:
-  ClusterDetector() = default;
-  ~ClusterDetector() = default;
+  ClusterDetection() = default;
+  ~ClusterDetection() = default;
 
   /**
    * @brief cluster detector init
@@ -65,6 +75,8 @@ class ClusterDetector {
   int Process(std::shared_ptr<OdLidarFrame>& frame);
 
  private:
+  void removeObjectPoints(const PointCloudConstPtr& cloud, const std::vector<Object>& objects,
+                          PointCloudConstPtr& obstacle_cloud);
   void buildObjects(const std::vector<PointCloudConstPtr>& clusters_cloud, std::vector<Object>& objects,
                     const double ts);
   void nms(std::vector<Object>& objects);
@@ -72,8 +84,11 @@ class ClusterDetector {
   void mergeObjects(const std::vector<Object>& cluster_objects, std::vector<Object>& merged_objects);
 
  private:
-  ClusterDetectorParams params_;
+  ClusterDetectionParams params_;
   std::shared_ptr<ClusterBase<PointT>> cluster_ = nullptr;
+
+  bool remove_object_points_ = false;
+  RemoveObjectPointsParams rop_params_;
 };
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

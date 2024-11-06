@@ -64,7 +64,7 @@ class BEVCCLCluster : virtual public ClusterBase<T> {
    *
    * @return std::vector<typename std::shared_ptr<pcl::PointCloud<T>>>
    */
-  std::vector<typename std::shared_ptr<pcl::PointCloud<T>>> getClustersCloud() override;
+  std::vector<typename std::shared_ptr<const pcl::PointCloud<T>>> getClustersCloud() override;
 
  private:
   void reset();
@@ -79,7 +79,7 @@ class BEVCCLCluster : virtual public ClusterBase<T> {
   BevCell bev_cell_;
   Eigen::MatrixXi bev_map_;
   Eigen::MatrixXi labeled_map_;
-  std::vector<typename std::shared_ptr<pcl::PointCloud<T>>> clusters_cloud_;
+  std::vector<typename std::shared_ptr<const pcl::PointCloud<T>>> clusters_cloud_;
 };
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

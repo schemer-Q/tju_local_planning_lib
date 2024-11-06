@@ -45,7 +45,7 @@ class ClusterBase {
    *
    * @return std::vector<typename std::shared_ptr<pcl::PointCloud<T>>>
    */
-  virtual std::vector<typename std::shared_ptr<pcl::PointCloud<T>>> getClustersCloud() = 0;
+  virtual std::vector<typename std::shared_ptr<const pcl::PointCloud<T>>> getClustersCloud() = 0;
 };
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

@@ -67,7 +67,7 @@ int BEVCCLCluster<T>::process(const typename std::shared_ptr<const pcl::PointClo
 }
 
 template <class T>
-std::vector<typename std::shared_ptr<pcl::PointCloud<T>>> BEVCCLCluster<T>::getClustersCloud() {
+std::vector<typename std::shared_ptr<const pcl::PointCloud<T>>> BEVCCLCluster<T>::getClustersCloud() {
   return clusters_cloud_;
 };
 
@@ -178,12 +178,12 @@ void BEVCCLCluster<T>::labelPoints(const typename std::shared_ptr<const pcl::Poi
 
   clusters_cloud_.clear();
   clusters_cloud_.reserve(clusters_idx.size());
-
   for (auto& cluster : clusters_idx) {
     if (cluster.second.size() < static_cast<size_t>(params_.min_points_num)) {
       continue;
     }
-    typename std::shared_ptr<pcl::PointCloud<T>> cloud_temp(new pcl::PointCloud<T>());
+
+    typename std::shared_ptr<pcl::PointCloud<T>> cloud_temp = std::make_shared<pcl::PointCloud<T>>();
     cloud_temp->points.reserve(cluster.second.size());
     for (auto& idx : cluster.second) {
       cloud_temp->points.emplace_back(cloud_in->points[idx]);

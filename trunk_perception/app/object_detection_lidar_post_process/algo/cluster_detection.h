@@ -1,12 +1,12 @@
 /**
  * @file cluster_detection.h
  * @author Fan Dongsheng (fandongsheng@trunk.tech)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-11-06
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
 #pragma once
@@ -89,6 +89,9 @@ class ClusterDetection {
 
   bool remove_object_points_ = false;
   RemoveObjectPointsParams rop_params_;
+
+  bool track_switch_ = false;
+  std::unique_ptr<TrackerPipelineInterface> tracker_ = nullptr;
 };
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

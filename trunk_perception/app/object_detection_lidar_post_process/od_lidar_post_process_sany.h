@@ -12,6 +12,7 @@
 #pragma once
 
 #include "trunk_perception/algo/track/tracker_pipeline/tracker_pipeline_interface.h"
+#include "trunk_perception/app/object_detection_lidar_post_process/algo/cluster_detection.h"
 #include "trunk_perception/app/object_detection_lidar_post_process/od_lidar_post_process_base.h"
 #include "trunk_perception/common/data_manager/data_manager.h"
 #include "trunk_perception/common/types/odometry.h"
@@ -53,7 +54,9 @@ class OdLidarPostProcessSany : public OdLidarPostProcessBase {
 
  private:
   bool track_switch_ = false;                                    ///< 跟踪器开关
+  bool cluster_detection_switch_ = false;                        ///< 聚类检测开关
   std::unique_ptr<TrackerPipelineInterface> tracker_ = nullptr;  ///< 跟踪器
+  std::unique_ptr<ClusterDetection> cluster_detector_ = nullptr;  ///< 聚类检测器
   common::Odometry::ConstPtr last_odometry_ptr_ = nullptr;       ///< 上一帧里程计信息
 };
 

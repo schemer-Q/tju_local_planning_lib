@@ -41,6 +41,26 @@ int ClusterDetection::Init(const YAML::Node& config) {
       }
     }
 
+    // track param
+    if (config["Tracker"].IsDefined()) {
+      track_switch_ = config["Tracker"]["Switch"].as<bool>();
+      if (track_switch_) {
+        const auto& tracker_config = config["Tracker"];
+        const std::string tracker_pipeline_method = tracker_config["TrackerPipelineMethod"].as<std::string>();
+        tracker_ = TrackerPipelineManager::Create(tracker_pipeline_method);
+        if (tracker_ == nullptr) {
+          TFATAL << "ClusterDetection::Init create tracker failed!";
+          return ErrorCode::UNINITIALIZED;
+        }
+        auto res = tracker_->Init(tracker_config["TrackerPipelineParams"]);
+        if (res) {
+          TFATAL << "ClusterDetection::Init tracker init failed! " << res;
+          return ErrorCode::UNINITIALIZED;
+        }
+        TINFO << "ClusterDetection::Init turn on tracker pipeline method: " << tracker_pipeline_method;
+      }
+    }
+
     // height filter param
     const auto& height_filter_config = config["FilterByRules"]["HeightFilter"];
     params_.height_filter_switch = height_filter_config["Switch"].as<bool>();
@@ -99,8 +119,19 @@ int ClusterDetection::Process(std::shared_ptr<OdLidarFrame>& frame) {
   // nms
   nms(cluster_objects);
 
-  // merge tracked objects and cluster objects
-  mergeObjects(cluster_objects, frame->tracked_objects);
+  // track
+  if (track_switch_) {
+    if (!frame->id_manager_ptr) {
+      TERROR << "ClusterDetection::Process id manager ptr is nullptr";
+      return 3;
+    }
+    std::vector<Object> tracked_cluster_objects;
+    tracker_->SetIDManager(frame->id_manager_ptr);
+    tracker_->Track(cluster_objects, frame->tf, frame->timestamp, tracked_cluster_objects);
+    mergeObjects(tracked_cluster_objects, frame->tracked_objects);
+  } else {
+    mergeObjects(cluster_objects, frame->tracked_objects);
+  }
 
   return 0;
 }

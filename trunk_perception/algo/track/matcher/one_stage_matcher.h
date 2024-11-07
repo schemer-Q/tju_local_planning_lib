@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "trunk_perception/algo/track/matcher/distance_measurement/object_distance_measurement.h"
+#include "trunk_perception/algo/track/matcher/distance_measurement/distance_base.h"
 #include "trunk_perception/algo/track/matcher/graph/gated_hungarian_bigraph_matcher.h"
 #include "trunk_perception/algo/track/matcher/matcher_base.h"
 
@@ -64,7 +64,7 @@ class OneStageMatcher : virtual public MatcherBase {
              std::vector<size_t>* unassigned_objects);
 
  private:
-  std::unique_ptr<ObjectDistanceMeasurement> distance_measurement_ptr_ = nullptr;
+  std::unique_ptr<DistanceBase> distance_measurement_ptr_ = nullptr;
   std::unique_ptr<GatedHungarianMatcher<float>> hungarian_matcher_ptr_ = nullptr;
   MatcherOptions matcher_options_;
 };

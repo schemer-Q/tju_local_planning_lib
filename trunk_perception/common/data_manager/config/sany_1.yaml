@@ -17,21 +17,21 @@ Sensors:
     MaxTimeDelay: 0.04
   - Type: "RADAR_ARS430"
     Name: "RADAR_0"
-    BufferSize: 5
+    BufferSize: 10
     MaxTimeDelay: 0.3
   - Type: "RADAR_CRT5P"
     Name: "RADAR_1"
-    BufferSize: 5
+    BufferSize: 10
     MaxTimeDelay: 0.3
   - Type: "RADAR_CRT5P"
     Name: "RADAR_5"
-    BufferSize: 5
+    BufferSize: 10
     MaxTimeDelay: 0.3
   - Type: "RADAR_CRT5P"
     Name: "RADAR_7"
-    BufferSize: 5
+    BufferSize: 10
     MaxTimeDelay: 0.3
   - Type: "RADAR_CRT5P"
     Name: "RADAR_11"
-    BufferSize: 5
+    BufferSize: 10
     MaxTimeDelay: 0.3

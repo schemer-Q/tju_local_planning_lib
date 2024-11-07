@@ -126,6 +126,9 @@ struct RadarObject {
   float acceleration_x;                       ///< 目标物纵向加速度  m/s^2
   float width;                                ///< 目标物的宽度  m
   float elevation_object_confidence;          ///< 高处目标物的置信度
+
+  typedef std::shared_ptr<RadarObject> Ptr;
+  typedef std::shared_ptr<const RadarObject> ConstPtr;
 };
 
 struct RadarObjects {

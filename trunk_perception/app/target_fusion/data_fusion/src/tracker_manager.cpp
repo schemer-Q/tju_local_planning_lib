@@ -1,0 +1,68 @@
+#include "trunk_perception/app/target_fusion/data_fusion/tracker_manager.h"
+#include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l1r.h"
+#include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_base.h"
+#include "trunk_perception/app/target_fusion/data_fusion/kalman_motion_fusion.h"
+#include "trunk_perception/app/target_fusion/data_fusion/measurement_functions.h"
+#include "trunk_perception/app/target_fusion/data_fusion/shape_fusion_lidar_only_impl.h"
+#include "trunk_perception/common/error/code.hpp"
+#include "trunk_perception/common/types/fused_object.h"
+#include "trunk_perception/tools/log/t_log.h"
+
+TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
+
+using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
+
+std::uint32_t TrackerManager::Init(const YAML::Node& config) {
+  try {
+    motion_kf_config_.motion_model = GetMotionModel(config["MotionFusion"]["MotionModel"].as<std::string>());
+    motion_kf_config_.sensor_R = GetMeasurementR(config["MotionFusion"]["Measurement"].as<std::string>());
+    motion_kf_config_.sensor_H = GetMeasurementH(config["MotionFusion"]["Measurement"].as<std::string>());
+
+    std::string shape_fusion_type = config["ShapeFusion"]["Type"].as<std::string>();
+    if (shape_fusion_type == "LidarOnly") {
+      auto shape_fusion_config = std::make_shared<ShapeFusionLidarOnlyConfig>();
+      shape_fusion_config->type = shape_fusion_type;
+      shape_fusion_config->window_size = config["ShapeFusion"]["Params"]["WindowSize"].as<int>();
+      shape_fusion_config->threshold = config["ShapeFusion"]["Params"]["Threshold"].as<float>();
+      shape_fusion_config->min_valid_frame = config["ShapeFusion"]["Params"]["MinValidFrame"].as<int>();
+      shape_fusion_config_ = shape_fusion_config;
+    } else {
+      TFATAL << "[TrackerManager] Init failed: shape_fusion_type is not supported";
+      return ErrorCode::TARGET_FUSION_INIT_TRACKER_MANAGER_FAILED;
+    }
+
+    std::string existence_fusion_type = config["ExistenceFusion"]["Type"].as<std::string>();
+    if (existence_fusion_type == "1L1R") {
+      auto existence_fusion_config = std::make_shared<ExistenceFusion1L1RConfig>();
+      existence_fusion_config->type = existence_fusion_type;
+      existence_fusion_config_ = existence_fusion_config;
+    } else {
+      TFATAL << "[TrackerManager] Init failed: existence_fusion_type is not supported";
+      return ErrorCode::TARGET_FUSION_INIT_TRACKER_MANAGER_FAILED;
+    }
+  } catch (const std::exception& e) {
+    TFATAL << "[TrackerManager] Init failed: " << e.what();
+    return ErrorCode::TARGET_FUSION_INIT_TRACKER_MANAGER_FAILED;
+  }
+  return ErrorCode::SUCCESS;
+}
+
+TrackerPtr TrackerManager::CreateTracker(const int& track_id, const LidarMeasureFrame::ConstPtr& lidar_object) {
+  FusedObject::Ptr object_ptr = std::make_shared<FusedObject>();
+  object_ptr->track_id = track_id;
+  object_ptr->timestamp = lidar_object->timestamp;
+  object_ptr->theta = lidar_object->theta;
+  object_ptr->size = lidar_object->size;
+  object_ptr->center = lidar_object->center;
+  object_ptr->rear_middle_point = lidar_object->rear_middle_point;
+  object_ptr->velocity = lidar_object->velocity;
+  object_ptr->acceleration = lidar_object->acceleration;
+  object_ptr->confidence = lidar_object->confidence;
+  object_ptr->type = lidar_object->type;
+  object_ptr->InitTrackPoint();
+  TrackerPtr tracker = std::make_shared<Tracker>(object_ptr, motion_kf_config_, shape_fusion_config_,
+                                                  existence_fusion_config_, lidar_object);
+  return tracker;
+}
+
+TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

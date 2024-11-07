@@ -28,6 +28,7 @@
 #include "trunk_perception/common/types/radar_ars430.h"
 #include "trunk_perception/tools/log/t_log.h"
 #include "trunk_perception/tools/system/utils.hpp"
+#include "trunk_perception/common/data_manager/data_wrapper/target_fusion_frame.h"
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
@@ -111,6 +112,12 @@ class DataManager {
 
   std::shared_ptr<LDFrame> getLdFrame() const { return ld_frame_; }
 
+  void updateTfFrame(const std::shared_ptr<TargetFusionFrame>& tf_frame) {
+    tf_frame_ = tf_frame;
+  }
+
+  std::shared_ptr<TargetFusionFrame> getTfFrame() const { return tf_frame_; }
+
  private:
   DataManager();
 
@@ -126,6 +133,7 @@ class DataManager {
   // 多线程任务共享数据
   std::shared_ptr<OdLidarFrame> od_lidar_frame_ = nullptr;
   std::shared_ptr<LDFrame> ld_frame_ = nullptr;
+  std::shared_ptr<TargetFusionFrame> tf_frame_ = nullptr;
 };
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
@@ -325,3 +333,16 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
  * @return 时间
  */
 #define GET_LATEST_SENSOR_DATA_TIME(sensor_name) DATA_MANAGER.getLatestSensorDataTime(sensor_name)
+/**
+ * @def UPDATE_TF_FRAME
+ * @brief 更新target fusion帧，线程不安全
+ * @param tf_frame target fusion帧
+ */
+#define UPDATE_TF_FRAME(tf_frame) DATA_MANAGER.updateTfFrame(tf_frame)
+
+/**
+ * @def GET_TF_FRAME
+ * @brief 获取target fusion帧，线程不安全
+ * @return target fusion帧
+ */
+#define GET_TF_FRAME() DATA_MANAGER.getTfFrame()

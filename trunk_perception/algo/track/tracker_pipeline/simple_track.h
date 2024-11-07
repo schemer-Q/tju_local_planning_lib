@@ -24,7 +24,9 @@ struct SimpleTrackParams {
   int max_consecutive_lost_num = 5;
   int min_consecutive_valid_num = 3;
   std::vector<float> origin_xy_offset = {0.0F, 0.0F};
-  std::string matcher_method = "";
+  bool nms_by_polygon = false;
+  bool predict_by_velocity = true;
+  
   std::string traker_method = "";
   YAML::Node traker_params;
 };
@@ -45,10 +47,14 @@ class SimpleTrack : virtual public TrackerPipelineInterface {
   /**
    * @brief track pipeline
    *
-   * @param frame data frame
+   * @param objects detection objects
+   * @param tf transform matrix from previous frame to current frame
+   * @param timestamp current frame timestamp
+   * @param objects_tracked tracked objects
    * @return int
    */
-  int Track(std::shared_ptr<OdLidarFrame>& frame) override;
+  int Track(const std::vector<Object>& objects, const Eigen::Isometry3f& tf, const double timestamp,
+            std::vector<Object>& objects_tracked) override;
 
   /**
    * @brief set id manager
@@ -56,6 +62,13 @@ class SimpleTrack : virtual public TrackerPipelineInterface {
    * @param id_manager_ptr tracker id manager pointer
    */
   inline void SetIDManager(const IDManagerPtr& id_manager_ptr) override { id_manager_ptr_ = id_manager_ptr; }
+
+  /**
+   * @brief set id manager
+   *
+   * @return IDManagerPtr id manager pointer
+   */
+  inline IDManagerPtr GetIDManager() override { return id_manager_ptr_; }
 
  private:
   /**

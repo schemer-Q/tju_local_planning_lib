@@ -13,5 +13,6 @@ set(TRUNK_PERCEPTION_LIBRARIES
   trunk_perception_app_lane_detection
   trunk_perception_app_lane_detection_post
   trunk_perception_app_object_detection_lidar_post_process
+  trunk_perception_app_target_fusion
   trunk_perception_algo_track
 )

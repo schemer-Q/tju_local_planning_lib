@@ -161,13 +161,13 @@ struct alignas(32) Object {
 
   LShapeFeature l_shape_feature;  ///< L形特征
 
-  TailCenterFeature tail_center_feature; ///< 尾边中心点特征
+  TailCenterFeature tail_center_feature;  ///< 尾边中心点特征
 
   // track param
   size_t track_id = 0UL;                                       ///< track id
-  int lifetime = 0;                                       ///< track lifetime
+  int lifetime = 0;                                            ///< track lifetime
   int consecutive_lost = 0;                                    ///< consecutive lost number
-  Eigen::Vector3f velocity = Eigen::Vector3f::Zero();          ///< object velocity
+  Eigen::Vector3f velocity = Eigen::Vector3f::Zero();          ///< object velocity, m/s
   Eigen::Vector3f acceleration = Eigen::Vector3f::Zero();      ///< object acceleration
   Eigen::Vector3f track_point = Eigen::Vector3f::Zero();       ///< track point
   Eigen::Matrix4f state_covariance = Eigen::Matrix4f::Zero();  ///< state covariance matrix

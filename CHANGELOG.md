@@ -19,6 +19,10 @@
 
 ## [Unreleased]
 
+## [0.1.0] - 2024-11-07
+### Fixed
+- 完成V1.0版本TargetFusion任务(Lidar+Radar0)
+
 ## [0.0.5] - 2024-10-25
 ### Fixed
 - 激光模型配置路径错误修复

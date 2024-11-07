@@ -10,7 +10,7 @@
 
 ## 使用示例
 
-- [高速L2/L4工程TAD](http://git-rd.trunk.tech/trunkpilot/tad_soc_release/-/tree/feat-wangxu-refact_per/src/per)
+- [高速L2/L4工程TAD](http://git-rd.trunk.tech/trunkpilot/tad_soc_release/-/tree/release-sany/src/per)
 
 ## 开发进度
 
@@ -24,11 +24,12 @@
 - [x] 视觉车道线检测功能[BEVLaneDet]
 - [x] 视觉车道线跟踪功能
 - [x] CI[编译&发版]
+- [x] 前向物体检测后融合V1.0[Lidar+Radar]
 
 ### V0.2.0版本
 
 - [ ] 前向视觉物体检测[DETR3D]
-- [ ] 前向物体检测后融合[Lidar+Camera+Radar]
+- [ ] 前向物体检测后融合V2.0[Lidar+Camera+Radar]
 
 ### V0.3.0版本
 

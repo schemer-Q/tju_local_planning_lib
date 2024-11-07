@@ -1,0 +1,56 @@
+# 三一哈密项目后融合配置文件
+Type: A
+Config:
+  IDPool:
+    MaxID: 255
+  Tracker:
+    MotionFusion:
+      MotionModel: CV
+      Measurement: Setting1
+    ShapeFusion:
+      Type: LidarOnly
+      Params:
+        WindowSize: 30
+        MinValidFrame: 10 # 低于该阈值，则不使用历史帧进行滤波
+        Threshold: 0.05
+    ExistenceFusion:
+      Type: 1L1R
+  Match:
+    DistanceCompute:  # 距离计算
+      Lidar:
+        Position: # 中心点的距离
+          Switch: true
+          Weight: 1.0
+          Type: Orthogonal  # 距离计算方式，可选项：Orthogonal（垂直航向）, Euclidean（欧氏距离） 
+          Point: Mix_CR  # 中心点计算方式，可选项：Center（中心点），RearMiddle（后中点）, Mix_CR（中心点和后中点的较小值）
+        Filter:
+          PositionThresh: # 横纵向距离阈值
+            Switch: true
+            Orthogonal: 3.0 # 垂直航向的距离阈值
+            Longitudinal: 10.0 # 纵向距离阈值
+      FrontRadar:
+        Position:
+          Switch: true
+          Weight: 0.3
+          Type: Orthogonal
+          Point: RearMiddle
+        Velocity:
+          Switch: true
+          Weight: 0.7
+        Filter:
+          VelocityThresh: # 绝对值或相对值小于该阈值则符合阈值限制
+            Switch: true
+            Abs: 5.0 # m/s # 针对低速目标
+            Rel: 30.0 # %
+          PositionThresh: # 横纵向距离阈值
+            Switch: true
+            Orthogonal: 5.0 # 垂直航向的距离阈值
+            Longitudinal: 5.0 # 纵向距离阈值
+    HungarianMatcher:
+      Lidar:
+        MatchCostThresh: 1.99
+        MatchBoundValue: 2.00
+      FrontRadar:
+        MatchCostThresh: 4.99
+        MatchBoundValue: 5.00
+

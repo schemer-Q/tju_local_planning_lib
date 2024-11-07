@@ -69,6 +69,7 @@ option(ENABLE_TEST "enable test" ON)
 ########################################################
 # Dependency
 ########################################################
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/trunk_basic.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/trunk.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/google.cmake)
@@ -82,8 +83,6 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/yaml.cmake)
 ########################################################
 # add subdirectory
 ########################################################
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
 add_subdirectory(trunk_perception/common)
 add_subdirectory(trunk_perception/tools/log)
 add_subdirectory(trunk_perception/app)

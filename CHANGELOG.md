@@ -19,6 +19,10 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2024-11-18
+### Fixed
+- 修复ID未回收导致的ID池耗尽的问题
+
 ## [0.1.0] - 2024-11-07
 ### Fixed
 - 完成V1.0版本TargetFusion任务(Lidar+Radar0)

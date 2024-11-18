@@ -386,6 +386,7 @@ void TargetFusionA::GateKeeper() {
       return true;  // 从new_trackers_中移除
     } else if (tracker->GetFusedObject()->life > new_to_stable_life_thresh_) {
       // 如果tracker生命周期大于阈值，则删除
+      id_pool_ptr_->ReleaseID(tracker->GetTrackID());
       return true;
     }
     return false;  // 保留在new_trackers_中
@@ -416,6 +417,7 @@ void TargetFusionA::GateKeeper() {
   // 删除集删除
   it = std::remove_if(lost_trackers_.begin(), lost_trackers_.end(), [this](const TrackerPtr& tracker) {
     if (tracker->GetFusedObject()->lidar_consecutive_lost > lost_to_delete_life_thresh_) {
+      id_pool_ptr_->ReleaseID(tracker->GetTrackID());
       return true;
     }
     return false;

@@ -270,4 +270,12 @@ ars430::RadarMeasureFrame::ConstPtr Tracker::GetFrontRadarObject() const { retur
 
 FusedObject::ConstPtr Tracker::GetFusedObject() const { return object_ptr_; }
 
+int Tracker::GetTrackID() const {
+  if (!object_ptr_) {
+    TERROR << "[Tracker] object_ptr_ is nullptr";
+    return -1;
+  }
+  return object_ptr_->track_id;
+}
+
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

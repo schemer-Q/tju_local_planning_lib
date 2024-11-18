@@ -58,6 +58,8 @@ class Tracker {
 
   FusedObject::ConstPtr GetFusedObject() const;
 
+  int GetTrackID() const;
+
  private:
   Eigen::VectorXd GetStateFromFusedObject();
 

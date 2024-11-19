@@ -272,17 +272,24 @@ uint32_t LaneDetectorSDKBevLaneConeDet::InitCameraParams() {
   camera_param_->Intrinsic[7] = 0.0;
   camera_param_->Intrinsic[8] = 1.0;
   // 畸变系数, 使用5参数，其他格式需要修改SDK
-  if (meta->camera_info_ptr->D.rows == 5) {
-    camera_param_->DistortionFactor[0] = meta->camera_info_ptr->D.at<double>(0, 0);
-    camera_param_->DistortionFactor[1] = meta->camera_info_ptr->D.at<double>(1, 0);
-    camera_param_->DistortionFactor[2] = meta->camera_info_ptr->D.at<double>(2, 0);
-    camera_param_->DistortionFactor[3] = meta->camera_info_ptr->D.at<double>(3, 0);
-    camera_param_->DistortionFactor[4] = meta->camera_info_ptr->D.at<double>(4, 0);
-  } else {
-    TFATAL << "LaneDetectorSDKBevLaneConeDet::Init failed, camera_info_ptr->D.rows is not 5, SDKBevLaneConeDetHighway "
-              "not support";
-    return ErrorCode::LANE_DETECTOR_INIT_CAMERA_PARAMS_FAILED;
-  }
+  // if (meta->camera_info_ptr->D.rows == 5) {
+  //   camera_param_->DistortionFactor[0] = meta->camera_info_ptr->D.at<double>(0, 0);
+  //   camera_param_->DistortionFactor[1] = meta->camera_info_ptr->D.at<double>(1, 0);
+  //   camera_param_->DistortionFactor[2] = meta->camera_info_ptr->D.at<double>(2, 0);
+  //   camera_param_->DistortionFactor[3] = meta->camera_info_ptr->D.at<double>(3, 0);
+  //   camera_param_->DistortionFactor[4] = meta->camera_info_ptr->D.at<double>(4, 0);
+  // } else {
+  //   TFATAL << "LaneDetectorSDKBevLaneConeDet::Init failed, camera_info_ptr->D.rows is not 5, SDKBevLaneConeDetHighway
+  //   "
+  //             "not support";
+  //   return ErrorCode::LANE_DETECTOR_INIT_CAMERA_PARAMS_FAILED;
+  // }
+  // 使用5参数模型，伪装一下,SDK内并没有使用
+  camera_param_->DistortionFactor[0] = 0.0;
+  camera_param_->DistortionFactor[1] = 0.0;
+  camera_param_->DistortionFactor[2] = 0.0;
+  camera_param_->DistortionFactor[3] = 0.0;
+  camera_param_->DistortionFactor[4] = 0.0;
 
   Eigen::Quaternionf quat(meta->pose_ptr->rotation());
   camera_param_->Quaternion[0] = quat.x();

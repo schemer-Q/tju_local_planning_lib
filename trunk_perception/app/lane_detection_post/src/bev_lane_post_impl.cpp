@@ -59,6 +59,10 @@ std::uint32_t BevLanePostImpl::Run(const double& ts) {
     }
   }
   GenerateTracklets(ld_frame->lanes_tracked);
+  for (auto& lane: ld_frame->lanes_tracked) {
+    lane.lane_conf = 1.0f;
+  }
+  
   return ErrorCode::SUCCESS;
 }
 

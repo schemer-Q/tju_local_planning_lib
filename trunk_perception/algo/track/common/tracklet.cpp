@@ -15,21 +15,23 @@
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
-void Tracklet::Predict(const double timestamp) {
+void Tracklet::Predict(const double timestamp, const bool predict_by_velocity) {
   const double dt = timestamp - current_tracking_object.timestamp;
   tracker_method_ptr->Predict(dt, current_tracking_object);
 
-  const auto& velocity = current_tracking_object.velocity;
-  auto& bbox = current_tracking_object.bbox;
-  bbox.center += velocity * dt;
-  auto& corners2d = bbox.corners2d;
-  for (int i = 0; i < corners2d.cols(); ++i) {
-    corners2d.col(i) += velocity.head(2) * dt;
-  }
+  if (predict_by_velocity) {
+    const auto& velocity = current_tracking_object.velocity;
+    auto& bbox = current_tracking_object.bbox;
+    bbox.center += velocity * dt;
+    auto& corners2d = bbox.corners2d;
+    for (int i = 0; i < corners2d.cols(); ++i) {
+      corners2d.col(i) += velocity.head(2) * dt;
+    }
 
-  auto& convex_polygon = current_tracking_object.convex_polygon;
-  for (int i = 0; i < convex_polygon.cols(); ++i) {
-    convex_polygon.col(i) += velocity * dt;
+    auto& convex_polygon = current_tracking_object.convex_polygon;
+    for (int i = 0; i < convex_polygon.cols(); ++i) {
+      convex_polygon.col(i) += velocity * dt;
+    }
   }
 
   current_tracking_object.consecutive_lost += 1;

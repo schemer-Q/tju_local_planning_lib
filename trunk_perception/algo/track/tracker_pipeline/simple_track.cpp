@@ -20,12 +20,21 @@ TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 int SimpleTrack::Init(const YAML::Node& config) {
   try {
     // tracker pipeline param init
-    params_.min_lifetime_output = config["min_lifetime_output"].as<int>();
-    params_.max_consecutive_lost_num = config["max_consecutive_lost_num"].as<int>();
-    params_.min_consecutive_valid_num = config["min_consecutive_valid_num"].as<int>();
-    if (config["origin_xy_offset"].IsDefined()) {
-      params_.origin_xy_offset = config["origin_xy_offset"].as<std::vector<float>>();
+    const auto params_config = config["GeneralParams"];
+    params_.min_lifetime_output = params_config["min_lifetime_output"].as<int>();
+    params_.max_consecutive_lost_num = params_config["max_consecutive_lost_num"].as<int>();
+    params_.min_consecutive_valid_num = params_config["min_consecutive_valid_num"].as<int>();
+    if (params_config["origin_xy_offset"].IsDefined()) {
+      params_.origin_xy_offset = params_config["origin_xy_offset"].as<std::vector<float>>();
     }
+    if (params_config["nms_by_polygon"].IsDefined()) {
+      params_.nms_by_polygon = params_config["nms_by_polygon"].as<bool>();
+    }
+    if (params_config["predict_by_velocity"].IsDefined()) {
+      params_.predict_by_velocity = params_config["predict_by_velocity"].as<bool>();
+    }
+
+    // 验证origin_xy_offset
     if (params_.origin_xy_offset.size() != 2) {
       TFATAL << "[SimpleTrack.Init] origin_xy_offset size [" << params_.origin_xy_offset.size() << "] is error!";
       return 1;
@@ -40,8 +49,8 @@ int SimpleTrack::Init(const YAML::Node& config) {
     }
 
     // matcher init
-    params_.matcher_method = config["MatcherMethod"].as<std::string>();
-    matcher_ptr_ = MatcherRegistry::Get().Create(params_.matcher_method);
+    const std::string matcher_method = config["MatcherMethod"].as<std::string>();
+    matcher_ptr_ = MatcherRegistry::Get().Create(matcher_method);
     if (!matcher_ptr_) {
       TFATAL << "[SimpleTrack.Init] matcher_ptr_ is nullptr";
       return 1;
@@ -61,13 +70,14 @@ int SimpleTrack::Init(const YAML::Node& config) {
   return 0;
 }
 
-int SimpleTrack::Track(std::shared_ptr<OdLidarFrame>& frame) {
+int SimpleTrack::Track(const std::vector<Object>& objects, const Eigen::Isometry3f& tf, const double timestamp,
+                       std::vector<Object>& objects_tracked) {
   // detection objects preprocess
-  preprocess(frame->detected_objects);
-  const auto& objects_detected = frame->detected_objects;
+  auto objects_detected = objects;
+  preprocess(objects_detected);
 
   // Transform to current frame
-  transformToCurrentFrame(frame->tf);
+  transformToCurrentFrame(tf);
 
   // match detection and track
   std::vector<TrackObjectPair> assignments;
@@ -79,7 +89,7 @@ int SimpleTrack::Track(std::shared_ptr<OdLidarFrame>& frame) {
   updateAssignedTracks(objects_detected, assignments);
 
   // update unassigned objects tracked
-  updateUnassignedTracks(unassigned_tracks, frame->timestamp);
+  updateUnassignedTracks(unassigned_tracks, timestamp);
 
   // push unassigned objects to tracks
   pushNewTracks(objects_detected, unassigned_objects);
@@ -88,7 +98,7 @@ int SimpleTrack::Track(std::shared_ptr<OdLidarFrame>& frame) {
   managerLifeCycle();
 
   // output track result
-  outputTrackResult(frame->tracked_objects);
+  outputTrackResult(objects_tracked);
 
   return 0;
 }
@@ -176,7 +186,7 @@ void SimpleTrack::updateAssignedTracks(const std::vector<Object>& objects_detect
 void SimpleTrack::updateUnassignedTracks(const std::vector<size_t>& unassigned_tracks, const double timestamp) {
   for (size_t i = 0UL; i < unassigned_tracks.size(); ++i) {
     auto& track = tracklets_[unassigned_tracks[i]];
-    track.Predict(timestamp);
+    track.Predict(timestamp, params_.predict_by_velocity);
 
     if (track.current_tracking_object.consecutive_lost >= params_.max_consecutive_lost_num ||
         track.state == TrackletState::UNCONFIRMED) {
@@ -244,10 +254,16 @@ void SimpleTrack::nms() {
     for (size_t j = i + 1UL; j < size; ++j) {
       auto& tracked_j = tracklets_[j];
       if (tracked_j.Dieout()) continue;
-
       auto& object_i = tracked_i.current_tracking_object;
       auto& object_j = tracked_j.current_tracking_object;
-      const double iou = getOverlapRate(object_i.bbox.corners2d, object_j.bbox.corners2d);
+
+      double iou = 0.0;
+      if (params_.nms_by_polygon) {
+        iou = getOverlapRate(object_i.convex_polygon, object_j.convex_polygon);
+      } else {
+        iou = getOverlapRate(object_i.bbox.corners2d, object_j.bbox.corners2d);
+      }
+
       if (iou > 0.3) {
         if (object_j.lifetime > object_i.lifetime) {
           tracked_i.state = TrackletState::DEAD;
@@ -262,9 +278,14 @@ void SimpleTrack::nms() {
 void SimpleTrack::outputTrackResult(std::vector<Object>& tracked_objects) {
   tracked_objects.clear();
   for (const auto& track : tracklets_) {
-    if (track.current_tracking_object.lifetime >= params_.min_lifetime_output &&
-        track.state == TrackletState::CONFIRMED) {
-      tracked_objects.emplace_back(track.current_tracking_object);
+    auto object = track.current_tracking_object;
+    if (object.lifetime >= params_.min_lifetime_output) {
+      if (track.state == TrackletState::UNCONFIRMED) {
+        object.velocity.setZero();
+        object.acceleration.setZero();
+        object.state_covariance.setZero();
+      }
+      tracked_objects.emplace_back(object);
     }
   }
 }

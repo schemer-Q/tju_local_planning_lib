@@ -28,7 +28,7 @@ class Tracklet {
    *
    * @param timestamp current frame timestamp
    */
-  void Predict(const double timestamp);
+  void Predict(const double timestamp, const bool predict_by_velocity = true);
 
   /**
    * @brief tracker update

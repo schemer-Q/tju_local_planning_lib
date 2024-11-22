@@ -20,14 +20,14 @@ int OneStageMatcher::Init(const YAML::Node& config) {
       matcher_options_.cost_thresh = config["MatcherOptions"]["cost_thresh"].as<float>();
       matcher_options_.bound_value = config["MatcherOptions"]["bound_value"].as<float>();
     }
+
+    const std::string distance_measurement_method = config["DistanceMeasurementMethod"].as<std::string>();
+    distance_measurement_ptr_ = DistanceRegistry::Get().Create(distance_measurement_method);
+    distance_measurement_ptr_->Init(config["DistanceMeasurementParams"]);
   } catch (const std::exception& e) {
     TFATAL << "[OneStageMatcher] LoadYAMLConfig failed! " << e.what();
     return 1;
   }
-
-  // distance measurement instantiation
-  distance_measurement_ptr_ = std::make_unique<ObjectDistanceMeasurement>();
-  distance_measurement_ptr_->Init(config);
 
   // hungarian matcher instantiation
   hungarian_matcher_ptr_ = std::make_unique<GatedHungarianMatcher<float>>(1000);

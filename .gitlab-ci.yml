@@ -65,7 +65,7 @@ amd64_1804_build:
     - bash scripts/install_dep.sh
     - mkdir -p build && cd build
     - cmake -DCMAKE_INSTALL_PREFIX=/opt/trunk_master -DCMAKE_BUILD_TYPE=Release ..
-    - make -j${nproc}
+    - make -j6
     - make package
   artifacts:
     name: trunk_perception_${CI_COMMIT_SHORT_SHA}_amd64_1804
@@ -117,7 +117,7 @@ arm64_trunk_orin_build:
     - bash scripts/install_dep.sh
     - mkdir -p build && cd build
     - cmake -DCMAKE_INSTALL_PREFIX=/opt/trunk_master -DCMAKE_BUILD_TYPE=Release -DPLATFORM=orin ..
-    - make -j${nproc}
+    - make -j4
     - make package
   artifacts:
     name: trunk_perception_${CI_COMMIT_SHORT_SHA}_arm64_trunk_orin

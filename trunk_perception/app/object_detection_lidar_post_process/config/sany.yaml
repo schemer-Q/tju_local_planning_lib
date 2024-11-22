@@ -31,7 +31,7 @@ Config:
         x_offset: 7.5
         y_offset: 1.6
   ClusterDetection:
-    Switch: true
+    Switch: false
     Params:
       RemoveObjectPoints:
         Switch: true

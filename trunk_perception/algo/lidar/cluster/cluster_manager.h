@@ -16,13 +16,12 @@
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
-template <class T>
 class ClusterManager {
  public:
   ClusterManager() = default;
   ~ClusterManager() = default;
 
-  static std::shared_ptr<ClusterBase<T>> Create(const std::string& name);
+  static std::shared_ptr<ClusterBase> Create(const std::string& name);
 };
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

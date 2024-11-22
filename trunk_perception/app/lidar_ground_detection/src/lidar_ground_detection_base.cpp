@@ -26,7 +26,7 @@ std::uint32_t LidarGroundDetectionBase::Init(const YAML::Node& config) {
     if (ground_detection_switch_) ground_detection_switch_ = config["GroundDetection"]["Switch"].as<bool>();
     if (ground_detection_switch_) {
       const std::string ground_detection_method = config["GroundDetection"]["Method"].as<std::string>();
-      ground_detector_ = GroundDetectionManager<PointT>::Create(ground_detection_method);
+      ground_detector_ = GroundDetectionManager::Create(ground_detection_method);
       if (!ground_detector_) {
         TFATAL << "[LidarGroundDetectionBase::Init] Ground detector create failed for " << lidar_name_;
         return ErrorCode::UNINITIALIZED;

@@ -16,13 +16,12 @@
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
-template <class T>
 class GroundDetectionManager {
  public:
   GroundDetectionManager() = default;
   ~GroundDetectionManager() = default;
 
-  static std::shared_ptr<GroundDetectionBase<T>> Create(const std::string& name);
+  static std::shared_ptr<GroundDetectionBase> Create(const std::string& name);
 };
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

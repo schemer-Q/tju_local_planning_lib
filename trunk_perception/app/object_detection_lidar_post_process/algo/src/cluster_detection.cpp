@@ -19,7 +19,7 @@ TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 int ClusterDetection::Init(const YAML::Node& config) {
   try {
     const std::string cluster_method = config["ClusterMethod"].as<std::string>();
-    cluster_ = ClusterManager<PointT>::Create(cluster_method);
+    cluster_ = ClusterManager::Create(cluster_method);
     auto res = cluster_->init(config["ClusterParams"]);
     if (res) {
       TFATAL << "ClusterDetection::Init cluster init failed!";

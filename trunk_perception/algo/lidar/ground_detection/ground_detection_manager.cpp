@@ -14,16 +14,13 @@
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
-template <class T>
-std::shared_ptr<GroundDetectionBase<T>> GroundDetectionManager<T>::Create(const std::string& name) {
+std::shared_ptr<GroundDetectionBase> GroundDetectionManager::Create(const std::string& name) {
   if (name == "JCP") {
-    return std::make_shared<JCPGroundDetection<T>>();
+    return std::make_shared<JCPGroundDetection>();
   } else {
     TFATAL << "[GroundDetectionManager] name: " << name << " not supported!";
   }
   return nullptr;
 }
-
-template class GroundDetectionManager<PointT>;
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

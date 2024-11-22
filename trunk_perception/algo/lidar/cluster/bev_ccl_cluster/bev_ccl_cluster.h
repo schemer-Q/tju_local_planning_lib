@@ -33,8 +33,7 @@ struct BEVCCLClusterParams {
   int min_points_num = 20;
 };
 
-template <class T>
-class BEVCCLCluster : virtual public ClusterBase<T> {
+class BEVCCLCluster : virtual public ClusterBase {
  private:
   using BevCell = std::vector<std::vector<std::vector<size_t>>>;
 
@@ -57,29 +56,27 @@ class BEVCCLCluster : virtual public ClusterBase<T> {
    * @param cloud_in input point cloud
    * @return int
    */
-  int process(const typename std::shared_ptr<const pcl::PointCloud<T>>& cloud_in) override;
+  int process(const PointCloudConstPtr& cloud_in) override;
 
   /**
    * @brief get the clusters cloud object
    *
    * @return std::vector<typename std::shared_ptr<pcl::PointCloud<T>>>
    */
-  std::vector<typename std::shared_ptr<const pcl::PointCloud<T>>> getClustersCloud() override;
+  std::vector<PointCloudConstPtr> getClustersCloud() override;
 
  private:
   void reset();
-  void makeBev(const typename std::shared_ptr<const pcl::PointCloud<T>>& cloud_in, BevCell& bev_cell,
-               Eigen::MatrixXi& bev_map);
+  void makeBev(const PointCloudConstPtr& cloud_in, BevCell& bev_cell, Eigen::MatrixXi& bev_map);
   void CCL(const Eigen::MatrixXi& bev_map, Eigen::MatrixXi& labeled_map);
-  void labelPoints(const typename std::shared_ptr<const pcl::PointCloud<T>>& cloud_in, const BevCell& bev_cell,
-                   const Eigen::MatrixXi& labeled_map);
+  void labelPoints(const PointCloudConstPtr& cloud_in, const BevCell& bev_cell, const Eigen::MatrixXi& labeled_map);
 
  private:
   BEVCCLClusterParams params_;
   BevCell bev_cell_;
   Eigen::MatrixXi bev_map_;
   Eigen::MatrixXi labeled_map_;
-  std::vector<typename std::shared_ptr<const pcl::PointCloud<T>>> clusters_cloud_;
+  std::vector<PointCloudConstPtr> clusters_cloud_;
 };
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

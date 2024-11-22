@@ -18,7 +18,6 @@
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
-template <class T>
 class ClusterBase {
  public:
   ClusterBase() = default;
@@ -38,14 +37,14 @@ class ClusterBase {
    * @param cloud_in input point cloud
    * @return int
    */
-  virtual int process(const typename std::shared_ptr<const pcl::PointCloud<T>>& cloud_in) = 0;
+  virtual int process(const PointCloudConstPtr& cloud_in) = 0;
 
   /**
    * @brief get the clusters cloud
    *
    * @return std::vector<typename std::shared_ptr<pcl::PointCloud<T>>>
    */
-  virtual std::vector<typename std::shared_ptr<const pcl::PointCloud<T>>> getClustersCloud() = 0;
+  virtual std::vector<PointCloudConstPtr> getClustersCloud() = 0;
 };
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

@@ -18,7 +18,6 @@
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
-template <class T>
 class GroundDetectionBase {
  public:
   GroundDetectionBase() = default;
@@ -38,7 +37,7 @@ class GroundDetectionBase {
    * @param cloud_in input point cloud
    * @return int
    */
-  virtual int process(const typename std::shared_ptr<const pcl::PointCloud<T>>& cloud_in) = 0;
+  virtual int process(const PointCloudConstPtr& cloud_in) = 0;
 
   /**
    * @brief set point cloud transform matrix
@@ -50,16 +49,16 @@ class GroundDetectionBase {
   /**
    * @brief get no ground cloud
    *
-   * @return std::shared_ptr<pcl::PointCloud<T>>
+   * @return PointCloudPtr
    */
-  virtual typename std::shared_ptr<pcl::PointCloud<T>> getNoGroundCloud() = 0;
+  virtual PointCloudPtr getNoGroundCloud() = 0;
 
   /**
    * @brief get ground cloud
    *
-   * @return std::shared_ptr<pcl::PointCloud<T>>
+   * @return PointCloudPtr
    */
-  virtual typename std::shared_ptr<pcl::PointCloud<T>> getGroundCloud() = 0;
+  virtual PointCloudPtr getGroundCloud() = 0;
 
   /**
    * @brief get ground params object

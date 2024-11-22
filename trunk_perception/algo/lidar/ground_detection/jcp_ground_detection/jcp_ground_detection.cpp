@@ -18,7 +18,7 @@
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
-void cvShow(const Eigen::MatrixXi &label_map, const std::string name) {
+[[maybe_unused]] void cvShow(const Eigen::MatrixXi &label_map, const std::string &name) {
   const int rows = label_map.rows();
   const int cols = label_map.cols();
 
@@ -41,8 +41,7 @@ void cvShow(const Eigen::MatrixXi &label_map, const std::string name) {
   cv::waitKey(1);
 }
 
-template <class T>
-int JCPGroundDetection<T>::init(const YAML::Node &config) {
+int JCPGroundDetection::init(const YAML::Node &config) {
   try {
     params_.min_z = config["min_z"].as<float>();
     params_.max_z = config["max_z"].as<float>();
@@ -95,18 +94,14 @@ int JCPGroundDetection<T>::init(const YAML::Node &config) {
   region_map_.resize(params_.vertical_ring_number, params_.azimuth_number);
   label_map_.resize(params_.vertical_ring_number, params_.azimuth_number);
 
-  cloud_ground_ptr_.reset(new pcl::PointCloud<T>());
-  cloud_no_ground_ptr_.reset(new pcl::PointCloud<T>());
+  cloud_ground_ptr_.reset(new PointCloudT());
+  cloud_no_ground_ptr_.reset(new PointCloudT());
   return 0;
 }
 
-template <class T>
-void JCPGroundDetection<T>::setTF(const Eigen::Isometry3f &tf) {
-  tf_ = tf;
-}
+void JCPGroundDetection::setTF(const Eigen::Isometry3f &tf) { tf_ = tf; }
 
-template <class T>
-int JCPGroundDetection<T>::process(const typename std::shared_ptr<const pcl::PointCloud<T>> &cloud_in) {
+int JCPGroundDetection::process(const PointCloudConstPtr &cloud_in) {
   if (!cloud_in) return 1;
 
   reset();
@@ -126,23 +121,13 @@ int JCPGroundDetection<T>::process(const typename std::shared_ptr<const pcl::Poi
   return 0;
 }
 
-template <class T>
-typename std::shared_ptr<pcl::PointCloud<T>> JCPGroundDetection<T>::getNoGroundCloud() {
-  return cloud_no_ground_ptr_;
-}
+PointCloudPtr JCPGroundDetection::getNoGroundCloud() { return cloud_no_ground_ptr_; }
 
-template <class T>
-typename std::shared_ptr<pcl::PointCloud<T>> JCPGroundDetection<T>::getGroundCloud() {
-  return cloud_ground_ptr_;
-}
+PointCloudPtr JCPGroundDetection::getGroundCloud() { return cloud_ground_ptr_; }
 
-template <class T>
-std::vector<float> JCPGroundDetection<T>::getGroundParams() {
-  return std::vector<float>();
-}
+std::vector<float> JCPGroundDetection::getGroundParams() { return std::vector<float>(); }
 
-template <class T>
-void JCPGroundDetection<T>::reset() {
+void JCPGroundDetection::reset() {
   cloud_ground_ptr_->clear();
   cloud_no_ground_ptr_->clear();
   masked_points_.clear();
@@ -153,19 +138,17 @@ void JCPGroundDetection<T>::reset() {
   label_map_.setConstant(-1);
 }
 
-template <class T>
-void JCPGroundDetection<T>::preProcessing(const typename std::shared_ptr<const pcl::PointCloud<T>> &cloud_in) {
+void JCPGroundDetection::preProcessing(const PointCloudConstPtr &cloud_in) {
   cloud_in_ptr_ = cloud_in;
 
-  typename std::shared_ptr<pcl::PointCloud<T>> cloud_temp(new pcl::PointCloud<T>(*cloud_in));
+  PointCloudPtr cloud_temp(new PointCloudT(*cloud_in));
   for (auto &pt : cloud_temp->points) {
     pt.getVector3fMap() = tf_.inverse() * pt.getVector3fMap();
   }
   cloud_process_ptr_ = cloud_temp;
 }
 
-template <class T>
-void JCPGroundDetection<T>::rangeProjection(const typename std::shared_ptr<const pcl::PointCloud<T>> &cloud_in) {
+void JCPGroundDetection::rangeProjection(const PointCloudConstPtr &cloud_in) {
   const size_t cloud_size = cloud_in->size();
   masked_points_.reserve(cloud_size);
   for (size_t i = 0UL; i < cloud_size; ++i) {
@@ -198,8 +181,7 @@ void JCPGroundDetection<T>::rangeProjection(const typename std::shared_ptr<const
   // cvShow(label_map_, "image_rangeProjection");
 }
 
-template <class T>
-void JCPGroundDetection<T>::RECM(const typename std::shared_ptr<const pcl::PointCloud<T>> &cloud_in) {
+void JCPGroundDetection::RECM(const PointCloudConstPtr &cloud_in) {
   const float pitch_delta_z = params_.delta_R * std::tan(params_.sensor_pitch * DEG2RAD);
   for (int c = 0; c < params_.azimuth_number; ++c) {
     bool flag = false;
@@ -249,8 +231,7 @@ void JCPGroundDetection<T>::RECM(const typename std::shared_ptr<const pcl::Point
   // cvShow(label_map_, "image_RECM");
 }
 
-template <class T>
-void JCPGroundDetection<T>::doMorphologyDilate(DynamicMatrixI &image, DynamicMatrixI &image_dilated) {
+void JCPGroundDetection::doMorphologyDilate(DynamicMatrixI &image, DynamicMatrixI &image_dilated) {
   constexpr size_t ksize = 2;
   const size_t r_max = image.rows() - ksize;
   const size_t c_max = image.cols() - ksize;
@@ -288,8 +269,7 @@ void JCPGroundDetection<T>::doMorphologyDilate(DynamicMatrixI &image, DynamicMat
   }
 }
 
-template <class T>
-void JCPGroundDetection<T>::JCP(const typename std::shared_ptr<const pcl::PointCloud<T>> &cloud_in) {
+void JCPGroundDetection::JCP(const PointCloudConstPtr &cloud_in) {
   DynamicMatrixI image_dilated = label_map_;
   doMorphologyDilate(label_map_, image_dilated);
 
@@ -355,10 +335,8 @@ void JCPGroundDetection<T>::JCP(const typename std::shared_ptr<const pcl::PointC
   // cvShow(label_map_, "image_jcp");
 }
 
-template <class T>
-void JCPGroundDetection<T>::labelPoints(const typename std::shared_ptr<const pcl::PointCloud<T>> &cloud_in,
-                                        typename std::shared_ptr<pcl::PointCloud<T>> &cloud_ground,
-                                        typename std::shared_ptr<pcl::PointCloud<T>> &cloud_no_ground) {
+void JCPGroundDetection::labelPoints(const PointCloudConstPtr &cloud_in, PointCloudPtr &cloud_ground,
+                                     PointCloudPtr &cloud_no_ground) {
   const size_t cloud_size = cloud_in->size();
   cloud_ground->reserve(cloud_size);
   cloud_no_ground->reserve(cloud_size);
@@ -403,13 +381,11 @@ void JCPGroundDetection<T>::labelPoints(const typename std::shared_ptr<const pcl
   cloud_no_ground->is_dense = true;
 }
 
-template <class T>
-void JCPGroundDetection<T>::postProcessing(typename std::shared_ptr<pcl::PointCloud<T>> &cloud_ground,
-                                           typename std::shared_ptr<pcl::PointCloud<T>> &cloud_no_ground) {
+void JCPGroundDetection::postProcessing(PointCloudPtr &cloud_ground, PointCloudPtr &cloud_no_ground) {
   const size_t region_size = params_.roi_x.size() - 1UL;
-  std::vector<typename std::shared_ptr<pcl::PointCloud<T>>> vec_ground_cloud(region_size, nullptr);
+  std::vector<PointCloudPtr> vec_ground_cloud(region_size, nullptr);
   for (auto &cloud : vec_ground_cloud) {
-    cloud.reset(new pcl::PointCloud<T>());
+    cloud.reset(new PointCloudT());
     cloud->reserve(cloud_ground->size());
   }
 
@@ -439,7 +415,7 @@ void JCPGroundDetection<T>::postProcessing(typename std::shared_ptr<pcl::PointCl
     }
   }
 
-  auto condition = [&](const T &pt) {
+  auto condition = [&](const PointT &pt) {
     if (pt.x <= params_.roi_x.front() || pt.x >= params_.roi_x.back()) return true;
 
     int region_id = 0;
@@ -464,7 +440,7 @@ void JCPGroundDetection<T>::postProcessing(typename std::shared_ptr<pcl::PointCl
   cloud_no_ground->resize(static_cast<size_t>(std::distance(cloud_no_ground->begin(), pos)));
 
   // 解决fov边界处的障碍物点云分割为地面点的问题
-  // typename std::shared_ptr<pcl::PointCloud<T>> cloud_roi(new pcl::PointCloud<T>);
+  // PointCloudPtr cloud_roi(new pcl::PointCloud<T>);
   // for (const auto &pt : cloud_ground->points) {
   //   if (std::abs(pt.x) < 20.0F && std::abs(pt.y) < 8.0F) {
   //     cloud_roi->points.emplace_back(pt);
@@ -488,9 +464,7 @@ void JCPGroundDetection<T>::postProcessing(typename std::shared_ptr<pcl::PointCl
   // }
 }
 
-template <class T>
-int JCPGroundDetection<T>::estimatePlaneSVD(const typename std::shared_ptr<pcl::PointCloud<T>> &cloud,
-                                            Eigen::Vector4f &normal_vector) {
+int JCPGroundDetection::estimatePlaneSVD(const PointCloudPtr &cloud, Eigen::Vector4f &normal_vector) {
   if (!cloud || cloud->empty()) return -1;
   const Eigen::MatrixXf &eigen_points = cloud->getMatrixXfMap(3, 8, 0).transpose();
   const auto pc_mean = eigen_points.colwise().mean();
@@ -505,14 +479,11 @@ int JCPGroundDetection<T>::estimatePlaneSVD(const typename std::shared_ptr<pcl::
   return 0;
 }
 
-template <class T>
-float JCPGroundDetection<T>::getPointToPlaneDistance(const T &p, const Eigen::Vector4f &vec) {
+float JCPGroundDetection::getPointToPlaneDistance(const PointT &p, const Eigen::Vector4f &vec) {
   return vec(0) * p.x + vec(1) * p.y + vec(2) * p.z + vec(3);
 }
 
-template <class T>
-int JCPGroundDetection<T>::estimatePlaneRANSAC(const typename std::shared_ptr<pcl::PointCloud<T>> &cloud,
-                                               Eigen::Vector4f &normal_vector) {
+int JCPGroundDetection::estimatePlaneRANSAC(const PointCloudPtr &cloud, Eigen::Vector4f &normal_vector) {
   if (!cloud || cloud->empty()) return -1;
   constexpr float threshold = 0.1F;
   const size_t sz = cloud->size();
@@ -576,7 +547,5 @@ int JCPGroundDetection<T>::estimatePlaneRANSAC(const typename std::shared_ptr<pc
   normal_vector = normal_vector.array() / normal_vector.head(3).norm();
   return 0;
 }
-
-template class JCPGroundDetection<PointT>;
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

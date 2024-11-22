@@ -36,7 +36,7 @@ class LidarGroundDetectionBase : public AppBase {
   PointCloudPtr ground_cloud_ = nullptr;
   PointCloudPtr no_ground_cloud_ = nullptr;
   bool ground_detection_switch_ = false;
-  std::shared_ptr<GroundDetectionBase<PointT>> ground_detector_ = nullptr;
+  std::shared_ptr<GroundDetectionBase> ground_detector_ = nullptr;
 };
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

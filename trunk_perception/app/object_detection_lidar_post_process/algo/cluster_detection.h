@@ -85,7 +85,7 @@ class ClusterDetection {
 
  private:
   ClusterDetectionParams params_;
-  std::shared_ptr<ClusterBase<PointT>> cluster_ = nullptr;
+  std::shared_ptr<ClusterBase> cluster_ = nullptr;
 
   bool remove_object_points_ = false;
   RemoveObjectPointsParams rop_params_;

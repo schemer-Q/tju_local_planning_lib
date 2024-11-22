@@ -14,16 +14,13 @@
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
-template <class T>
-std::shared_ptr<ClusterBase<T>> ClusterManager<T>::Create(const std::string& name) {
+std::shared_ptr<ClusterBase> ClusterManager::Create(const std::string& name) {
   if (name == "BEVCCL") {
-    return std::make_shared<BEVCCLCluster<T>>();
+    return std::make_shared<BEVCCLCluster>();
   } else {
     TFATAL << "[ClusterManager] cluster_name: " << name << " not supported!";
   }
   return nullptr;
 }
-
-template class ClusterManager<PointT>;
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

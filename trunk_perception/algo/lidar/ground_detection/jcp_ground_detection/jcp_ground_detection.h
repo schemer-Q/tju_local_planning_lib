@@ -1,12 +1,12 @@
 /**
  * @file jcp_ground_detection.h
  * @author Fan Dongsheng (fandongsheng@trunk.tech)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-11-01
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
 #pragma once
@@ -52,8 +52,7 @@ typedef Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> DynamicMatrixI;
 
 enum Label : int { UNKNOWN = -1, NO_GROUND = 0, GROUND = 1, LOW_CONFIDENCE = 2 };
 
-template <class T>
-class JCPGroundDetection : virtual public GroundDetectionBase<T> {
+class JCPGroundDetection : virtual public GroundDetectionBase {
  public:
   JCPGroundDetection() = default;
   ~JCPGroundDetection() override = default;
@@ -79,21 +78,21 @@ class JCPGroundDetection : virtual public GroundDetectionBase<T> {
    * @param cloud_in input point cloud
    * @return int
    */
-  int process(const typename std::shared_ptr<const pcl::PointCloud<T>> &cloud_in) override;
+  int process(const PointCloudConstPtr &cloud_in) override;
 
   /**
    * @brief get no ground cloud
    *
-   * @return std::shared_ptr<pcl::PointCloud<T>>
+   * @return PointCloudPtr
    */
-  virtual typename std::shared_ptr<pcl::PointCloud<T>> getNoGroundCloud() override;
+  virtual PointCloudPtr getNoGroundCloud() override;
 
   /**
    * @brief get ground cloud
    *
-   * @return std::shared_ptr<pcl::PointCloud<T>>
+   * @return PointCloudPtr
    */
-  virtual typename std::shared_ptr<pcl::PointCloud<T>> getGroundCloud() override;
+  virtual PointCloudPtr getGroundCloud() override;
 
   /**
    * @brief get ground params object
@@ -104,19 +103,16 @@ class JCPGroundDetection : virtual public GroundDetectionBase<T> {
 
  private:
   void reset();
-  void preProcessing(const typename std::shared_ptr<const pcl::PointCloud<T>> &cloud_in);
-  void rangeProjection(const typename std::shared_ptr<const pcl::PointCloud<T>> &cloud_in);
-  void RECM(const typename std::shared_ptr<const pcl::PointCloud<T>> &cloud_in);
-  void JCP(const typename std::shared_ptr<const pcl::PointCloud<T>> &cloud_in);
-  void labelPoints(const typename std::shared_ptr<const pcl::PointCloud<T>> &cloud_in,
-                   typename std::shared_ptr<pcl::PointCloud<T>> &cloud_ground,
-                   typename std::shared_ptr<pcl::PointCloud<T>> &cloud_no_ground);
+  void preProcessing(const PointCloudConstPtr &cloud_in);
+  void rangeProjection(const PointCloudConstPtr &cloud_in);
+  void RECM(const PointCloudConstPtr &cloud_in);
+  void JCP(const PointCloudConstPtr &cloud_in);
+  void labelPoints(const PointCloudConstPtr &cloud_in, PointCloudPtr &cloud_ground, PointCloudPtr &cloud_no_ground);
   void doMorphologyDilate(DynamicMatrixI &image, DynamicMatrixI &image_dilated);
-  void postProcessing(typename std::shared_ptr<pcl::PointCloud<T>> &cloud_ground,
-                      typename std::shared_ptr<pcl::PointCloud<T>> &cloud_no_ground);
-  int estimatePlaneSVD(const typename std::shared_ptr<pcl::PointCloud<T>> &cloud, Eigen::Vector4f &normal_vector);
-  int estimatePlaneRANSAC(const typename std::shared_ptr<pcl::PointCloud<T>> &cloud, Eigen::Vector4f &normal_vector);
-  float getPointToPlaneDistance(const T &p, const Eigen::Vector4f &vec);
+  void postProcessing(PointCloudPtr &cloud_ground, PointCloudPtr &cloud_no_ground);
+  int estimatePlaneSVD(const PointCloudPtr &cloud, Eigen::Vector4f &normal_vector);
+  int estimatePlaneRANSAC(const PointCloudPtr &cloud, Eigen::Vector4f &normal_vector);
+  float getPointToPlaneDistance(const PointT &p, const Eigen::Vector4f &vec);
 
  private:
   Eigen::VectorXf ground_height_default_;
@@ -128,10 +124,10 @@ class JCPGroundDetection : virtual public GroundDetectionBase<T> {
   DynamicMatrixI region_map_;
   DynamicMatrixI label_map_;
 
-  typename std::shared_ptr<const pcl::PointCloud<T>> cloud_in_ptr_ = nullptr;
-  typename std::shared_ptr<const pcl::PointCloud<T>> cloud_process_ptr_ = nullptr;
-  typename std::shared_ptr<pcl::PointCloud<T>> cloud_ground_ptr_ = nullptr;
-  typename std::shared_ptr<pcl::PointCloud<T>> cloud_no_ground_ptr_ = nullptr;
+  PointCloudConstPtr cloud_in_ptr_ = nullptr;
+  PointCloudConstPtr cloud_process_ptr_ = nullptr;
+  PointCloudPtr cloud_ground_ptr_ = nullptr;
+  PointCloudPtr cloud_no_ground_ptr_ = nullptr;
 
   Eigen::Isometry3f tf_ = Eigen::Isometry3f::Identity();
   JCPGroundDetectionParams params_;

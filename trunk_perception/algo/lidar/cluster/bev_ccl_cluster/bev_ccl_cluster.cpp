@@ -16,8 +16,7 @@
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
-template <class T>
-int BEVCCLCluster<T>::init(const YAML::Node& config) {
+int BEVCCLCluster::init(const YAML::Node& config) {
   try {
     params_.map_range_min_x = config["map_range_min_x"].as<float>();
     params_.map_range_max_x = config["map_range_max_x"].as<float>();
@@ -50,8 +49,7 @@ int BEVCCLCluster<T>::init(const YAML::Node& config) {
   return 0;
 }
 
-template <class T>
-int BEVCCLCluster<T>::process(const typename std::shared_ptr<const pcl::PointCloud<T>>& cloud_in) {
+int BEVCCLCluster::process(const PointCloudConstPtr& cloud_in) {
   if (cloud_in == nullptr) return 1;
   if (cloud_in->empty()) return 0;
 
@@ -66,13 +64,9 @@ int BEVCCLCluster<T>::process(const typename std::shared_ptr<const pcl::PointClo
   return 0;
 }
 
-template <class T>
-std::vector<typename std::shared_ptr<const pcl::PointCloud<T>>> BEVCCLCluster<T>::getClustersCloud() {
-  return clusters_cloud_;
-};
+std::vector<PointCloudConstPtr> BEVCCLCluster::getClustersCloud() { return clusters_cloud_; };
 
-template <class T>
-void BEVCCLCluster<T>::reset() {
+void BEVCCLCluster::reset() {
   for (auto& g : bev_cell_) {
     for (auto& r : g) {
       r.clear();
@@ -84,9 +78,7 @@ void BEVCCLCluster<T>::reset() {
   clusters_cloud_.clear();
 }
 
-template <class T>
-void BEVCCLCluster<T>::makeBev(const typename std::shared_ptr<const pcl::PointCloud<T>>& cloud_in, BevCell& bev_cell,
-                               Eigen::MatrixXi& bev_map) {
+void BEVCCLCluster::makeBev(const PointCloudConstPtr& cloud_in, BevCell& bev_cell, Eigen::MatrixXi& bev_map) {
   const size_t pc_size = cloud_in->points.size();
   const Eigen::MatrixXf pc_eigen = cloud_in->getMatrixXfMap(3, 8, 0);  // 3 x n
   const Eigen::VectorXi col =
@@ -111,8 +103,7 @@ void BEVCCLCluster<T>::makeBev(const typename std::shared_ptr<const pcl::PointCl
   }
 }
 
-template <class T>
-void BEVCCLCluster<T>::CCL(const Eigen::MatrixXi& bev_map, Eigen::MatrixXi& labeled_map) {
+void BEVCCLCluster::CCL(const Eigen::MatrixXi& bev_map, Eigen::MatrixXi& labeled_map) {
   constexpr int kSize = 1;
   const size_t rows = bev_map.rows();
   const size_t cols = bev_map.cols();
@@ -162,9 +153,8 @@ void BEVCCLCluster<T>::CCL(const Eigen::MatrixXi& bev_map, Eigen::MatrixXi& labe
   labeled_map.swap(tmp_map.block(kSize, kSize, rows, cols));
 }
 
-template <class T>
-void BEVCCLCluster<T>::labelPoints(const typename std::shared_ptr<const pcl::PointCloud<T>>& cloud_in,
-                                   const BevCell& bev_cell, const Eigen::MatrixXi& labeled_map) {
+void BEVCCLCluster::labelPoints(const PointCloudConstPtr& cloud_in, const BevCell& bev_cell,
+                                const Eigen::MatrixXi& labeled_map) {
   // 收集目标点的idx
   std::map<int, std::vector<int>> clusters_idx;
   for (size_t r = 0; r < params_.map_size_y; ++r) {
@@ -183,7 +173,7 @@ void BEVCCLCluster<T>::labelPoints(const typename std::shared_ptr<const pcl::Poi
       continue;
     }
 
-    typename std::shared_ptr<pcl::PointCloud<T>> cloud_temp = std::make_shared<pcl::PointCloud<T>>();
+    PointCloudPtr cloud_temp = std::make_shared<PointCloudT>();
     cloud_temp->points.reserve(cluster.second.size());
     for (auto& idx : cluster.second) {
       cloud_temp->points.emplace_back(cloud_in->points[idx]);
@@ -192,7 +182,5 @@ void BEVCCLCluster<T>::labelPoints(const typename std::shared_ptr<const pcl::Poi
     clusters_cloud_.emplace_back(cloud_temp);
   }
 }
-
-template class BEVCCLCluster<PointT>;
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

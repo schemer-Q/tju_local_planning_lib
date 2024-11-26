@@ -27,7 +27,7 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
  *
  */
 enum class ObjectType : std::uint8_t {
-  UNKNOWN = 0,
+  UNKNOWN = 0,  ///< 未知; rule-based 方法结果
   /********************************************************/
   VEHICLE = 1,     ///< 车
   BICYCLE = 2,     ///< 自行车、摩托车
@@ -50,8 +50,9 @@ enum class ObjectType : std::uint8_t {
   FORKLIFT = 31,              ///< 叉车
   ECCENTRIC_TRUNK_HEAD = 32,  ///< 偏头车
   MOBILE_CRANE = 33,          ///< 流机
+  CRANE_LEG = 34,             ///< 桥腿
   /********************************************************/
-  SIZE = 19,  ///< ObjectType 枚举类成员数量(不包含SIZE类型本身)
+  SIZE = 20,  ///< ObjectType 枚举类成员数量(不包含SIZE类型本身)
 };
 
 static std::unordered_map<ObjectType, std::string> ObjectTypeDict = {
@@ -78,6 +79,7 @@ static std::unordered_map<ObjectType, std::string> ObjectTypeDict = {
     {ObjectType::FORKLIFT, "FORKLIFT"},
     {ObjectType::ECCENTRIC_TRUNK_HEAD, "ECCENTRIC_TRUNK_HEAD"},
     {ObjectType::MOBILE_CRANE, "MOBILE_CRANE"},
+    {ObjectType::CRANE_LEG, "CRANE_LEG"},
 };
 
 /**

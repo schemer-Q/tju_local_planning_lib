@@ -5,6 +5,7 @@
 
 #include "trunk_perception/common/data_manager/data_manager.h"
 #include "trunk_perception/common/data_manager/sensor_wrapper/radar_ars430.hpp"
+#include "trunk_perception/common/data_manager/sensor_wrapper/radar_cubtektar.hpp"
 #include "trunk_perception/common/types/point.h"
 #include "trunk_perception/tools/log/t_log.h"
 
@@ -17,6 +18,7 @@ static std::unordered_map<std::string, SensorType> sensor_type_map = {
     {"ODOMETRY", SensorType::ODOMETRY},
     {"RADAR_ARS430", SensorType::RADAR_ARS430},
     {"RADAR_CRT5P", SensorType::RADAR_CRT5P},
+		{"RADAR_CUBTEKTAR", SensorType::RADAR_CUBTEKTAR},
 };
 
 static SensorType stringToSensorType(const std::string& type) {
@@ -91,6 +93,18 @@ uint32_t DataManager::registerSensor(const SensorType& type, const std::string& 
       }
       m_name_to_type_[name] = SensorType::RADAR_CRT5P;
       break;
+		case SensorType::RADAR_CUBTEKTAR:                            // @author zzg 增加 为彪角雷达
+			if (cubtektar_corner_radars_.find(name) != cubtektar_corner_radars_.end()) {
+				TERROR << "Corner radar " << name << " already exists.";
+				return ErrorCode::PARAMETER_ERROR;
+			}
+			cubtektar_corner_radars_[name] = std::make_shared<CUBTEKTARRadar>();
+			ret = cubtektar_corner_radars_[name]->init(name, types, buffer_size, max_time_delay);
+			if (ret != ErrorCode::SUCCESS) {
+				TERROR<< "Failed to register sensor " << name << " of type RADAR_CUBTEKTAR.";
+			}
+			m_name_to_type_[name] = SensorType::RADAR_CUBTEKTAR;
+			break;
     default:
       TFATAL << "Invalid sensor type: " << type;
       ret = ErrorCode::PARAMETER_ERROR;
@@ -190,6 +204,16 @@ uint32_t DataManager::push(const std::string& sensor_name, const double& timesta
   return corner_radars_[sensor_name]->push("", timestamp, data);
 }
 
+// @author zzg 增加 为彪角雷达
+uint32_t DataManager::push(const std::string& sensor_name, const double& timestamp,
+                           const std::shared_ptr<cubtektar::RadarObjects>& data) {
+  if (cubtektar_corner_radars_.find(sensor_name) == cubtektar_corner_radars_.end()) {
+    TERROR << "Corner radar " << sensor_name << " does not exist.";
+    return ErrorCode::PARAMETER_ERROR;
+  }
+  return cubtektar_corner_radars_[sensor_name]->push("", timestamp, data);
+}
+
 uint32_t DataManager::extractByTime(const std::string& sensor_name, const std::string& data_type,
                                     const double& timestamp, std::shared_ptr<PointCloudData>& data) {
   if (lidars_.find(sensor_name) == lidars_.end()) {
@@ -241,6 +265,16 @@ uint32_t DataManager::extractByTime(const std::string& sensor_name, const double
   return corner_radars_[sensor_name]->extractByTime("", timestamp, data);
 }
 
+// @author zzg 增加 为彪角雷达
+uint32_t DataManager::extractByTime(const std::string& sensor_name, const double& timestamp,
+												std::shared_ptr<CUBTEKTARRadarData>& data) {
+  if (cubtektar_corner_radars_.find(sensor_name) == cubtektar_corner_radars_.end()) {
+    TERROR << "Corner radar " << sensor_name << " does not exist.";
+    return ErrorCode::PARAMETER_ERROR;
+  }
+  return cubtektar_corner_radars_[sensor_name]->extractByTime("", timestamp, data);
+}
+
 uint32_t DataManager::setSensorPose(const std::string& sensor_name, const Eigen::Isometry3f& pose) {
   if (m_name_to_type_.find(sensor_name) == m_name_to_type_.end()) {
     TERROR << "Sensor " << sensor_name << " does not exist.";
@@ -255,6 +289,8 @@ uint32_t DataManager::setSensorPose(const std::string& sensor_name, const Eigen:
       return front_radar_->setPose(pose);
     case SensorType::RADAR_CRT5P:
       return corner_radars_[sensor_name]->setPose(pose);
+		case SensorType::RADAR_CUBTEKTAR:
+			return cubtektar_corner_radars_[sensor_name]->setPose(pose);
     default:
       TFATAL << "Invalid sensor type: " << m_name_to_type_[sensor_name];
       return ErrorCode::PARAMETER_ERROR;
@@ -276,6 +312,8 @@ std::shared_ptr<const Eigen::Isometry3f> DataManager::getSensorPose(const std::s
       return front_radar_->pose();
     case SensorType::RADAR_CRT5P:
       return corner_radars_.at(sensor_name)->pose();
+		case SensorType::RADAR_CUBTEKTAR:
+			return cubtektar_corner_radars_.at(sensor_name)->pose();
     default:
       TFATAL << "Invalid sensor type: " << m_name_to_type_.at(sensor_name);
       return nullptr;
@@ -342,6 +380,8 @@ double DataManager::getLatestSensorDataTime(const std::string& sensor_name) {
       return front_radar_->getLatestOriginDataTime();
     case SensorType::RADAR_CRT5P:
       return corner_radars_[sensor_name]->getLatestOriginDataTime();
+		case SensorType::RADAR_CUBTEKTAR:
+			return cubtektar_corner_radars_[sensor_name]->getLatestOriginDataTime();
     default:
       TFATAL << "Invalid sensor type: " << m_name_to_type_[sensor_name];
       return -1.0;  // 无效传感器类型，返回异常值-1.0

@@ -19,19 +19,19 @@ Sensors:
     Name: "RADAR_0"
     BufferSize: 10
     MaxTimeDelay: 0.3
-  - Type: "RADAR_CRT5P"
+  - Type: "RADAR_CUBTEKTAR"  # RADAR_CRT5P , RADAR_CUBTEKTAR
     Name: "RADAR_1"
     BufferSize: 10
     MaxTimeDelay: 0.3
-  - Type: "RADAR_CRT5P"
+  - Type: "RADAR_CUBTEKTAR"  # RADAR_CRT5P , RADAR_CUBTEKTAR
     Name: "RADAR_5"
     BufferSize: 10
     MaxTimeDelay: 0.3
-  - Type: "RADAR_CRT5P"
+  - Type: "RADAR_CUBTEKTAR"  # RADAR_CRT5P , RADAR_CUBTEKTAR
     Name: "RADAR_7"
     BufferSize: 10
     MaxTimeDelay: 0.3
-  - Type: "RADAR_CRT5P"
+  - Type: "RADAR_CUBTEKTAR"  # RADAR_CRT5P , RADAR_CUBTEKTAR
     Name: "RADAR_11"
     BufferSize: 10
     MaxTimeDelay: 0.3

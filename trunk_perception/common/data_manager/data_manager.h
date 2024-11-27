@@ -22,6 +22,7 @@
 #include "trunk_perception/common/data_manager/sensor_wrapper/lidar.hpp"
 #include "trunk_perception/common/data_manager/sensor_wrapper/radar_ars430.hpp"
 #include "trunk_perception/common/data_manager/sensor_wrapper/radar_crt5p.hpp"
+#include "trunk_perception/common/data_manager/sensor_wrapper/radar_cubtektar.hpp"
 #include "trunk_perception/common/error/code.hpp"
 #include "trunk_perception/common/macros.h"
 #include "trunk_perception/common/types/point.h"
@@ -39,6 +40,7 @@ enum SensorType {
   ODOMETRY,
   RADAR_ARS430,
   RADAR_CRT5P,
+	RADAR_CUBTEKTAR,
 };
 
 /**
@@ -75,6 +77,9 @@ class DataManager {
   uint32_t push(const std::string& sensor_name, const double& timestamp,
                 const std::shared_ptr<cr5tp::RadarObjects>& data);
 
+  uint32_t push(const std::string& sensor_name, const double& timestamp,
+                const std::shared_ptr<cubtektar::RadarObjects>& data);                      // @author zzg 增加 为彪角雷达
+
   uint32_t extractByTime(const std::string& sensor_name, const std::string& data_type, const double& timestamp,
                          std::shared_ptr<PointCloudData>& data);
 
@@ -87,6 +92,9 @@ class DataManager {
 
   uint32_t extractByTime(const std::string& sensor_name, const double& timestamp,
                          std::shared_ptr<CR5TPRadarData>& data);
+
+  uint32_t extractByTime(const std::string& sensor_name, const double& timestamp,
+                         std::shared_ptr<CUBTEKTARRadarData>& data);                      // @author zzg 增加 为彪角雷达
 
   uint32_t setSensorPose(const std::string& sensor_name, const Eigen::Isometry3f& pose);
 
@@ -125,6 +133,7 @@ class DataManager {
   std::unordered_map<std::string, std::shared_ptr<Camera>> cameras_;
   std::shared_ptr<ARS430Radar> front_radar_;
   std::unordered_map<std::string, std::shared_ptr<CR5TPRadar>> corner_radars_;
+	std::unordered_map<std::string, std::shared_ptr<CUBTEKTARRadar>> cubtektar_corner_radars_;      // @author zzg 增加 为彪角雷达
   std::unordered_map<std::string, SensorType> m_name_to_type_;
   std::string vehicle_name_ = "";
 

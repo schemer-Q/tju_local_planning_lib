@@ -17,6 +17,8 @@
 #include "trunk_perception/common/tools/data_buffer.hpp"
 #include "trunk_perception/common/types/radar_ars430.h"
 #include "trunk_perception/common/types/radar_cr5tp.h"
+#include "trunk_perception/common/types/radar_cubtektar.h"
 
 REGISTOR_SENSOR_DATA(ARS430RadarData, TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE::ars430::RadarObjects::ConstPtr)
 REGISTOR_SENSOR_DATA(CR5TPRadarData, TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE::cr5tp::RadarObjects::ConstPtr)
+REGISTOR_SENSOR_DATA(CUBTEKTARRadarData, TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE::cubtektar::RadarObjects::ConstPtr)         // @author zzg 增加 为彪角雷达

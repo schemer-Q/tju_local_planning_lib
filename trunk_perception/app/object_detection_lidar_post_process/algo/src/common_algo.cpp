@@ -304,7 +304,8 @@ float computeFreespaceArea(const Eigen::Matrix3Xf& polygon, const BoundingBox& b
 void computeVisibleLine(Eigen::Matrix3Xf& polygon) {
   const size_t sz = polygon.cols();
 
-  size_t minIdx, maxIdx;
+  size_t minIdx = 0UL;
+  size_t maxIdx = 0UL;
   float minAngle = 100.0F;
   float maxAngle = -100.0F;
   for (size_t i = 0; i < sz; ++i) {

@@ -166,7 +166,7 @@ void ClusterDetection::removeObjectPoints(const PointCloudConstPtr& cloud, const
 
     points_cv.clear();
     const auto& corners2d = bbox.corners2d;
-    for (size_t j = 0UL; j < corners2d.cols(); ++j) {
+    for (int j = 0; j < corners2d.cols(); ++j) {
       pt_cv.x = static_cast<int>(corners2d(1, j) * scale + shift_col);  // 点云的y值计算出图片中的列坐标
       pt_cv.y = static_cast<int>(corners2d(0, j) * scale + shift_row);  // 点云的x值计算出图片中的行坐标
       points_cv.emplace_back(pt_cv);

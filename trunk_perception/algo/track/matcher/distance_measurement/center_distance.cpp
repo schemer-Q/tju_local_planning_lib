@@ -52,7 +52,6 @@ float CenterDistance::getDistanceError(const BoundingBox& track_bbox, const Boun
     for (int n = 0; n < 4; ++n) {
       const int j = (i + n + 4) % 4;
       const Eigen::Vector2f corner_distance = track_bbox.corners2d.col(j) - detect_bbox.corners2d.col(n);
-      const float distance_squared = corner_distance.norm();
       min_distance = std::min(min_distance, corner_distance.norm());
     }
   }

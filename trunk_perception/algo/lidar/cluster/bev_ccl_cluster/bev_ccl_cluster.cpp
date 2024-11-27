@@ -94,8 +94,8 @@ void BEVCCLCluster::makeBev(const PointCloudConstPtr& cloud_in, BevCell& bev_cel
     }
   }
 
-  for (size_t i = 0; i < params_.map_size_y; ++i) {
-    for (size_t j = 0; j < params_.map_size_x; ++j) {
+  for (int i = 0; i < params_.map_size_y; ++i) {
+    for (int j = 0; j < params_.map_size_x; ++j) {
       if (bev_cell[i][j].size() >= 1) {
         bev_map(i, j) = 1;
       }
@@ -157,8 +157,8 @@ void BEVCCLCluster::labelPoints(const PointCloudConstPtr& cloud_in, const BevCel
                                 const Eigen::MatrixXi& labeled_map) {
   // 收集目标点的idx
   std::map<int, std::vector<int>> clusters_idx;
-  for (size_t r = 0; r < params_.map_size_y; ++r) {
-    for (size_t c = 0; c < params_.map_size_x; ++c) {
+  for (int r = 0; r < params_.map_size_y; ++r) {
+    for (int c = 0; c < params_.map_size_x; ++c) {
       int label = labeled_map(r, c);
       if (label > 2) {
         clusters_idx[label].insert(clusters_idx[label].end(), bev_cell_[r][c].begin(), bev_cell_[r][c].end());

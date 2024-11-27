@@ -218,7 +218,8 @@ void ClusterDetection::filterByRules(std::vector<Object>& objects) {
     if (params_.height_filter_switch) {
       const auto& points_ptr = object.points_ptr;
       if (!points_ptr) return true;
-      const float min_z = points_ptr->getMatrixXfMap(1, 8, 2).minCoeff();
+      auto cloud_xyz = points_ptr->getMatrixXfMap(3, sizeof(PointXYZIRADT) / sizeof(float), 0);
+      const float min_z = cloud_xyz.row(2).minCoeff();
       if (object.bbox.center.x() > params_.range_x_threshold && min_z > params_.height_threshold) {
         return true;
       }

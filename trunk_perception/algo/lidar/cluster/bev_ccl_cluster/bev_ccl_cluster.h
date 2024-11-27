@@ -11,8 +11,6 @@
 
 #pragma once
 
-#include <Eigen/Dense>
-
 #include "trunk_perception/algo/lidar/cluster/cluster_base.h"
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN

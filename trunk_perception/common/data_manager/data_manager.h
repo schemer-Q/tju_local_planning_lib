@@ -13,10 +13,12 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "trunk_perception/common/data_manager/data_wrapper/fod_vision_frame.h"
 #include "trunk_perception/common/data_manager/data_wrapper/ld_frame.h"
 #include "trunk_perception/common/data_manager/data_wrapper/od_lidar_frame.h"
 #include "trunk_perception/common/data_manager/data_wrapper/odometry_data.h"
 #include "trunk_perception/common/data_manager/data_wrapper/pointcloud_data.h"
+#include "trunk_perception/common/data_manager/data_wrapper/target_fusion_frame.h"
 #include "trunk_perception/common/data_manager/sensor_wrapper/base.h"
 #include "trunk_perception/common/data_manager/sensor_wrapper/camera.hpp"
 #include "trunk_perception/common/data_manager/sensor_wrapper/lidar.hpp"
@@ -29,7 +31,6 @@
 #include "trunk_perception/common/types/radar_ars430.h"
 #include "trunk_perception/tools/log/t_log.h"
 #include "trunk_perception/tools/system/utils.hpp"
-#include "trunk_perception/common/data_manager/data_wrapper/target_fusion_frame.h"
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
@@ -120,11 +121,13 @@ class DataManager {
 
   std::shared_ptr<LDFrame> getLdFrame() const { return ld_frame_; }
 
-  void updateTfFrame(const std::shared_ptr<TargetFusionFrame>& tf_frame) {
-    tf_frame_ = tf_frame;
-  }
+  void updateTfFrame(const std::shared_ptr<TargetFusionFrame>& tf_frame) { tf_frame_ = tf_frame; }
 
   std::shared_ptr<TargetFusionFrame> getTfFrame() const { return tf_frame_; }
+
+  void updateFodVisionFrame(const std::shared_ptr<FodVisionFrame>& frame) { fod_vision_frame_ = frame; }
+
+  std::shared_ptr<FodVisionFrame> getFodVisionFrame() const { return fod_vision_frame_; }
 
  private:
   DataManager();
@@ -143,6 +146,7 @@ class DataManager {
   std::shared_ptr<OdLidarFrame> od_lidar_frame_ = nullptr;
   std::shared_ptr<LDFrame> ld_frame_ = nullptr;
   std::shared_ptr<TargetFusionFrame> tf_frame_ = nullptr;
+  std::shared_ptr<FodVisionFrame> fod_vision_frame_ = nullptr;
 };
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
@@ -355,3 +359,17 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
  * @return target fusion帧
  */
 #define GET_TF_FRAME() DATA_MANAGER.getTfFrame()
+
+/**
+ * @def UPDATE_FOD_VISION_FRAME
+ * @brief 更新fod_vision帧，线程不安全
+ * @param fod_vision_frame fod_vision帧
+ */
+#define UPDATE_FOD_VISION_FRAME(fod_vision_frame) DATA_MANAGER.updateFodVisionFrame(fod_vision_frame)
+
+/**
+ * @def GET_FOD_VISION_FRAME
+ * @brief 获取fod_vision帧，线程不安全
+ * @return fod_vision帧
+ */
+#define GET_FOD_VISION_FRAME() DATA_MANAGER.getFodVisionFrame()

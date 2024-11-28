@@ -18,4 +18,5 @@ set(TRUNK_PERCEPTION_LIBRARIES
   trunk_perception_algo_track
   trunk_perception_algo_cluster
   trunk_perception_algo_ground_detection
+  trunk_perception_app_object_detection_front_vision
 )

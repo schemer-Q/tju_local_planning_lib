@@ -8,6 +8,8 @@ string(JSON sdk_lidarnetsdk_version GET ${config_json} project dependencies sdk 
 string(JSON sdk_lidarnetsdk_enable GET ${config_json} project dependencies sdk lidarnetsdk enable)
 string(JSON sdkbevlaneconedethighway_version GET ${config_json} project dependencies sdk sdkbevlaneconedethighway version)
 string(JSON sdkbevlaneconedethighway_enable GET ${config_json} project dependencies sdk sdkbevlaneconedethighway enable)
+string(JSON sdkvisdetr3ddconffront_version GET ${config_json} project dependencies sdk sdkvisdetr3ddconffront version)
+string(JSON sdkvisdetr3ddconffront_enable GET ${config_json} project dependencies sdk sdkvisdetr3ddconffront enable)
 
 project(trunk_perception
         VERSION ${project_version}

@@ -80,6 +80,7 @@ class TailCenterTrackerCV : virtual public TrackerMethodBase {
   bool outFovBound(const Object& object);
 
  private:
+  bool initialized_ = false;                                     // 初始化标识
   TailCenterTrackerCVParams params_;                             // 配置参数
   std::shared_ptr<LinearKalmanFilter> motion_filter_ = nullptr;  // 运动状态滤波器
   float fov_tan_theta_ = std::tan(M_PI_2f32 - 60.0F * DEG2RAD);  // 常量值

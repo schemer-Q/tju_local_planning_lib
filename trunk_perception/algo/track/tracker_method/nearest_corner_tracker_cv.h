@@ -75,6 +75,7 @@ class NearestCornerTrackerCV : virtual public TrackerMethodBase {
   void getTrackModel(Object& object);
 
  private:
+  bool initialized_ = false;                                     // 初始化标识
   std::shared_ptr<LinearKalmanFilter> motion_filter_ = nullptr;  // 运动状态滤波器
 };
 

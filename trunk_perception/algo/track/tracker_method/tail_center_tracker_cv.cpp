@@ -69,10 +69,21 @@ int TailCenterTrackerCV::Init(const YAML::Node& config, const Object& object) {
     motion_filter_->init(init_motion_state);
   }
 
+  initialized_ = true;
   return 0;
 }
 
 void TailCenterTrackerCV::Predict(const double dt, Object& object_tracked) {
+  if (!initialized_) {
+    TFATAL << "[TailCenterTrackerCV::Predict] not initialized!";
+    return;
+  }
+
+  if (!motion_filter_) {
+    TFATAL << "[TailCenterTrackerCV::Predict] motion_filter_ is nullptr!";
+    return;
+  }
+
   Eigen::MatrixXd A = motion_filter_->getStateTransitionMatrix();
   A(0, 2) = A(1, 3) = dt;
   motion_filter_->setStateTransitionMatrix(A);
@@ -81,6 +92,16 @@ void TailCenterTrackerCV::Predict(const double dt, Object& object_tracked) {
 }
 
 void TailCenterTrackerCV::Update(const Object& object, Object& object_tracked) {
+  if (!initialized_) {
+    TFATAL << "[TailCenterTrackerCV::Update] not initialized!";
+    return;
+  }
+
+  if (!motion_filter_) {
+    TFATAL << "[TailCenterTrackerCV::Update] motion_filter_ is nullptr!";
+    return;
+  }
+
   Eigen::Vector2d measure_point = object.tail_center_feature.tail_center_point;
   const bool object_out_fov_bound = outFovBound(object);
   if (track_point_out_fov_bound_) {
@@ -112,6 +133,16 @@ void TailCenterTrackerCV::Update(const Object& object, Object& object_tracked) {
 }
 
 void TailCenterTrackerCV::TransformToCurrent(const Eigen::Isometry3f& tf) {
+  if (!initialized_) {
+    TFATAL << "[TailCenterTrackerCV::TransformToCurrent] not initialized!";
+    return;
+  }
+
+  if (!motion_filter_) {
+    TFATAL << "[TailCenterTrackerCV::TransformToCurrent] motion_filter_ is nullptr!";
+    return;
+  }
+
   Eigen::VectorXd states_new = motion_filter_->getState();
 
   // transform tracking point

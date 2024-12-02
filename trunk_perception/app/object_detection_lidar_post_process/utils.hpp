@@ -14,6 +14,7 @@
 #include <Eigen/Geometry>
 
 #include "trunk_perception/common/macros.h"
+#include "trunk_perception/common/types/odometry.h"
 #include "trunk_perception/tools/log/t_log.h"
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN

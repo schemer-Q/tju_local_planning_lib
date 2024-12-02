@@ -17,80 +17,6 @@
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 
-void downSamplePointCloud2D(const PointCloudT& pc_in, const Eigen::Vector2f& resolution, PointCloudT& pc_out) {
-  const size_t pc_size = pc_in.size();
-  if (pc_size <= 1UL) {
-    pc_out = pc_in;
-    return;
-  }
-
-  const Eigen::Vector2f min_bound = pc_in.getMatrixXfMap(2, 8, 0).rowwise().minCoeff();
-  const Eigen::Vector2f max_bound = pc_in.getMatrixXfMap(2, 8, 0).rowwise().maxCoeff();
-  if (resolution.minCoeff() * static_cast<float>(std::numeric_limits<int>::max()) <
-      (max_bound - min_bound).maxCoeff()) {
-    TERROR << "Voxel resolution is too small.";
-
-    pc_out.reserve(pc_size);
-    pc_out.insert(pc_out.end(), pc_in.begin(), pc_in.end());
-    return;
-  }
-
-  using Vector2UL = Eigen::Matrix<size_t, 2, 1>;
-  const Eigen::Vector2f res_inv = 1.0F / resolution.array();
-  const Vector2UL size_xy = ((max_bound - min_bound).array() * res_inv.array()).ceil().cast<size_t>();
-  std::vector<std::pair<size_t, size_t>> voxel_map;
-  voxel_map.reserve(pc_size);
-
-  for (size_t i = 0UL; i < pc_size; ++i) {
-    const Eigen::Vector2f point = pc_in[i].getVector3fMap().head(2);
-    const Vector2UL xy = ((point - min_bound).array() * res_inv.array() + 0.5F).cast<size_t>();
-    const size_t voxel_index = xy(1) * size_xy(0) + xy(0);
-    voxel_map.emplace_back(voxel_index, i);
-  }
-
-  std::sort(
-      voxel_map.begin(), voxel_map.end(),
-      [](const std::pair<size_t, size_t>& p1, const std::pair<size_t, size_t>& p2) { return p1.first > p2.first; });
-
-  int count = 1;
-  Eigen::Vector2d pt_mean = pc_in[voxel_map.begin()->second].getVector3fMap().head(2).cast<double>();
-  size_t index_temp = voxel_map.begin()->first;
-
-  PointT point;
-  point.z = 0.0F;
-  point.intensity = 0.0F;
-  point.ring = 0;
-  point.column = 0;
-  point.distance = 0.0F;
-  point.time = 0.0F;
-
-  size_t sz_out = 0UL;
-  pc_out.reserve(pc_size);
-  for (size_t i = 1UL; i < pc_size; ++i) {
-    const auto& pair = voxel_map[i];
-    if (pair.first == index_temp) {
-      pt_mean.array() += pc_in[pair.second].getVector3fMap().head(2).array().cast<double>();
-      count += 1;
-    } else {
-      point.getVector3fMap().head(2) = (pt_mean.array() / count).cast<float>();
-      pc_out.push_back(point);
-      sz_out += 1UL;
-
-      count = 1;
-      pt_mean = pc_in[pair.second].getVector3fMap().head(2).cast<double>();
-      index_temp = pair.first;
-    }
-
-    if (i == pc_size - 1UL) {
-      point.getVector3fMap().head(2) = (pt_mean.array() / count).cast<float>();
-      pc_out.push_back(point);
-      sz_out += 1UL;
-    }
-  }
-
-  pc_out.resize(sz_out);
-}
-
 void downSamplePointCloud2D(const PointCloudT& pc_in, const Eigen::Vector2f& resolution,
                             std::vector<cv::Point2f>& pt_out) {
   const size_t pc_size = pc_in.size();
@@ -129,15 +55,13 @@ void downSamplePointCloud2D(const PointCloudT& pc_in, const Eigen::Vector2f& res
     voxel_map.emplace_back(voxel_index, i);
   }
 
-  std::sort(
-      voxel_map.begin(), voxel_map.end(),
-      [](const std::pair<size_t, size_t>& p1, const std::pair<size_t, size_t>& p2) { return p1.first > p2.first; });
+  auto cond = [](const auto& p1, const auto& p2) { return p1.first < p2.first; };
+  std::sort(voxel_map.begin(), voxel_map.end(), cond);
 
   int count = 1;
   Eigen::Vector2d pt_mean = pc_in[voxel_map.begin()->second].getVector3fMap().head(2).cast<double>();
   size_t index_temp = voxel_map.begin()->first;
 
-  size_t sz_out = 0UL;
   pt_out.reserve(pc_size);
   for (size_t i = 1UL; i < pc_size; ++i) {
     const auto& pair = voxel_map[i];
@@ -147,7 +71,6 @@ void downSamplePointCloud2D(const PointCloudT& pc_in, const Eigen::Vector2f& res
     } else {
       const Eigen::Vector2f pt = (pt_mean.array() / count).cast<float>();
       pt_out.emplace_back(pt(0), pt(1));
-      sz_out += 1UL;
 
       count = 1;
       pt_mean = pc_in[pair.second].getVector3fMap().head(2).cast<double>();
@@ -157,11 +80,8 @@ void downSamplePointCloud2D(const PointCloudT& pc_in, const Eigen::Vector2f& res
     if (i == pc_size - 1UL) {
       const Eigen::Vector2f pt = (pt_mean.array() / count).cast<float>();
       pt_out.emplace_back(pt(0), pt(1));
-      sz_out += 1UL;
     }
   }
-
-  pt_out.resize(sz_out);
 }
 
 // 计算polygon

@@ -193,6 +193,7 @@ void FodVisionSDK::postProcess(const std::shared_ptr<FodVisionFrame>& frame) {
     obj.bbox.center << vision_obj.location[0], vision_obj.location[1], vision_obj.location[2];
     obj.bbox.size << vision_obj.dimension[0], vision_obj.dimension[1], vision_obj.dimension[2];
     obj.bbox.theta = vision_obj.heading;
+    obj.bbox.direction << std::cos(obj.bbox.theta), std::sin(obj.bbox.theta), 0.0f;
 
     Eigen::Rotation2D<float> R2D(obj.bbox.theta);
     const auto& center_xy = obj.bbox.center.head(2);
@@ -262,10 +263,11 @@ uint32_t FodVisionSDK::InitCameraParams() {
     camera_param_->DistortionFactor[4] = 0.0;
   }
 
+  constexpr float RAD2DEG = 180.0F / M_PI;
   const Eigen::Vector3f euler_angles = meta->pose_ptr->rotation().eulerAngles(2, 1, 0);
-  camera_param_->roll = euler_angles[2];
-  camera_param_->pitch = euler_angles[1];
-  camera_param_->yaw = euler_angles[0];
+  camera_param_->roll = euler_angles[2] * RAD2DEG;
+  camera_param_->pitch = euler_angles[1] * RAD2DEG;
+  camera_param_->yaw = euler_angles[0] * RAD2DEG;
   camera_param_->x = meta->pose_ptr->translation().x();
   camera_param_->y = meta->pose_ptr->translation().y();
   camera_param_->z = meta->pose_ptr->translation().z();

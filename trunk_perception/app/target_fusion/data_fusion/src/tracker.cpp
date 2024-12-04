@@ -64,6 +64,8 @@ Tracker::Tracker(const FusedObject::Ptr& object_ptr, const MotionFusionConfig& m
     object_lidar_ptr_ = lidar_measure_ptr;
     object_ptr_->lidar_total_life = 1;
     object_ptr_->lidar_consecutive_hit = 1;
+		object_ptr_->lidar_consecutive_hit_his = object_ptr_->lidar_consecutive_hit;      // @author zzg 2024_12_04
+		object_ptr_->lidar_consecutive_hit_his_ts = lidar_measure_ptr->timestamp;         // @author zzg 2024_12_04
   }
   if (front_radar_measure_ptr) {
     object_front_radar_ptr_ = front_radar_measure_ptr;
@@ -155,6 +157,8 @@ void Tracker::Update(const LidarMeasureFrame::ConstPtr& lidar_measure_ptr) {
   object_ptr_->lidar_consecutive_lost = 0;
   object_ptr_->lidar_total_life += 1;
   object_ptr_->lidar_consecutive_hit += 1;
+	object_ptr_->lidar_consecutive_hit_his = object_ptr_->lidar_consecutive_hit;          // @author zzg 2024_12_04
+	object_ptr_->lidar_consecutive_hit_his_ts = object_ptr_->timestamp;                   // @author zzg 2024_12_04
   object_lidar_ptr_ = lidar_measure_ptr;
 }
 

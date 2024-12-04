@@ -1,5 +1,6 @@
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l1r.h"
 #include "trunk_perception/tools/log/t_log.h"
+#include "trunk_perception/common/types/object.h"
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 
@@ -45,6 +46,13 @@ float ExistenceFusion1L1R::Compute(const FusedObject::Ptr& fused_object_ptr) {
     fused_object_ptr->flag_special_keep_stable = true;
     score = 0.3;
   }
+
+	// @author zzg 2024_12_04 增加逻辑：目标类型为 TRUCK，且毫米波一直连续命中 25 帧以上，且激光连续命中 15 帧以上，然后激光测量丢失 12s 以内的，则维持融合目标
+	// 为了解决近距离怼脸货车由于 激光连续丢失多帧 导致的目标丢失；   解决特定问题
+	if ( (score < 0.3) && (fused_object_ptr->front_radar_consecutive_hit > 25) && (fused_object_ptr->lidar_consecutive_hit_his > 15) &&
+			((fused_object_ptr->timestamp - fused_object_ptr->lidar_consecutive_hit_his_ts) < 12.0 && fused_object_ptr->type == ObjectType::TRUCK)) {
+		score = 0.3;
+	}
 
   return score;
 }

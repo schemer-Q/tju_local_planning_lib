@@ -59,6 +59,7 @@ enum ErrorCode : uint32_t {
   FRONT_VISION_DETECTOR_INIT_CAMERA_PARAMS_FAILED = 70,
   FRONT_VISION_DETECTOR_SDK_INIT_FAILED = 71,
   FRONT_VISION_DETECTOR_SDK_INFER_FAILED = 72,
+  FOD_VISION_FRAME_NOT_FOUND = 73,
 };
 
 static const std::unordered_map<ErrorCode, std::string> error_code_to_string = {

@@ -17,9 +17,10 @@
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
 struct FodVisionFrame {
-  double timestamp = 0.0;                ///< 时间戳, 单位为秒
-  std::vector<Object> detected_objects;  ///< 当前帧障碍物检测列表
-  std::vector<Object> tracked_objects;   ///< 跟踪后的障碍物列表
+  double timestamp = 0.0;                                ///< 时间戳, 单位为秒
+  Eigen::Isometry3f tf = Eigen::Isometry3f::Identity();  ///< 前后帧的变换位姿
+  std::vector<Object> detected_objects;                  ///< 当前帧障碍物检测列表
+  std::vector<Object> tracked_objects;                   ///< 跟踪后的障碍物列表
 };
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END

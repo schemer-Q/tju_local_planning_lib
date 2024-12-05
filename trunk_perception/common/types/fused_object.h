@@ -59,6 +59,9 @@ struct alignas(32) FusedObject {
   int lidar_consecutive_hit = 0;   ///< 激光雷达连续命中帧数
   int lidar_consecutive_lost = 0;  ///< 激光雷达连续丢失帧数
 
+	int lidar_consecutive_hit_his = 0;        ///< 激光雷达最近一次连续命中帧数             @author zzg 2024_12_04
+	double lidar_consecutive_hit_his_ts = 0;  ///< 激光雷达最近一次连续命中帧数对应的时间戳    @author zzg 2024_12_04
+
   int front_radar_consecutive_hit = 0;   ///< 前向毫米波雷达连续命中帧数
   int front_radar_consecutive_lost = 0;  ///< 前向毫米波雷达连续丢失帧数
 

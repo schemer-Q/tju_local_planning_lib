@@ -138,6 +138,8 @@ void SimpleTrack::preprocess(std::vector<Object>& objects) {
       object.track_point.head(2) = object.l_shape_feature.reference_point.cast<float>();
     } else if (params_.traker_method == "TailCenterTrackerCV") {
       object.track_point.head(2) = object.tail_center_feature.tail_center_point.cast<float>();
+    } else if (params_.traker_method == "CenterTrackerCV") {
+      object.track_point.head(2) = object.bbox.center.head(2);
     } else {
       TFATAL << "[SimpleTrack] traker_method is error!";
       return;

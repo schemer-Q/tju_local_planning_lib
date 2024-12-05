@@ -19,10 +19,11 @@ Config:
         MatcherOptions:
           cost_thresh: 0.99
           bound_value: 1.00
-        DistanceMeasurementMethod: TailCenterDistance
+        DistanceMeasurementMethod: CenterDistance
         DistanceMeasurementParams:
           max_distance: 5.0 # 前后帧最大距离(m)
           max_velocity: 50 # 障碍物最大速度(m/s)
+          heading_limit: true # 航向角匹配约束开关
           max_theta_diff: 0.785 # pi/4, heading角度差阈值(rad)
           max_projection_distance: 2.0 # 在heading垂直方向上的投影距离阈值(m)
       TrackerMethod: CenterTrackerCV # NearestCornerTrackerCV、TailCenterTrackerCV、CenterTrackerCV

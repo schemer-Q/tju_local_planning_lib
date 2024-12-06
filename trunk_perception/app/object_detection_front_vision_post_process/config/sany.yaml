@@ -8,9 +8,6 @@ Config:
         min_lifetime_output: 3
         max_consecutive_lost_num: 5
         min_consecutive_valid_num: 3
-        origin_xy_offset: [16.0, 2.0] # [x方向的矢量偏移量，y方向的绝对值偏移量] 参数可省略
-        nms_by_polygon: false # nms中使用polygon(默认bbox)进行重叠率 参数可省略
-        predict_by_velocity: true # 轨迹未匹配成功时是否要根据速度进行预测(默认要预测) 参数可省略
       IDPool:
         start_id: 1
         max_id: 255

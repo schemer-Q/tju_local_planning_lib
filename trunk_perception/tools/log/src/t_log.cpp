@@ -16,6 +16,7 @@ void TLog::init(const char *log_file_path, int32_t level, int32_t max_file_num) 
       log_file_path, 1 << 20, max_file_num);
   auto my_logger = jian::logging::register_logger("perception", {my_term_sink, my_file_sink});
   my_logger->set_level(static_cast<jian::logging::level_enum>(level));
+  my_logger->flush_on(jian::logging::level_enum::err);
 }
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

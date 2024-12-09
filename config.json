@@ -1,6 +1,6 @@
 {
   "project": {
-    "version": "0.1.6",
+    "version": "0.1.7",
 
     "dependencies": {
       "dev": {
@@ -16,6 +16,10 @@
         },
         "sdkbevlaneconedethighway": {
           "version": "0.3.1",
+          "enable": true
+        },
+        "sdkvisdetr3ddconffront": {
+          "version": "1.2.3",
           "enable": true
         }
       }

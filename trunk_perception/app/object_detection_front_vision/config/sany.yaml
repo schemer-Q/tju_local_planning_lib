@@ -1,0 +1,5 @@
+Type: FodVisionSDK
+Config:
+  Name: CAMERA_0_F60
+  Type: origin
+  ConfigFile: /opt/trunk_vision/model/visdetr3ddconffrontmodel/conf/config.toml

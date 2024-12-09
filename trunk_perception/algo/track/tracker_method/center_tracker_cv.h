@@ -1,12 +1,12 @@
 /**
- * @file tail_middle_tracker_cv.h
+ * @file center_tracker_cv.h
  * @author Fan Dongsheng (fandongsheng@trunk.tech)
- * @brief
+ * @brief 
  * @version 0.1
- * @date 2024-10-12
- *
+ * @date 2024-12-05
+ * 
  * @copyright Copyright (c) 2024
- *
+ * 
  */
 
 #pragma once
@@ -19,16 +19,10 @@
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
-struct TailCenterTrackerCVParams {
-  float fov_angle = 120.0F;
-  float x_offset = 5.77F;
-  float y_offset = 1.6F;
-};
-
-class TailCenterTrackerCV : virtual public TrackerMethodBase {
+class CenterTrackerCV : virtual public TrackerMethodBase {
  public:
-  TailCenterTrackerCV() = default;
-  ~TailCenterTrackerCV() override = default;
+  CenterTrackerCV() = default;
+  ~CenterTrackerCV() override = default;
 
   /**
    * @brief init tracker method
@@ -81,10 +75,7 @@ class TailCenterTrackerCV : virtual public TrackerMethodBase {
 
  private:
   bool initialized_ = false;                                     // 初始化标识
-  TailCenterTrackerCVParams params_;                             // 配置参数
   std::shared_ptr<LinearKalmanFilter> motion_filter_ = nullptr;  // 运动状态滤波器
-  float fov_tan_theta_ = std::tan(M_PI_2f32 - 60.0F * DEG2RAD);  // 常量值
-  bool track_point_out_fov_bound_ = false;                       // 跟踪点是否超出fov边界
 };
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

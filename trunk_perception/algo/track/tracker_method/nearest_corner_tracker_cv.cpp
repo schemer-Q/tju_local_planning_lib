@@ -52,10 +52,20 @@ int NearestCornerTrackerCV::Init(const YAML::Node& config, const Object& object)
   init_motion_state << object.l_shape_feature.reference_point, 0.0, 0.0;
   motion_filter_->init(init_motion_state);
 
+  initialized_ = true;
   return 0;
 }
 
 void NearestCornerTrackerCV::Predict(const double dt, Object& object_tracked) {
+  if (!initialized_) {
+    TFATAL << "[NearestCornerTrackerCV::Predict] not initialized!";
+    return;
+  }
+  if (!motion_filter_) {
+    TFATAL << "[NearestCornerTrackerCV::Predict] motion_filter_ is nullptr!";
+    return;
+  }
+
   Eigen::MatrixXd A = motion_filter_->getStateTransitionMatrix();
   A(0, 2) = A(1, 3) = dt;
   motion_filter_->setStateTransitionMatrix(A);
@@ -64,6 +74,15 @@ void NearestCornerTrackerCV::Predict(const double dt, Object& object_tracked) {
 }
 
 void NearestCornerTrackerCV::Update(const Object& object, Object& object_tracked) {
+  if (!initialized_) {
+    TFATAL << "[NearestCornerTrackerCV::Update] not initialized!";
+    return;
+  }
+  if (!motion_filter_) {
+    TFATAL << "[NearestCornerTrackerCV::Update] motion_filter_ is nullptr!";
+    return;
+  }
+
   const auto& corners2d_last = object_tracked.bbox.corners2d;
   const auto& theta_last = object_tracked.l_shape_feature.shape(2);
   const auto& shape_feature = object.l_shape_feature;
@@ -90,6 +109,15 @@ void NearestCornerTrackerCV::Update(const Object& object, Object& object_tracked
 }
 
 void NearestCornerTrackerCV::TransformToCurrent(const Eigen::Isometry3f& tf) {
+  if (!initialized_) {
+    TFATAL << "[NearestCornerTrackerCV::TransformToCurrent] not initialized!";
+    return;
+  }
+  if (!motion_filter_) {
+    TFATAL << "[NearestCornerTrackerCV::TransformToCurrent] motion_filter_ is nullptr!";
+    return;
+  }
+
   Eigen::VectorXd states_new = motion_filter_->getState();
 
   // transform tracking point

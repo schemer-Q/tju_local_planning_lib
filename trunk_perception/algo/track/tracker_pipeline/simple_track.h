@@ -23,7 +23,6 @@ struct SimpleTrackParams {
   int min_lifetime_output = 3;
   int max_consecutive_lost_num = 5;
   int min_consecutive_valid_num = 3;
-  std::vector<float> origin_xy_offset = {0.0F, 0.0F};
   bool nms_by_polygon = false;
   bool predict_by_velocity = true;
   

@@ -18,8 +18,11 @@ TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 using common::BoundingBox;
 
 struct CenterDistanceParams {
-  float max_distance = 5.0F;   // 前后帧最大距离(m)
-  float max_velocity = 50.0F;  // 障碍物最大速度(m/s)
+  float max_distance = 5.0F;             // 前后帧最大距离(m)
+  float max_velocity = 50.0F;            // 障碍物最大速度(m/s)
+  bool heading_limit = false;            // 航向角匹配约束开关
+  float max_theta_diff = 0.785F;         // pi/4, heading角度差阈值(rad)
+  float max_projection_distance = 2.0F;  // 在heading垂直方向上的投影距离阈值(m)
 };
 
 class CenterDistance : virtual public DistanceBase {

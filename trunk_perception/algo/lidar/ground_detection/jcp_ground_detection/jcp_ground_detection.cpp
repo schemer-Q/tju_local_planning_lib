@@ -68,7 +68,7 @@ int JCPGroundDetection::init(const YAML::Node &config) {
     params_.horizon_fov_half = params_.horizon_fov * 0.5F;
     params_.horizon_resolution_inv = 1.0F / params_.horizon_resolution;
     params_.azimuth_number = static_cast<int>(params_.horizon_fov * params_.horizon_resolution_inv);
-    params_.radial_num = static_cast<int>((params_.max_range - params_.min_range) * params_.delta_R_inv);
+    params_.radial_num = static_cast<int>((params_.max_range - params_.min_range) * params_.delta_R_inv + 1);
   } catch (const YAML::Exception &e) {
     TFATAL << "JCPGroundDetection config error.";
     return 1;
@@ -166,13 +166,17 @@ void JCPGroundDetection::rangeProjection(const PointCloudConstPtr &cloud_in) {
       continue;
     }
 
+    const int radial_indexs = static_cast<int>((range - params_.min_range) * params_.delta_R_inv);
+    if (radial_indexs < 0 || radial_indexs >= params_.radial_num) {
+      continue;
+    }
+
     if (cloud_index_map_(row_idx, col_idx) != -1) {
       masked_points_.emplace_back(cloud_index_map_(row_idx, col_idx), row_idx, col_idx);
     }
 
     cloud_index_map_(row_idx, col_idx) = i;
     label_map_(row_idx, col_idx) = Label::GROUND;
-    const int radial_indexs = static_cast<int>((range - params_.min_range) * params_.delta_R_inv);
     region_map_(row_idx, col_idx) = radial_indexs;
     region_minz_map_(radial_indexs, col_idx) = std::min(region_minz_map_(radial_indexs, col_idx), pt.z);
   }

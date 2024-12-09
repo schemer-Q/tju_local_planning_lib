@@ -1,9 +1,9 @@
 /**
  * @file utils.hpp
- * @author Fan Dongsheng
+ * @author Fan Dongsheng (fandongsheng@trunk.tech)
  * @brief
  * @version 0.1
- * @date 2024-09-27
+ * @date 2024-12-05
  *
  * @copyright Copyright (c) 2024
  *

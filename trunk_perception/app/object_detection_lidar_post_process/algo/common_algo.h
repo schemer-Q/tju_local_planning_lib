@@ -17,10 +17,7 @@ TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 
 using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
 
-// 点云下采样输出pcl点
-void downSamplePointCloud2D(const PointCloudT& pc_in, const Eigen::Vector2f& resolution, PointCloudT& pc_out);
-
-// 点云下采样输出OpenCv点
+// 点云下采样输出OpenCV点
 void downSamplePointCloud2D(const PointCloudT& pc_in, const Eigen::Vector2f& resolution,
                             std::vector<cv::Point2f>& pt_out);
 

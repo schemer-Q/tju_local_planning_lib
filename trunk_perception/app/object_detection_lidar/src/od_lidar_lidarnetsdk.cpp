@@ -126,7 +126,7 @@ std::uint32_t OdLidarLidarNetSdk::Run(const double& ts) {
   const size_t points_num = lidar_data->data->size();
   Eigen::MatrixXf xyzi = Eigen::MatrixXf::Identity(4, points_num);
   xyzi.topRows(3) = lidar_data->data->getMatrixXfMap(3, 8, 0);
-  for (int i = 0; i < points_num; ++i) {
+  for (size_t i = 0UL; i < points_num; ++i) {
     xyzi(3, i) = lidar_data->data->points[i].intensity;
   }
   detector_->ProcessingEigenRow(xyzi, sdk_bboxes);

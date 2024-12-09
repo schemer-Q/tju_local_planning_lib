@@ -1,30 +1,22 @@
 /**
- * @file tail_middle_tracker_cv.cpp
+ * @file center_tracker_cv.cpp
  * @author Fan Dongsheng (fandongsheng@trunk.tech)
- * @brief
+ * @brief 
  * @version 0.1
- * @date 2024-10-12
- *
+ * @date 2024-12-05
+ * 
  * @copyright Copyright (c) 2024
- *
+ * 
  */
 
 #include <Eigen/Core>
 
-#include "trunk_perception/algo/track/tracker_method/tail_center_tracker_cv.h"
+#include "trunk_perception/algo/track/tracker_method/center_tracker_cv.h"
 #include "trunk_perception/tools/log/t_log.h"
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
-int TailCenterTrackerCV::Init(const YAML::Node& config, const Object& object) {
-  // init param
-  {
-    params_.fov_angle = config["fov_angle"].as<float>();
-    params_.x_offset = config["x_offset"].as<float>();
-    params_.y_offset = config["y_offset"].as<float>();
-    fov_tan_theta_ = std::tan(M_PI_2f32 - 0.5F * params_.fov_angle * DEG2RAD);
-  }
-
+int CenterTrackerCV::Init(const YAML::Node& config, const Object& object) {
   // init kalman filter
   {
     constexpr int num_state = 4;
@@ -57,12 +49,7 @@ int TailCenterTrackerCV::Init(const YAML::Node& config, const Object& object) {
     R.setIdentity();
     R(0, 0) = R(1, 1) = 1.35;
 
-    Eigen::Vector2d init_point = object.tail_center_feature.tail_center_point;
-    track_point_out_fov_bound_ = outFovBound(object);
-    if (track_point_out_fov_bound_) {
-      init_point = object.tail_center_feature.edge_center_points.col(2);
-    }
-
+    Eigen::Vector2d init_point = object.bbox.center.head(2).cast<double>();
     motion_filter_ = std::make_shared<LinearKalmanFilter>(A, H, P, Q, R);
     Eigen::VectorXd init_motion_state(num_state);
     init_motion_state << init_point, 0.0, 0.0;
@@ -73,14 +60,14 @@ int TailCenterTrackerCV::Init(const YAML::Node& config, const Object& object) {
   return 0;
 }
 
-void TailCenterTrackerCV::Predict(const double dt, Object& object_tracked) {
+void CenterTrackerCV::Predict(const double dt, Object& object_tracked) {
   if (!initialized_) {
-    TFATAL << "[TailCenterTrackerCV::Predict] not initialized!";
+    TFATAL << "[CenterTrackerCV::Predict] not initialized!";
     return;
   }
 
   if (!motion_filter_) {
-    TFATAL << "[TailCenterTrackerCV::Predict] motion_filter_ is nullptr!";
+    TFATAL << "[CenterTrackerCV::Predict] motion_filter_ is nullptr!";
     return;
   }
 
@@ -91,37 +78,18 @@ void TailCenterTrackerCV::Predict(const double dt, Object& object_tracked) {
   getTrackModel(object_tracked);
 }
 
-void TailCenterTrackerCV::Update(const Object& object, Object& object_tracked) {
+void CenterTrackerCV::Update(const Object& object, Object& object_tracked) {
   if (!initialized_) {
-    TFATAL << "[TailCenterTrackerCV::Update] not initialized!";
+    TFATAL << "[CenterTrackerCV::Update] not initialized!";
     return;
   }
 
   if (!motion_filter_) {
-    TFATAL << "[TailCenterTrackerCV::Update] motion_filter_ is nullptr!";
+    TFATAL << "[CenterTrackerCV::Update] motion_filter_ is nullptr!";
     return;
   }
 
-  Eigen::Vector2d measure_point = object.tail_center_feature.tail_center_point;
-  const bool object_out_fov_bound = outFovBound(object);
-  if (track_point_out_fov_bound_) {
-    if (object_out_fov_bound) {
-      measure_point = object.tail_center_feature.edge_center_points.col(2);
-    } else {
-      Eigen::VectorXd new_dynamic_states = motion_filter_->getState();
-      new_dynamic_states.head(2) = object_tracked.tail_center_feature.tail_center_point;
-      motion_filter_->setState(new_dynamic_states);
-    }
-  } else {
-    if (object_out_fov_bound) {
-      Eigen::VectorXd new_dynamic_states = motion_filter_->getState();
-      new_dynamic_states.head(2) = object_tracked.tail_center_feature.edge_center_points.col(2);
-      motion_filter_->setState(new_dynamic_states);
-      measure_point = object.tail_center_feature.edge_center_points.col(2);
-    }
-  }
-  track_point_out_fov_bound_ = object_out_fov_bound;
-
+  const Eigen::Vector2d measure_point = object.bbox.center.head(2).cast<double>();
   const double dt = object.timestamp - object_tracked.timestamp;
   Eigen::MatrixXd A = motion_filter_->getStateTransitionMatrix();
   A(0, 2) = A(1, 3) = dt;
@@ -132,14 +100,14 @@ void TailCenterTrackerCV::Update(const Object& object, Object& object_tracked) {
   getTrackModel(object_tracked);
 }
 
-void TailCenterTrackerCV::TransformToCurrent(const Eigen::Isometry3f& tf) {
+void CenterTrackerCV::TransformToCurrent(const Eigen::Isometry3f& tf) {
   if (!initialized_) {
-    TFATAL << "[TailCenterTrackerCV::TransformToCurrent] not initialized!";
+    TFATAL << "[CenterTrackerCV::TransformToCurrent] not initialized!";
     return;
   }
 
   if (!motion_filter_) {
-    TFATAL << "[TailCenterTrackerCV::TransformToCurrent] motion_filter_ is nullptr!";
+    TFATAL << "[CenterTrackerCV::TransformToCurrent] motion_filter_ is nullptr!";
     return;
   }
 
@@ -157,7 +125,7 @@ void TailCenterTrackerCV::TransformToCurrent(const Eigen::Isometry3f& tf) {
   motion_filter_->setState(states_new);
 }
 
-void TailCenterTrackerCV::getTrackModel(Object& object) {
+void CenterTrackerCV::getTrackModel(Object& object) {
   // track point
   object.track_point.head(2) = motion_filter_->getState().head(2).cast<float>();
   object.track_point(2) = 0.0F;
@@ -173,12 +141,6 @@ void TailCenterTrackerCV::getTrackModel(Object& object) {
   object.state_covariance = motion_filter_->getStateCovarianceMatrix().topLeftCorner(4, 4).cast<float>();
 }
 
-bool TailCenterTrackerCV::outFovBound(const Object& object) {
-  const auto& pt = object.tail_center_feature.tail_center_point;
-  const float bound_x = std::abs(pt.y() * fov_tan_theta_) + params_.x_offset;
-  return (pt.x() < bound_x && std::abs(pt.y()) > params_.y_offset);
-}
-
-REGISTER_TRACKER_METHOD("TailCenterTrackerCV", TailCenterTrackerCV)
+REGISTER_TRACKER_METHOD("CenterTrackerCV", CenterTrackerCV)
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

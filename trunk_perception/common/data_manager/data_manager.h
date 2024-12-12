@@ -16,6 +16,7 @@
 #include "trunk_perception/common/data_manager/data_wrapper/fod_vision_frame.h"
 #include "trunk_perception/common/data_manager/data_wrapper/ld_frame.h"
 #include "trunk_perception/common/data_manager/data_wrapper/od_lidar_frame.h"
+#include "trunk_perception/common/data_manager/data_wrapper/side_od_vision_frame.h"
 #include "trunk_perception/common/data_manager/data_wrapper/odometry_data.h"
 #include "trunk_perception/common/data_manager/data_wrapper/pointcloud_data.h"
 #include "trunk_perception/common/data_manager/data_wrapper/target_fusion_frame.h"
@@ -129,6 +130,10 @@ class DataManager {
 
   std::shared_ptr<FodVisionFrame> getFodVisionFrame() const { return fod_vision_frame_; }
 
+  void updateSideOdVisionFrame(const std::shared_ptr<SideOdVisionFrame>& frame) { side_od_vision_frame_ = frame; }
+
+  std::shared_ptr<SideOdVisionFrame> getSideOdVisionFrame() const { return side_od_vision_frame_; }
+
  private:
   DataManager();
 
@@ -143,10 +148,11 @@ class DataManager {
   std::shared_ptr<OdometryDataBuffer> odometry_data_buffer_ = nullptr;
 
   // 多线程任务共享数据
-  std::shared_ptr<OdLidarFrame> od_lidar_frame_ = nullptr;
-  std::shared_ptr<LDFrame> ld_frame_ = nullptr;
-  std::shared_ptr<TargetFusionFrame> tf_frame_ = nullptr;
-  std::shared_ptr<FodVisionFrame> fod_vision_frame_ = nullptr;
+  std::shared_ptr<OdLidarFrame> od_lidar_frame_ = nullptr;  ///< 激光雷达物体检测数据帧
+  std::shared_ptr<LDFrame> ld_frame_ = nullptr;              ///< 车道线检测数据帧
+  std::shared_ptr<TargetFusionFrame> tf_frame_ = nullptr;     ///< 后融合数据帧
+  std::shared_ptr<FodVisionFrame> fod_vision_frame_ = nullptr; ///< 前向视觉目标检测数据帧
+  std::shared_ptr<SideOdVisionFrame> side_od_vision_frame_ = nullptr; ///< 环视视觉目标检测数据帧
 };
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
@@ -373,3 +379,17 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
  * @return fod_vision帧
  */
 #define GET_FOD_VISION_FRAME() DATA_MANAGER.getFodVisionFrame()
+
+/**
+ * @def UPDATE_SIDE_OD_VISION_FRAME
+ * @brief 更新side_od_vision帧，线程不安全
+ * @param side_od_vision_frame side_od_vision帧
+ */
+#define UPDATE_SIDE_OD_VISION_FRAME(side_od_vision_frame) DATA_MANAGER.updateSideOdVisionFrame(side_od_vision_frame)
+
+/**
+ * @def GET_SIDE_OD_VISION_FRAME
+ * @brief 获取side_od_vision帧，线程不安全
+ * @return side_od_vision帧
+ */
+#define GET_SIDE_OD_VISION_FRAME() DATA_MANAGER.getSideOdVisionFrame()

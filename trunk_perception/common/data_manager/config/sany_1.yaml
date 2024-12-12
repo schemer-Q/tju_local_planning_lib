@@ -11,6 +11,36 @@ Sensors:
     SubTypes: ["origin", "undistorted"]
     BufferSize: 5
     MaxTimeDelay: 0.3
+  - Type: "CAMERA"
+    Name: "CAMERA_0_F30"
+    SubTypes: ["origin"]
+    BufferSize: 5
+    MaxTimeDelay: 0.3
+  - Type: "CAMERA"
+    Name: "CAMERA_0_F190"
+    SubTypes: ["origin"]
+    BufferSize: 5
+    MaxTimeDelay: 0.3
+  - Type: "CAMERA"
+    Name: "CAMERA_3_F190"
+    SubTypes: ["origin"]
+    BufferSize: 5
+    MaxTimeDelay: 0.3
+  - Type: "CAMERA"
+    Name: "CAMERA_5_F30"
+    SubTypes: ["origin"]
+    BufferSize: 5
+    MaxTimeDelay: 0.3
+  - Type: "CAMERA"
+    Name: "CAMERA_7_F30"
+    SubTypes: ["origin"]
+    BufferSize: 5
+    MaxTimeDelay: 0.3
+  - Type: "CAMERA"
+    Name: "CAMERA_9_F190"
+    SubTypes: ["origin"]
+    BufferSize: 5
+    MaxTimeDelay: 0.3
   - Type: "ODOMETRY"
     Name: "ODOMETRY"
     BufferSize: 200

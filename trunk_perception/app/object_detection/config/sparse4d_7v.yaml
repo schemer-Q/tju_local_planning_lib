@@ -1,0 +1,4 @@
+Type: ODSparse4D
+Config: 
+  ModelConfig: /home/wangxu/Code/1_dev/A_COMMON/sparse4d/cross_modaility/sparse4d/ckpt/exps/Sany2SurOD/v1.0_DS_v1.1_7V_50m/deploy/config_7v_300query.toml
+  Cameras: ["CAMERA_0_F30", "CAMERA_0_F60", "CAMERA_0_F190", "CAMERA_5_F30", "CAMERA_3_F190", "CAMERA_9_F190", "CAMERA_7_F30"]

@@ -31,7 +31,7 @@ class IDPool {
 
  private:
   unsigned int max_id_;  ///< 最大ID
-  int next_id_;         ///< 下一个ID
+  int next_id_ = 0;         ///< 下一个ID
   std::stack<int> released_ids_;  ///< 释放的ID池
   std::unordered_set<int> allocated_ids_;  ///< 已分配的ID集合
 };

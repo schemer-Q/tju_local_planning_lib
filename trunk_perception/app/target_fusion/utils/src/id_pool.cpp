@@ -14,7 +14,7 @@ int IDPool::GetID() {
     released_ids_.pop();
   } else {
     if (next_id_ >= max_id_) {
-      TERROR << "IDPool::GetID MAX ID" << max_id_ << " reached";
+      TERROR << "IDPool::GetID MAX ID " << max_id_ << " reached";
       return -1;
     }
     id = next_id_++;

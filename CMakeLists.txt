@@ -35,6 +35,13 @@ if (DEFINED PLATFORM AND NOT ${PLATFORM} STREQUAL "")
 else ()
   set(PLATFORM "x86")
 endif()
+# 检测系统版本
+if(EXISTS "/etc/os-release")
+    file(READ "/etc/os-release" OS_RELEASE_CONTENT)
+    string(REGEX MATCH "VERSION_CODENAME=([a-z]*)" _ ${OS_RELEASE_CONTENT})
+    set(OS_CODENAME ${CMAKE_MATCH_1})
+    message(STATUS "OS_CODENAME: ${OS_CODENAME}")
+endif()
 string(TOLOWER ${PLATFORM} ${PLATFORM})
 message(STATUS "Compile on platform: ${PLATFORM}")
 
@@ -72,6 +79,7 @@ option(ENABLE_TEST "enable test" ON)
 # Dependency
 ########################################################
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/openmp.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/trunk_basic.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/trunk.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/google.cmake)

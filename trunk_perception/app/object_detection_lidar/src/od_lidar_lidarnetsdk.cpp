@@ -82,7 +82,7 @@ std::uint32_t OdLidarLidarNetSdk::Init(const YAML::Node& config) {
     return ErrorCode::YAML_CONFIG_ERROR;
   }
 
-  std::shared_ptr<LidarNetSDKLogger> logger = std::make_shared<LidarNetSDKLogger>();
+  static std::shared_ptr<LidarNetSDKLogger> logger = std::make_shared<LidarNetSDKLogger>();
 
   detector_ = std::make_shared<lidar_net::LidarNetDetector>();
   if (!detector_->Init(model_config_path_, logger, "toml")) {

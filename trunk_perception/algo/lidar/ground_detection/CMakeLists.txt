@@ -11,6 +11,10 @@ target_link_libraries(trunk_perception_algo_ground_detection
   ${PCL_LIBRARIES}
   ${OpenCV_LIBRARIES}
 )
+if (OpenMP_CXX_FOUND)
+  target_link_libraries(trunk_perception_algo_ground_detection
+    OpenMP::OpenMP_CXX)
+endif()
 
 ########################
 # install

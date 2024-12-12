@@ -1,0 +1,7 @@
+find_package(OpenMP REQUIRED)
+if (OpenMP_CXX_FOUND)
+  message(STATUS "OpenMP_CXX_FOUND: ${OpenMP_CXX_FOUND}")
+  message(STATUS "OpenMP_CXX_LIBRARIES: ${OpenMP_CXX_LIBRARIES}")
+  message(STATUS "OpenMP_CXX_INCLUDE_DIRS: ${OpenMP_CXX_INCLUDE_DIRS}")
+  message(STATUS "OpenMP_CXX_VERSION: ${OpenMP_CXX_VERSION}")
+endif()

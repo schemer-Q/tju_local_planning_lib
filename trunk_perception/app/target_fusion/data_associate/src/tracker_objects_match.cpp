@@ -113,4 +113,39 @@ void TrackerObjectsMatch::Match(const std::vector<TrackerPtr>& trackers,
                                 &association_result.unassigned_measurment_indices);
 }
 
+// 前向视觉目标与航迹进行匹配 @author zzg 2024-12-13 
+void TrackerObjectsMatch::Match(const std::vector<TrackerPtr>& trackers,
+																const std::vector<VisionMeasureFrame::Ptr>& front_vision_objects,
+																AssociationResult& association_result) {
+	association_result = AssociationResult();
+	if (trackers.empty() || front_vision_objects.empty()) {
+		association_result.unassigned_track_indices = std::vector<size_t>(trackers.size());
+		association_result.unassigned_measurment_indices = std::vector<size_t>(front_vision_objects.size());
+		std::iota(association_result.unassigned_track_indices.begin(), association_result.unassigned_track_indices.end(),
+							0);
+		std::iota(association_result.unassigned_measurment_indices.begin(), association_result.unassigned_measurment_indices.end(),
+							0);
+		return;
+	}
+
+	// 计算距离矩阵
+	const size_t sz_track = trackers.size();
+	const size_t sz_detect = front_vision_objects.size();
+	auto global_costs = hungarian_matcher_ptr_->mutable_global_costs();
+	global_costs->Resize(sz_track, sz_detect);
+
+	for (size_t i = 0; i < sz_track; ++i) {
+		for (size_t j = 0; j < sz_detect; ++j) {
+			(*global_costs)(i, j) = front_vision_distance_compute_ptr_->Compute(trackers[i], front_vision_objects[j]);
+		}
+	}
+
+	// 匈牙利匹配
+	const auto opt_flag = GatedHungarianMatcher<float>::OptimizeFlag::OPTMIN;
+	hungarian_matcher_ptr_->Match(hungarian_match_cost_thresh_front_vision_, hungarian_match_bound_value_front_vision_, opt_flag,
+																&association_result.track_measurment_pairs,
+																&association_result.unassigned_track_indices,
+																&association_result.unassigned_measurment_indices);
+}
+
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

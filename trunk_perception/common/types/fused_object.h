@@ -150,6 +150,7 @@ struct alignas(32) FusedObject {
 enum class MeasureSensorType {
   Lidar = 0,
   ARS430Radar = 1,
+	FrontVision = 2,
 };
 
 struct alignas(32) SensorMeasureFrame {
@@ -304,5 +305,99 @@ struct alignas(32) RadarMeasureFrame : SensorMeasureFrame {
   typedef std::shared_ptr<const RadarMeasureFrame> ConstPtr;
 };
 }  // namespace ars430
+
+// @author zzg 2024-12-13 
+struct alignas(32) VisionMeasureFrame : SensorMeasureFrame {
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+	MeasureSensorType sensor_type = MeasureSensorType::FrontVision;
+
+	double timestamp = 0.0;
+	DetectorType detector_type = DetectorType::UNKNOWN;
+	Eigen::VectorXf type_probs;
+	float confidence = 0.0;
+	ObjectType type = ObjectType::UNKNOWN;
+
+	LShapeFeature l_shape_feature;
+	TailCenterFeature tail_center_feature;
+
+	size_t track_id = 0;
+	int life_time;
+	int consecutive_lost = 0;
+
+	float theta = 0.0f;
+	Eigen::Vector3d center = Eigen::Vector3d::Zero();
+	Eigen::Vector3f size = Eigen::Vector3f(0, 0, 0);
+	Eigen::Vector3d rear_middle_point = Eigen::Vector3d::Zero();
+	Eigen::Vector3f velocity = Eigen::Vector3f::Zero();
+	Eigen::Vector3f acceleration = Eigen::Vector3f::Zero();
+	Eigen::Vector3f track_point = Eigen::Vector3f::Zero();
+	Eigen::Matrix4f state_covariance = Eigen::Matrix4f::Zero();
+
+	VisionMeasureFrame(const Object& vision_obj) {
+		timestamp = vision_obj.timestamp;
+		sensor_type = MeasureSensorType::FrontVision;
+		detector_type = vision_obj.detector_type;
+
+		theta = vision_obj.bbox.theta;
+		size = vision_obj.bbox.size;
+		track_id = vision_obj.track_id;
+		type_probs = vision_obj.type_probs;
+		confidence = vision_obj.confidence;
+		type = vision_obj.type;
+		l_shape_feature = vision_obj.l_shape_feature;
+		tail_center_feature = vision_obj.tail_center_feature;
+		life_time = 0;
+		consecutive_lost = 0;
+		center = Eigen::Vector3d(vision_obj.bbox.center.x(), vision_obj.bbox.center.y(), vision_obj.bbox.center.z());
+		velocity = vision_obj.velocity;
+		acceleration = vision_obj.acceleration;
+		state_covariance = vision_obj.state_covariance;
+
+		double cos_yaw = std::cos(theta);
+		double sin_yaw = std::sin(theta);
+		rear_middle_point = center + Eigen::Vector3d(-cos_yaw * size.x() / 2.0, -sin_yaw * size.x() / 2.0, 0.0);
+	}
+
+	/**
+	 * @brief 进行坐标系转换
+	 * 
+	 * @param trans_mat 转换矩阵
+	*/
+	void Transform(const Eigen::Matrix4d& trans_mat) override {
+    // 转换中心点
+    Eigen::Vector4d center_vec(center.x(), center.y(), center.z(), 1.0);
+    center_vec = trans_mat * center_vec;
+    center = Eigen::Vector3d(center_vec.x(), center_vec.y(), center_vec.z());
+
+    // 转换后中点
+    Eigen::Vector4d rear_middle_point_vec(rear_middle_point.x(), rear_middle_point.y(), rear_middle_point.z(), 1.0);
+    rear_middle_point_vec = trans_mat * rear_middle_point_vec;
+    rear_middle_point =
+        Eigen::Vector3d(rear_middle_point_vec.x(), rear_middle_point_vec.y(), rear_middle_point_vec.z());
+
+    // 提取旋转矩阵(3x3)用于向量转换
+    Eigen::Matrix3d rotation_matrix = trans_mat.block<3, 3>(0, 0);
+
+    // 转换速度向量
+    Eigen::Vector3d vel_vec(velocity.x(), velocity.y(), velocity.z());
+    vel_vec = rotation_matrix * vel_vec;
+    velocity = Eigen::Vector3f(vel_vec.x(), vel_vec.y(), vel_vec.z());
+
+    // 转换加速度向量
+    Eigen::Vector3d acc_vec(acceleration.x(), acceleration.y(), acceleration.z());
+    acc_vec = rotation_matrix * acc_vec;
+    acceleration = Eigen::Vector3f(acc_vec.x(), acc_vec.y(), acc_vec.z());
+
+    // 转换偏航角
+    double yaw = std::atan2(rotation_matrix(1, 0), rotation_matrix(0, 0));
+    theta += yaw;
+    // 将角度归一化到[-π, π]
+    theta = std::fmod(theta + M_PI, 2.0 * M_PI) - M_PI;
+	}
+
+	typedef std::shared_ptr<VisionMeasureFrame> Ptr;
+	typedef std::shared_ptr<const VisionMeasureFrame> ConstPtr;
+};
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END

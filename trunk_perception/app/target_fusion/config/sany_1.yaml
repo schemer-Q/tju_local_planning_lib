@@ -46,6 +46,24 @@ Config:
             Switch: true
             Orthogonal: 5.0 # 垂直航向的距离阈值
             Longitudinal: 5.0 # 纵向距离阈值
+      FrontVision:
+        Position:
+          Switch: true
+          Weight: 0.3
+          Type: Orthogonal
+          Point: Mix_CR
+        Velocity:
+          Switch: true
+          Weight: 0.7
+        Filter:
+          VelocityThresh: # 绝对值或相对值小于该阈值则符合阈值限制
+            Switch: true
+            Abs: 5.0 # m/s # 针对低速目标
+            Rel: 30.0 # %
+          PositionThresh: # 横纵向距离阈值
+            Switch: true
+            Orthogonal: 5.0 # 垂直航向的距离阈值
+            Longitudinal: 5.0 # 纵向距离阈值 
     HungarianMatcher:
       Lidar:
         MatchCostThresh: 1.99
@@ -53,4 +71,7 @@ Config:
       FrontRadar:
         MatchCostThresh: 4.99
         MatchBoundValue: 5.00
+      FrontVision:
+        MatchCostThresh: 4.99
+        MatchBoundValue: 5.00       
 

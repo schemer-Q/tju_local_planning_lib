@@ -11,17 +11,21 @@ TrackerObjectsMatch::TrackerObjectsMatch() {
   hungarian_matcher_ptr_ = std::make_shared<GatedHungarianMatcher<float>>(1000);
   front_radar_distance_compute_ptr_ = std::make_shared<TrackObjectDistance>();
   lidar_distance_compute_ptr_ = std::make_shared<TrackObjectDistance>();
+	front_vision_distance_compute_ptr_ = std::make_shared<TrackObjectDistance>();
 }
 
 std::uint32_t TrackerObjectsMatch::Init(const YAML::Node& config) {
-  YAML::Node radar_dis_config, lidar_dis_config;
+  YAML::Node radar_dis_config, lidar_dis_config, front_vision_dis_config;
   try {
     radar_dis_config = config["DistanceCompute"]["FrontRadar"];
     lidar_dis_config = config["DistanceCompute"]["Lidar"];
+		front_vision_dis_config = config["DistanceCompute"]["FrontVision"];
     hungarian_match_cost_thresh_lidar_ = config["HungarianMatcher"]["Lidar"]["MatchCostThresh"].as<float>();
     hungarian_match_bound_value_lidar_ = config["HungarianMatcher"]["Lidar"]["MatchBoundValue"].as<float>();
     hungarian_match_cost_thresh_radar_ = config["HungarianMatcher"]["FrontRadar"]["MatchCostThresh"].as<float>();
     hungarian_match_bound_value_radar_ = config["HungarianMatcher"]["FrontRadar"]["MatchBoundValue"].as<float>();
+    hungarian_match_cost_thresh_front_vision_ = config["HungarianMatcher"]["FrontRadar"]["MatchCostThresh"].as<float>();
+    hungarian_match_bound_value_front_vision_ = config["HungarianMatcher"]["FrontRadar"]["MatchBoundValue"].as<float>();
   } catch (const std::exception& e) {
     TFATAL << "TrackerObjectsMatch Init failed: " << e.what();
     return ErrorCode::YAML_CONFIG_ERROR;
@@ -35,6 +39,11 @@ std::uint32_t TrackerObjectsMatch::Init(const YAML::Node& config) {
   }
 
   ret = lidar_distance_compute_ptr_->Init(lidar_dis_config);
+  if (ret != ErrorCode::SUCCESS) {
+    return ret;
+  }
+
+	ret = front_vision_distance_compute_ptr_->Init(front_vision_dis_config);
   if (ret != ErrorCode::SUCCESS) {
     return ret;
   }

@@ -24,8 +24,8 @@ std::uint32_t TrackerObjectsMatch::Init(const YAML::Node& config) {
     hungarian_match_bound_value_lidar_ = config["HungarianMatcher"]["Lidar"]["MatchBoundValue"].as<float>();
     hungarian_match_cost_thresh_radar_ = config["HungarianMatcher"]["FrontRadar"]["MatchCostThresh"].as<float>();
     hungarian_match_bound_value_radar_ = config["HungarianMatcher"]["FrontRadar"]["MatchBoundValue"].as<float>();
-    hungarian_match_cost_thresh_front_vision_ = config["HungarianMatcher"]["FrontRadar"]["MatchCostThresh"].as<float>();
-    hungarian_match_bound_value_front_vision_ = config["HungarianMatcher"]["FrontRadar"]["MatchBoundValue"].as<float>();
+    hungarian_match_cost_thresh_front_vision_ = config["HungarianMatcher"]["FrontVision"]["MatchCostThresh"].as<float>();
+    hungarian_match_bound_value_front_vision_ = config["HungarianMatcher"]["FrontVision"]["MatchBoundValue"].as<float>();
   } catch (const std::exception& e) {
     TFATAL << "TrackerObjectsMatch Init failed: " << e.what();
     return ErrorCode::YAML_CONFIG_ERROR;

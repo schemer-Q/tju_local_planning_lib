@@ -325,33 +325,64 @@ struct alignas(32) FusedObject {
 	VisionMeasureFrame::ConstPtr obj_front_vision_ptr_ = nullptr;         ///< 最新的前向视觉观测
 
   std::vector<Eigen::Vector3d> GetConvexPoints() const {
-    // 根据center, theta, size计算4个角点
-    std::vector<Eigen::Vector3d> corners(4);
+		// 根据center, theta, size计算4个角点
+		std::vector<Eigen::Vector3d> corners(4);
 
-    // 计算旋转角的三角函数值
-    double cos_yaw = std::cos(theta);
-    double sin_yaw = std::sin(theta);
+		// 有激光测量，使用激光测量 bbox 的后角点，根据后角点再使用 融合的 size 计算前角点
+		// 无激光测量，使用融合后的 center、theta 和 size 计算四个角点
+		if ((obj_lidar_ptr_ != nullptr) && (std::fabs(timestamp - obj_lidar_ptr_->timestamp) < 0.05)) {
 
-    // 计算半长和半宽
-    double half_length = size.x() / 2.0;
-    double half_width = size.y() / 2.0;
+			// 计算旋转角的三角函数值
+			double cos_yaw = std::cos(obj_lidar_ptr_->bbox.theta);
+			double sin_yaw = std::sin(obj_lidar_ptr_->bbox.theta);
 
-    // 计算四个角点（顺时针方向）
-    // 右前角点
-    corners[0] = center + Eigen::Vector3d(cos_yaw * half_length + sin_yaw * half_width,
-                                          sin_yaw * half_length - cos_yaw * half_width, 0.0);
+			// 计算半长和半宽
+			double half_length = obj_lidar_ptr_->bbox.size.x() / 2.0;
+			double half_width = obj_lidar_ptr_->bbox.size.y() / 2.0;
 
-    // 右后角点
-    corners[1] = center + Eigen::Vector3d(-cos_yaw * half_length + sin_yaw * half_width,
-                                          -sin_yaw * half_length - cos_yaw * half_width, 0.0);
+			// 计算四个角点（顺时针方向, [0] [1] [2] [3]）
+			Eigen::Vector3d temp_center(obj_lidar_ptr_->bbox.center.x(), obj_lidar_ptr_->bbox.center.y(), 0);
 
-    // 左后角点
-    corners[2] = center + Eigen::Vector3d(-cos_yaw * half_length - sin_yaw * half_width,
-                                          -sin_yaw * half_length + cos_yaw * half_width, 0.0);
+			// 右后角点
+			corners[1] = temp_center + Eigen::Vector3d(-cos_yaw * half_length + sin_yaw * half_width,
+																						-sin_yaw * half_length - cos_yaw * half_width, 0.0);
 
-    // 左前角点
-    corners[3] = center + Eigen::Vector3d(cos_yaw * half_length - sin_yaw * half_width,
-                                          sin_yaw * half_length + cos_yaw * half_width, 0.0);
+			// 右前角点
+			corners[0] = corners[1] + Eigen::Vector3d(cos_yaw * size.x(), sin_yaw * size.x(), 0.0);
+
+			// 左后角点
+			corners[2] = temp_center + Eigen::Vector3d(-cos_yaw * half_length - sin_yaw * half_width,
+																						-sin_yaw * half_length + cos_yaw * half_width, 0.0);
+
+			// 左前角点
+			corners[3] = corners[2] + Eigen::Vector3d(cos_yaw * size.x(), sin_yaw * size.x(), 0.0);
+
+		} else {
+			// 计算旋转角的三角函数值
+			double cos_yaw = std::cos(theta);
+			double sin_yaw = std::sin(theta);
+
+			// 计算半长和半宽
+			double half_length = size.x() / 2.0;
+			double half_width = size.y() / 2.0;
+
+			// 计算四个角点（顺时针方向）
+			// 右前角点
+			corners[0] = center + Eigen::Vector3d(cos_yaw * half_length + sin_yaw * half_width,
+																						sin_yaw * half_length - cos_yaw * half_width, 0.0);
+
+			// 右后角点
+			corners[1] = center + Eigen::Vector3d(-cos_yaw * half_length + sin_yaw * half_width,
+																						-sin_yaw * half_length - cos_yaw * half_width, 0.0);
+
+			// 左后角点
+			corners[2] = center + Eigen::Vector3d(-cos_yaw * half_length - sin_yaw * half_width,
+																						-sin_yaw * half_length + cos_yaw * half_width, 0.0);
+
+			// 左前角点
+			corners[3] = center + Eigen::Vector3d(cos_yaw * half_length - sin_yaw * half_width,
+																						sin_yaw * half_length + cos_yaw * half_width, 0.0);
+		}
 
     return corners;
   }

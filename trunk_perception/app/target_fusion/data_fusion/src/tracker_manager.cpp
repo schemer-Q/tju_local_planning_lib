@@ -1,5 +1,6 @@
 #include "trunk_perception/app/target_fusion/data_fusion/tracker_manager.h"
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l1r.h"
+#include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l1r1v.h"
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_base.h"
 #include "trunk_perception/app/target_fusion/data_fusion/kalman_motion_fusion.h"
 #include "trunk_perception/app/target_fusion/data_fusion/measurement_functions.h"
@@ -36,7 +37,11 @@ std::uint32_t TrackerManager::Init(const YAML::Node& config) {
       auto existence_fusion_config = std::make_shared<ExistenceFusion1L1RConfig>();
       existence_fusion_config->type = existence_fusion_type;
       existence_fusion_config_ = existence_fusion_config;
-    } else {
+    } else if (existence_fusion_type == "1L1R1V") {
+			auto existence_fusion_config = std::make_shared<ExistenceFusion1L1R1VConfig>();
+			existence_fusion_config->type = existence_fusion_type;
+			existence_fusion_config_ = existence_fusion_config;
+		} else {
       TFATAL << "[TrackerManager] Init failed: existence_fusion_type is not supported";
       return ErrorCode::TARGET_FUSION_INIT_TRACKER_MANAGER_FAILED;
     }

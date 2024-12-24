@@ -62,6 +62,7 @@ Tracker::Tracker(const FusedObject::Ptr& object_ptr, const MotionFusionConfig& m
 
   if (lidar_measure_ptr) {
     object_lidar_ptr_ = lidar_measure_ptr;
+		object_ptr_->obj_lidar_ptr_ = lidar_measure_ptr;
     object_ptr_->lidar_total_life = 1;
     object_ptr_->lidar_consecutive_hit = 1;
 		object_ptr_->lidar_consecutive_hit_his = object_ptr_->lidar_consecutive_hit;      // @author zzg 2024_12_04
@@ -69,6 +70,7 @@ Tracker::Tracker(const FusedObject::Ptr& object_ptr, const MotionFusionConfig& m
   }
   if (front_radar_measure_ptr) {
     object_front_radar_ptr_ = front_radar_measure_ptr;
+		object_ptr_->obj_front_radar_ptr_ = front_radar_measure_ptr;
     object_ptr_->front_radar_total_life = 1;
     object_ptr_->front_radar_consecutive_hit = 1;
   }
@@ -94,6 +96,9 @@ void Tracker::Predict(const double& t) {
 
   if (object_ptr_->front_radar_consecutive_lost > 0) object_ptr_->front_radar_consecutive_hit = 0;
   object_ptr_->front_radar_consecutive_lost += 1;
+
+	if (object_ptr_->front_vision_consecutive_lost > 0) object_ptr_->front_vision_consecutive_hit = 0;
+	object_ptr_->front_vision_consecutive_lost += 1;
 }
 
 uint32_t Tracker::Update(const std::vector<SensorMeasureFrame::ConstPtr>& measures_list) {
@@ -122,7 +127,14 @@ uint32_t Tracker::Update(const std::vector<SensorMeasureFrame::ConstPtr>& measur
         continue;
       }
       Update(front_radar_measure_ptr);
-    }
+    } else if (measure_ptr->sensor_type == MeasureSensorType::FrontVision) {
+			auto front_vision_measure_ptr = std::static_pointer_cast<const VisionMeasureFrame>(measure_ptr);
+			if (!front_vision_measure_ptr) {
+        TERROR << "[Tracker] front_vision_measure_ptr is nullptr";
+        continue;
+			}
+			Update(front_vision_measure_ptr);
+		}
   }
 
   object_ptr_->existence = existence_fusion_->Compute(object_ptr_);
@@ -160,6 +172,7 @@ void Tracker::Update(const LidarMeasureFrame::ConstPtr& lidar_measure_ptr) {
 	object_ptr_->lidar_consecutive_hit_his = object_ptr_->lidar_consecutive_hit;          // @author zzg 2024_12_04
 	object_ptr_->lidar_consecutive_hit_his_ts = object_ptr_->timestamp;                   // @author zzg 2024_12_04
   object_lidar_ptr_ = lidar_measure_ptr;
+	object_ptr_->obj_lidar_ptr_ = lidar_measure_ptr;
 }
 
 void Tracker::Update(const ars430::RadarMeasureFrame::ConstPtr& front_radar_measure_ptr) {
@@ -191,6 +204,23 @@ void Tracker::Update(const ars430::RadarMeasureFrame::ConstPtr& front_radar_meas
   object_ptr_->front_radar_total_life += 1;
   object_ptr_->front_radar_consecutive_hit += 1;
   object_front_radar_ptr_ = front_radar_measure_ptr;
+	object_ptr_->obj_front_radar_ptr_ = front_radar_measure_ptr;
+}
+
+void Tracker::Update(const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr) {
+	if (!front_vision_measure_ptr) {
+		TERROR << "[Tracker] front_vision_measure_ptr is nullptr";
+		return;
+	}
+	Eigen::VectorXd z = GetMeasurementFromFrontVision(front_vision_measure_ptr);
+
+  object_ptr_->type = front_vision_measure_ptr->type;
+  
+  object_ptr_->front_vision_consecutive_lost = 0;
+  object_ptr_->front_vision_total_life += 1;
+  object_ptr_->front_vision_consecutive_hit += 1;
+  object_front_vision_ptr_ = front_vision_measure_ptr;
+	object_ptr_->obj_front_vision_ptr_ = front_vision_measure_ptr;
 }
 
 Eigen::VectorXd Tracker::GetStateFromFusedObject() {
@@ -248,6 +278,26 @@ Eigen::VectorXd Tracker::GetMeasurementFromFrontRadar(
   return Eigen::VectorXd();
 }
 
+Eigen::VectorXd Tracker::GetMeasurementFromFrontVision(
+		const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr) {
+	switch (motion_kf_config_.motion_model) {
+		case MotionModel::CV:
+			Eigen::Vector4d z;
+      if (object_ptr_->track_point_type == TrackPointType::RearMiddle) {
+        z << front_vision_measure_ptr->rear_middle_point.x(), front_vision_measure_ptr->rear_middle_point.y(),
+            front_vision_measure_ptr->velocity.x(), front_vision_measure_ptr->velocity.y();
+      } else if (object_ptr_->track_point_type == TrackPointType::Center) {
+        z << front_vision_measure_ptr->center.x(), front_vision_measure_ptr->center.y(), front_vision_measure_ptr->velocity.x(),
+            front_vision_measure_ptr->velocity.y();
+      } else {
+        TERROR << "[Tracker] GetMeasurementFromFrontVision track_point_type is not implemented!";
+        return Eigen::VectorXd();
+      }
+      return z;
+	}
+	return Eigen::VectorXd();
+}
+
 void Tracker::UpdateObjectPoseVelocity() {
   // TODO: 用的center，没有实现rear_middle
   Eigen::VectorXd state = motion_fusion_->GetState();
@@ -271,6 +321,8 @@ void Tracker::UpdateObjectShape() {
 LidarMeasureFrame::ConstPtr Tracker::GetLidarObject() const { return object_lidar_ptr_; }
 
 ars430::RadarMeasureFrame::ConstPtr Tracker::GetFrontRadarObject() const { return object_front_radar_ptr_; }
+
+VisionMeasureFrame::ConstPtr Tracker::GetFrontVisionObject() const { return object_front_vision_ptr_; }
 
 FusedObject::ConstPtr Tracker::GetFusedObject() const { return object_ptr_; }
 

@@ -52,9 +52,13 @@ class Tracker {
 
   void Update(const ars430::RadarMeasureFrame::ConstPtr& front_radar_measure_ptr);
 
+	void Update(const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr);
+
   LidarMeasureFrame::ConstPtr GetLidarObject() const;
 
   ars430::RadarMeasureFrame::ConstPtr GetFrontRadarObject() const;
+
+	VisionMeasureFrame::ConstPtr GetFrontVisionObject() const;
 
   FusedObject::ConstPtr GetFusedObject() const;
 
@@ -71,6 +75,8 @@ class Tracker {
 
   Eigen::VectorXd GetMeasurementFromFrontRadar(const ars430::RadarMeasureFrame::ConstPtr& front_radar_measure_ptr);
 
+	Eigen::VectorXd GetMeasurementFromFrontVision(const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr);
+
   // 配置
   MotionFusionConfig motion_kf_config_;
   ShapeFusionConfig::ConstPtr shape_fusion_config_ = nullptr;
@@ -80,6 +86,7 @@ class Tracker {
 
   LidarMeasureFrame::ConstPtr object_lidar_ptr_ = nullptr;                ///< 最新的激光雷达观测
   ars430::RadarMeasureFrame::ConstPtr object_front_radar_ptr_ = nullptr;  ///< 最新的前向毫米波雷达观测
+	VisionMeasureFrame::ConstPtr object_front_vision_ptr_ = nullptr;        ///< 最新的前向视觉观测
 
   std::shared_ptr<KalmanMotionFusion> motion_fusion_ = nullptr;
   std::shared_ptr<ShapeFusionBase> shape_fusion_ = nullptr;

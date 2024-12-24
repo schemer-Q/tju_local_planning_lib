@@ -59,6 +59,9 @@ std::uint32_t TargetFusionA::Run(const double& ts) {
     frame_ptr_->unassigned_front_radar_objects_.resize(frame_ptr_->front_radar_objects_local.size());
     std::iota(frame_ptr_->unassigned_front_radar_objects_.begin(), frame_ptr_->unassigned_front_radar_objects_.end(),
               0);
+		frame_ptr_->unassigned_front_vision_objects_.resize(frame_ptr_->front_vision_tracked_objects_local.size());
+		std::iota(frame_ptr_->unassigned_front_vision_objects_.begin(), frame_ptr_->unassigned_front_vision_objects_.end(),
+							0);
     GenerateNewTrackers();
     is_first_frame_ = false;
     UPDATE_TF_FRAME(frame_ptr_);
@@ -86,7 +89,7 @@ std::any TargetFusionA::GetData(const std::string& key) {
 std::uint32_t TargetFusionA::GetInputData(const double& ts) {
   CHECK_AND_RETURN(GetLidarData());
   CHECK_AND_RETURN(GetFrontRadarData());
-	// CHECK_AND_RETURN(GetFrontVisionData());
+	CHECK_AND_RETURN(GetFrontVisionData());
   return ErrorCode::SUCCESS;
 }
 
@@ -394,6 +397,11 @@ void TargetFusionA::Update() {
       tracker_measures[pair.first].push_back(frame_ptr_->front_radar_objects_local[pair.second]);
     }
 
+    // 添加前向视觉目标关联结果
+    for (const auto& pair : new_tracker_front_vision_association_result_.track_measurment_pairs) {
+			tracker_measures[pair.first].push_back(frame_ptr_->front_vision_tracked_objects_local[pair.second]);
+    }
+
     // 更新tracker
     for (size_t i = 0; i < new_trackers_.size(); i++) {
       new_trackers_[i]->Update(tracker_measures[i]);
@@ -408,6 +416,9 @@ void TargetFusionA::Update() {
     for (const auto& pair : stable_tracker_radar_association_result_.track_measurment_pairs) {
       tracker_measures[pair.first].push_back(frame_ptr_->front_radar_objects_local[pair.second]);
     }
+		for (const auto& pair : stable_tracker_front_vision_association_result_.track_measurment_pairs) {
+			tracker_measures[pair.first].push_back(frame_ptr_->front_vision_tracked_objects_local[pair.second]);
+		}
     for (size_t i = 0; i < stable_trackers_.size(); i++) {
       stable_trackers_[i]->Update(tracker_measures[i]);
     }
@@ -421,6 +432,9 @@ void TargetFusionA::Update() {
     for (const auto& pair : lost_tracker_radar_association_result_.track_measurment_pairs) {
       tracker_measures[pair.first].push_back(frame_ptr_->front_radar_objects_local[pair.second]);
     }
+		for (const auto& pair : lost_tracker_front_vision_association_result_.track_measurment_pairs) {
+			tracker_measures[pair.first].push_back(frame_ptr_->front_vision_tracked_objects_local[pair.second]);
+		}
     for (size_t i = 0; i < lost_trackers_.size(); i++) {
       lost_trackers_[i]->Update(tracker_measures[i]);
     }
@@ -512,6 +526,58 @@ void TargetFusionA::GenerateAssociateDebugData() {
 	associate_debug_data_ptr_->new_tracker_front_vision_association_result = new_tracker_front_vision_association_result_;
 	associate_debug_data_ptr_->stable_tracker_front_vision_association_result = stable_tracker_front_vision_association_result_;
 	associate_debug_data_ptr_->lost_tracker_front_vision_association_result = lost_tracker_front_vision_association_result_;
+
+	// std::cout << " $$$ lidar association result: " << std::endl;
+	// for (size_t i = 0; i < stable_tracker_lidar_association_result_.track_measurment_pairs.size(); ++i) {
+	// 	auto pair = stable_tracker_lidar_association_result_.track_measurment_pairs[i];
+	// 	std::cout << "	stable track id:" << stable_trackers_[pair.first]->GetTrackID() 
+	// 						<< ", lidar id:" << frame_ptr_->lidar_tracked_objects_local[pair.second]->track_id << std::endl;
+	// }
+	// for (size_t i = 0; i < lost_tracker_lidar_association_result_.track_measurment_pairs.size(); ++i) {
+	// 	auto pair = lost_tracker_lidar_association_result_.track_measurment_pairs[i];
+	// 	std::cout << "	lost track id:" << lost_trackers_[pair.first]->GetTrackID() 
+	// 						<< ", lidar id:" << frame_ptr_->lidar_tracked_objects_local[pair.second]->track_id << std::endl;
+	// }
+	// for (size_t i = 0; i < new_tracker_lidar_association_result_.track_measurment_pairs.size(); ++i) {
+	// 	auto pair = new_tracker_lidar_association_result_.track_measurment_pairs[i];
+	// 	std::cout << "	new track id:" << new_trackers_[pair.first]->GetTrackID() 
+	// 						<< ", lidar id:" << frame_ptr_->lidar_tracked_objects_local[pair.second]->track_id << std::endl;
+	// }
+
+	// std::cout << " $$$ front vision association result: " << std::endl;
+	// for (size_t i = 0; i < stable_tracker_front_vision_association_result_.track_measurment_pairs.size(); ++i) {
+	// 	auto pair = stable_tracker_front_vision_association_result_.track_measurment_pairs[i];
+	// 	std::cout << "	stable track id:" << stable_trackers_[pair.first]->GetTrackID() 
+	// 						<< ", vis id:" << frame_ptr_->front_vision_tracked_objects_local[pair.second]->track_id << std::endl;
+	// }
+	// for (size_t i = 0; i < lost_tracker_front_vision_association_result_.track_measurment_pairs.size(); ++i) {
+	// 	auto pair = lost_tracker_front_vision_association_result_.track_measurment_pairs[i];
+	// 	std::cout << "	lost track id:" << lost_trackers_[pair.first]->GetTrackID() 
+	// 						<< ", vis id:" << frame_ptr_->front_vision_tracked_objects_local[pair.second]->track_id << std::endl;
+	// }
+	// for (size_t i = 0; i < new_tracker_front_vision_association_result_.track_measurment_pairs.size(); ++i) {
+	// 	auto pair = new_tracker_front_vision_association_result_.track_measurment_pairs[i];
+	// 	std::cout << "	new track id:" << new_trackers_[pair.first]->GetTrackID() 
+	// 						<< ", vis id:" << frame_ptr_->front_vision_tracked_objects_local[pair.second]->track_id << std::endl;
+	// }
+
+	// std::cout << " $$$ front radar association result: " << std::endl;
+	// for (size_t i = 0; i < stable_tracker_radar_association_result_.track_measurment_pairs.size(); ++i) {
+	// 	auto pair = stable_tracker_radar_association_result_.track_measurment_pairs[i];
+	// 	std::cout << "	stable track id:" << stable_trackers_[pair.first]->GetTrackID() 
+	// 						<< ", radar id:" << unsigned(frame_ptr_->front_radar_objects_local[pair.second]->radar_obj.id) << std::endl;
+	// }
+	// for (size_t i = 0; i < lost_tracker_radar_association_result_.track_measurment_pairs.size(); ++i) {
+	// 	auto pair = lost_tracker_radar_association_result_.track_measurment_pairs[i];
+	// 	std::cout << "	lost track id:" << lost_trackers_[pair.first]->GetTrackID() 
+	// 						<< ", radar id:" << unsigned(frame_ptr_->front_radar_objects_local[pair.second]->radar_obj.id) << std::endl;
+	// }
+	// for (size_t i = 0; i < new_tracker_radar_association_result_.track_measurment_pairs.size(); ++i) {
+	// 	auto pair = new_tracker_radar_association_result_.track_measurment_pairs[i];
+	// 	std::cout << "	new track id:" << new_trackers_[pair.first]->GetTrackID() 
+	// 						<< ", radar id:" << unsigned(frame_ptr_->front_radar_objects_local[pair.second]->radar_obj.id) << std::endl;
+	// }
+
 }
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

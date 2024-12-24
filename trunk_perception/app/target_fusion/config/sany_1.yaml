@@ -14,7 +14,7 @@ Config:
         MinValidFrame: 10 # 低于该阈值，则不使用历史帧进行滤波
         Threshold: 0.05
     ExistenceFusion:
-      Type: 1L1R
+      Type: 1L1R1V          # 1L1R, 1L1R1V,
   Match:
     DistanceCompute:  # 距离计算
       Lidar:

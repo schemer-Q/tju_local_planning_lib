@@ -1,7 +1,7 @@
 /**
  * @file existence_fusion_1l1r1v.h
  * @author zzg 2024-12-18
- * @brief 1L1R1V 融合目标存在性更新策略
+ * @brief 1L1R1V 融合目标存在性更新策略 初版调试
  * @version 0.1
  * @date 2024-12-18
  * 

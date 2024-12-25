@@ -242,6 +242,7 @@ void TargetFusionA::ConvertToLocalCoordinate() {
     frame_ptr_->lidar_tracked_objects_local[i] =
         std::make_shared<LidarMeasureFrame>(*frame_ptr_->lidar_tracked_objects[i]);
     frame_ptr_->lidar_tracked_objects_local[i]->Transform(frame_ptr_->odometry_lidar_ptr->Matrix());
+		frame_ptr_->lidar_tracked_objects_local[i]->odo_lidar_ptr = frame_ptr_->odometry_lidar_ptr;
   }
 
   // 毫米波雷达数据转到局部坐标系下
@@ -264,12 +265,15 @@ void TargetFusionA::ConvertToLocalCoordinate() {
 void TargetFusionA::Predict() {
   for (auto& tracker : new_trackers_) {
     tracker->Predict(frame_ptr_->lidar_timestamp);
+		tracker->SetFusedObjectOdometry(frame_ptr_->odometry_lidar_ptr);
   }
   for (auto& tracker : stable_trackers_) {
     tracker->Predict(frame_ptr_->lidar_timestamp);
+		tracker->SetFusedObjectOdometry(frame_ptr_->odometry_lidar_ptr);
   }
   for (auto& tracker : lost_trackers_) {
     tracker->Predict(frame_ptr_->lidar_timestamp);
+		tracker->SetFusedObjectOdometry(frame_ptr_->odometry_lidar_ptr);
   }
 }
 

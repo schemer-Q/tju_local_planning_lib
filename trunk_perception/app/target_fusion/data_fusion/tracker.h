@@ -62,6 +62,10 @@ class Tracker {
 
   FusedObject::ConstPtr GetFusedObject() const;
 
+	void SetFusedObjectOdometry(Odometry::Ptr odo_ptr);
+
+	Odometry::ConstPtr GetFusedObjectOdometry() const;
+
   int GetTrackID() const;
 
  private:

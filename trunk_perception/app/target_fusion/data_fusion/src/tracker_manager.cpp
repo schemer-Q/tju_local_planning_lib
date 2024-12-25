@@ -65,6 +65,7 @@ TrackerPtr TrackerManager::CreateTracker(const int& track_id, const LidarMeasure
   object_ptr->confidence = lidar_object->confidence;
   object_ptr->type = lidar_object->type;
   object_ptr->InitTrackPoint();
+	object_ptr->odo_lidar_ptr = lidar_object->odo_lidar_ptr;
   TrackerPtr tracker = std::make_shared<Tracker>(object_ptr, motion_kf_config_, shape_fusion_config_,
                                                   existence_fusion_config_, lidar_object);
   return tracker;

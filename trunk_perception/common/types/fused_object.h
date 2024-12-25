@@ -16,6 +16,7 @@
 #include "trunk_perception/common/macros.h"
 #include "trunk_perception/common/types/object.h"
 #include "trunk_perception/common/types/radar_ars430.h"
+#include "trunk_perception/common/types/odometry.h"
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
@@ -79,6 +80,7 @@ struct alignas(32) LidarMeasureFrame : SensorMeasureFrame {
   Eigen::Matrix4f state_covariance = Eigen::Matrix4f::Zero();  ///< state covariance matrix
 
 	BoundingBox bbox;                                             ///< 保留激光测量的 bbox，车体坐标系下，用于计算后角点
+	Odometry::Ptr odo_lidar_ptr = nullptr;    ///< 激光测量时间戳下的 odometry ，用于将 center 转到 车体系下，存在性更新中用于限制目标距离
 
   LidarMeasureFrame(const Object& lidar_obj) {
     timestamp = lidar_obj.timestamp;
@@ -323,6 +325,8 @@ struct alignas(32) FusedObject {
 	LidarMeasureFrame::ConstPtr obj_lidar_ptr_ = nullptr;                 ///< 最新的激光雷达观测
   ars430::RadarMeasureFrame::ConstPtr obj_front_radar_ptr_ = nullptr;   ///< 最新的前向毫米波雷达观测
 	VisionMeasureFrame::ConstPtr obj_front_vision_ptr_ = nullptr;         ///< 最新的前向视觉观测
+
+	Odometry::Ptr odo_lidar_ptr = nullptr;    ///< 激光测量时间戳下的 odometry ，用于将 center 转到 车体系下，存在性更新中用于限制目标距离
 
   std::vector<Eigen::Vector3d> GetConvexPoints() const {
 		// 根据center, theta, size计算4个角点

@@ -16,36 +16,49 @@ float ExistenceFusion1L1R1V::Compute(const FusedObject::Ptr& fused_object_ptr) {
   const int& lidar_consecutive_hit = fused_object_ptr->lidar_consecutive_hit;
   const int& lidar_consecutive_lost = fused_object_ptr->lidar_consecutive_lost;
   const int& front_radar_consecutive_hit = fused_object_ptr->front_radar_consecutive_hit;
+	const int& front_radar_consecutive_lost = fused_object_ptr->front_radar_consecutive_lost;
 	const int& front_vision_consecutive_hit = fused_object_ptr->front_vision_consecutive_hit;
-	const int& front_vision_consecutive_lost = fused_object_ptr->front_vision_consecutive_lost;
 
   float score = 0.0;
 
   if (lidar_consecutive_hit <= 0) {
-		if (lidar_consecutive_lost <= 3) {
-			if (front_vision_consecutive_hit >= 1) {
-				if (front_radar_consecutive_hit > 3) {
+		if (front_vision_consecutive_hit >= 1) {
+			if (front_radar_consecutive_hit >= 1) {
+				if ( lidar_consecutive_lost <= 3) {
 					score = 1.0;
-				} else if ((front_radar_consecutive_hit >=1 && front_radar_consecutive_hit <= 3) 
-								&& (front_radar_consecutive_hit <= 3)) {
+				} else if ((lidar_consecutive_lost > 3) && (lidar_consecutive_lost < 10)) {
 					score = 0.3;
 				}
-			}
-		} else if (lidar_consecutive_lost > 3) {
-			if (front_radar_consecutive_hit > 5) {
-				if ((front_vision_consecutive_hit >= 1) && (front_vision_consecutive_hit <=3)) {
+			} else if (front_radar_consecutive_hit < 1) {
+				if (lidar_consecutive_lost <= 3) {
 					score = 0.3;
-				} else if (front_vision_consecutive_hit > 3) {
-					score = 1.0;
+				} else if ((lidar_consecutive_lost > 3) && (lidar_consecutive_lost < 30) ) {
+					if (front_radar_consecutive_lost <= 6) {
+						score = 0.3;
+					}
 				}
 			}
+		}
+
+		if ((front_radar_consecutive_hit >= 1) && (lidar_consecutive_lost <= 3)) {
+			score = 0.3;
+		}
+
+		if ((front_vision_consecutive_hit >= 1) && (front_radar_consecutive_hit > 10) &&
+				(lidar_consecutive_lost < 20)) {
+			score = 0.3;
+		}
+
+		if ((front_radar_consecutive_hit >= 10) && (lidar_consecutive_lost < 20) &&
+				(front_vision_consecutive_hit < 30)) {
+			score = 0.3;
 		}
   } else if (lidar_consecutive_hit <= 1) {
 		score = 0.3;
-		if ((front_radar_consecutive_hit > 1) || (front_vision_consecutive_hit > 1)) {
+		if ((front_radar_consecutive_hit >= 1) || (front_vision_consecutive_hit >= 1)) {
 			score = 1.0;
 		}
-  } else {
+  } else if (lidar_consecutive_hit > 1) {
     score = 1.0;
   }
 
@@ -57,6 +70,20 @@ float ExistenceFusion1L1R1V::Compute(const FusedObject::Ptr& fused_object_ptr) {
     fused_object_ptr->flag_special_keep_stable = true;
     score = 0.3;
   }
+
+	// @author zzg 2024_12_25 增加逻辑：目标类型为 TRUCK、VEHICLE，有过激光连续命中 15 帧以上,，且毫米波一直连续命中 25 帧以上，，则维持融合目标
+	// 为了解决近距离怼脸 TRUCK、VEHICLE 由于 激光连续丢失多帧 导致的目标丢失；   解决特定问题
+	if ( (score < 0.3) && (fused_object_ptr->front_radar_consecutive_hit > 25) && (fused_object_ptr->lidar_consecutive_hit_his > 15)) {
+		if (fused_object_ptr->type == ObjectType::TRUCK || fused_object_ptr->type == ObjectType::VEHICLE) {
+			Eigen::Matrix4d local_to_car = fused_object_ptr->odo_lidar_ptr->Matrix().inverse();
+			Eigen::Vector4d center_vec(fused_object_ptr->center.x(), fused_object_ptr->center.y(), fused_object_ptr->center.z(), 1.0);
+			center_vec = local_to_car * center_vec;
+			Eigen::Vector3d temp_center = Eigen::Vector3d(center_vec.x(), center_vec.y(), center_vec.z());
+			if (temp_center.x() < 25 && std::fabs(temp_center.y()) < 2.0 ) {
+				score = 0.3;
+			}
+		}
+	}
 
   return score;
 }

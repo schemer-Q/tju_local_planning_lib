@@ -326,6 +326,10 @@ VisionMeasureFrame::ConstPtr Tracker::GetFrontVisionObject() const { return obje
 
 FusedObject::ConstPtr Tracker::GetFusedObject() const { return object_ptr_; }
 
+void Tracker::SetFusedObjectOdometry(Odometry::Ptr odo_ptr) { object_ptr_->odo_lidar_ptr = odo_ptr; };
+
+Odometry::ConstPtr Tracker::GetFusedObjectOdometry() const { return object_ptr_->odo_lidar_ptr; };
+
 int Tracker::GetTrackID() const {
   if (!object_ptr_) {
     TERROR << "[Tracker] object_ptr_ is nullptr";

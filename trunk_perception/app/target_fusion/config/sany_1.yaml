@@ -21,7 +21,7 @@ Config:
         Position: # 中心点的距离
           Switch: true
           Weight: 1.0
-          Type: Orthogonal  # 距离计算方式，可选项：Orthogonal（垂直航向）, Euclidean（欧氏距离） 
+          Type: Euclidean  # 距离计算方式，可选项： Orthogonal （垂直航向）, Euclidean （欧氏距离） 
           Point: Mix_CR  # 中心点计算方式，可选项：Center（中心点），RearMiddle（后中点）, Mix_CR（中心点和后中点的较小值）
         Filter:
           PositionThresh: # 横纵向距离阈值

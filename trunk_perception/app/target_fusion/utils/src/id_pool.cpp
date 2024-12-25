@@ -7,20 +7,17 @@ IDPool::IDPool(const unsigned int& max_id) : max_id_(max_id) {}
 
 IDPool::~IDPool() = default;
 
+// @author zzg 2024_12_25 修改 ID 分配方式
 int IDPool::GetID() {
-  int id;
-  if (!released_ids_.empty()) {
-    id = released_ids_.top();
-    released_ids_.pop();
-  } else {
-    if (next_id_ >= max_id_) {
-      TERROR << "IDPool::GetID MAX ID " << max_id_ << " reached";
-      return -1;
-    }
-    id = next_id_++;
-  }
-  allocated_ids_.insert(id);
-  return id;
+	int id;
+	do {
+		next_id_ += 1;
+		next_id_ = next_id_ % max_id_;
+	}while(IsIDAllocated(next_id_));
+
+	allocated_ids_.insert(next_id_);
+	id = next_id_;
+	return id;
 }
 
 void IDPool::ReleaseID(const int& id) {
@@ -28,7 +25,7 @@ void IDPool::ReleaseID(const int& id) {
     TERROR << "IDPool::ReleaseID ID " << id << " not allocated";
     return;
   }
-  released_ids_.push(id);
+  // released_ids_.push(id);
   allocated_ids_.erase(id);
 }
 

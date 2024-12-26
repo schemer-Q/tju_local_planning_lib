@@ -20,6 +20,7 @@
 #include "trunk_perception/app/target_fusion/data_fusion/kalman_motion_fusion.h"
 #include "trunk_perception/app/target_fusion/data_fusion/shape_fusion_base.h"
 #include "trunk_perception/app/target_fusion/data_fusion/yaw_fusion_base.h"
+#include "trunk_perception/app/target_fusion/data_fusion/type_fusion_base.h"
 #include "trunk_perception/common/macros.h"
 #include "trunk_perception/common/types/fused_object.h"
 #include "trunk_perception/common/types/object.h"
@@ -40,6 +41,7 @@ class Tracker {
   explicit Tracker(const FusedObject::Ptr& object_ptr, const MotionFusionConfig& motion_kf_config,
                    const ShapeFusionConfig::ConstPtr& shape_fusion_config,
                    const ExistenceFusionConfig::ConstPtr& existence_fusion_config,
+									 const TypeFusionConfig::ConstPtr& type_fusion_config,
                    const LidarMeasureFrame::ConstPtr& lidar_measure_ptr = nullptr,
                    const ars430::RadarMeasureFrame::ConstPtr& front_radar_measure_ptr = nullptr);
   ~Tracker();
@@ -75,6 +77,8 @@ class Tracker {
 
   void UpdateObjectShape();
 
+	void UpdateObjectType();
+
   Eigen::VectorXd GetMeasurementFromLidar(const LidarMeasureFrame::ConstPtr& lidar_measure_ptr);
 
   Eigen::VectorXd GetMeasurementFromFrontRadar(const ars430::RadarMeasureFrame::ConstPtr& front_radar_measure_ptr);
@@ -85,6 +89,7 @@ class Tracker {
   MotionFusionConfig motion_kf_config_;
   ShapeFusionConfig::ConstPtr shape_fusion_config_ = nullptr;
   ExistenceFusionConfig::ConstPtr existence_fusion_config_ = nullptr;
+	TypeFusionConfig::ConstPtr type_fusion_config_ = nullptr;
   // 数据
   FusedObject::Ptr object_ptr_ = nullptr;  ///< 被跟踪的目标
 
@@ -95,6 +100,7 @@ class Tracker {
   std::shared_ptr<KalmanMotionFusion> motion_fusion_ = nullptr;
   std::shared_ptr<ShapeFusionBase> shape_fusion_ = nullptr;
   std::shared_ptr<ExistenceFusionBase> existence_fusion_ = nullptr;
+	std::shared_ptr<TypeFusionBase> type_fusion_ = nullptr;
 };
 
 typedef std::shared_ptr<Tracker> TrackerPtr;

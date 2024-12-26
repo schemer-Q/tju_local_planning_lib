@@ -23,11 +23,13 @@ using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
 Tracker::Tracker(const FusedObject::Ptr& object_ptr, const MotionFusionConfig& motion_kf_config,
                  const ShapeFusionConfig::ConstPtr& shape_fusion_config,
                  const ExistenceFusionConfig::ConstPtr& existence_fusion_config,
+								 const TypeFusionConfig::ConstPtr& type_fusion_config,
                  const LidarMeasureFrame::ConstPtr& lidar_measure_ptr,
                  const ars430::RadarMeasureFrame::ConstPtr& front_radar_measure_ptr)
     : motion_kf_config_(motion_kf_config),
       shape_fusion_config_(shape_fusion_config),
       existence_fusion_config_(existence_fusion_config),
+			type_fusion_config_(type_fusion_config),
       object_ptr_(object_ptr),
       motion_fusion_(std::make_shared<KalmanMotionFusion>(motion_kf_config)) {
   if (!object_ptr_) {
@@ -57,6 +59,13 @@ Tracker::Tracker(const FusedObject::Ptr& object_ptr, const MotionFusionConfig& m
   if (!existence_fusion_) {
     TFATAL << "[Tracker] create existence fusion failed!";
   }
+
+	// 初始化type_fusion_
+	type_fusion_ = TypeFusionFactory::Create(type_fusion_config_);
+	if (!type_fusion_) {
+		TERROR << "[Tracker] create type fusion failed!";
+	}
+	type_fusion_->Init(object_ptr_->type);
 
   object_ptr_->life = 1;
 
@@ -162,8 +171,13 @@ void Tracker::Update(const LidarMeasureFrame::ConstPtr& lidar_measure_ptr) {
   UpdateObjectPoseVelocity();
   UpdateObjectShape();
 
+	object_ptr_->type = lidar_measure_ptr->type;
+	if (type_fusion_->Update(lidar_measure_ptr) != ErrorCode::SUCCESS) {
+    TERROR << "[Tracker] update type fusion with lidar measure failed!";
+	}
+	UpdateObjectType();
+
   object_ptr_->theta = lidar_measure_ptr->theta;
-  object_ptr_->type = lidar_measure_ptr->type;
   object_ptr_->confidence = lidar_measure_ptr->confidence;
   
   object_ptr_->lidar_consecutive_lost = 0;
@@ -215,6 +229,10 @@ void Tracker::Update(const VisionMeasureFrame::ConstPtr& front_vision_measure_pt
 	Eigen::VectorXd z = GetMeasurementFromFrontVision(front_vision_measure_ptr);
 
   object_ptr_->type = front_vision_measure_ptr->type;
+	if (type_fusion_->Update(front_vision_measure_ptr) != ErrorCode::SUCCESS) {
+    TERROR << "[Tracker] update type fusion with front vision measure failed!";
+	}
+	UpdateObjectType();
   
   object_ptr_->front_vision_consecutive_lost = 0;
   object_ptr_->front_vision_total_life += 1;
@@ -316,6 +334,11 @@ void Tracker::UpdateObjectPoseVelocity() {
 void Tracker::UpdateObjectShape() {
   Eigen::Vector3f shape = shape_fusion_->GetFusedSize();
   object_ptr_->size = shape;
+}
+
+void Tracker::UpdateObjectType() {
+  ObjectType type = type_fusion_->GetFusedType();
+  object_ptr_->type = type;
 }
 
 LidarMeasureFrame::ConstPtr Tracker::GetLidarObject() const { return object_lidar_ptr_; }

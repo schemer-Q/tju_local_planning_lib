@@ -46,7 +46,7 @@ class TrackObjectDistance {
    * @brief 计算跟踪目标与前向视觉检测目标之间的距离   
    *
    * @param tracker_ptr [IN] 跟踪目标
-   * @param front_vision_object [IN] 前向毫米波雷达检测目标
+   * @param front_vision_object [IN] 前向视觉检测目标
    * @return float [OUT] 距离
 	 * @author zzg 2024-12-13
    */

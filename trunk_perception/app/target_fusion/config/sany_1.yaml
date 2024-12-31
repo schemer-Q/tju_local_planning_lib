@@ -71,8 +71,8 @@ Config:
             Longitudinal: 5.0 # 纵向距离阈值 
     HungarianMatcher:
       Lidar:
-        MatchCostThresh: 1.99
-        MatchBoundValue: 2.00
+        MatchCostThresh: 3.99
+        MatchBoundValue: 4.00
       FrontRadar:
         MatchCostThresh: 4.99
         MatchBoundValue: 5.00

@@ -158,7 +158,9 @@ float TrackObjectDistance::Compute(const TrackerPtr& tracker_ptr,
   // cal distance
   float position_distance = 0.0;
   if (use_position_) {
-    position_distance = ComputeOrthogonalDistance(fused_obj->rear_middle_point, radar_obj_pos, fused_obj->theta).x();
+    // position_distance = ComputeOrthogonalDistance(fused_obj->rear_middle_point, radar_obj_pos, fused_obj->theta).x();
+    // @author zzg 修改距离计算方式 为 Compute2DEuclideanDistance
+    position_distance = Compute2DEuclideanDistance(fused_obj->rear_middle_point, radar_obj_pos); 
   }
 
   float velocity_distance = 0.0;

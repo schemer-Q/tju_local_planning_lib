@@ -530,58 +530,6 @@ void TargetFusionA::GenerateAssociateDebugData() {
 	associate_debug_data_ptr_->new_tracker_front_vision_association_result = new_tracker_front_vision_association_result_;
 	associate_debug_data_ptr_->stable_tracker_front_vision_association_result = stable_tracker_front_vision_association_result_;
 	associate_debug_data_ptr_->lost_tracker_front_vision_association_result = lost_tracker_front_vision_association_result_;
-
-	// std::cout << " $$$ lidar association result: " << std::endl;
-	// for (size_t i = 0; i < stable_tracker_lidar_association_result_.track_measurment_pairs.size(); ++i) {
-	// 	auto pair = stable_tracker_lidar_association_result_.track_measurment_pairs[i];
-	// 	std::cout << "	stable track id:" << stable_trackers_[pair.first]->GetTrackID() 
-	// 						<< ", lidar id:" << frame_ptr_->lidar_tracked_objects_local[pair.second]->track_id << std::endl;
-	// }
-	// for (size_t i = 0; i < lost_tracker_lidar_association_result_.track_measurment_pairs.size(); ++i) {
-	// 	auto pair = lost_tracker_lidar_association_result_.track_measurment_pairs[i];
-	// 	std::cout << "	lost track id:" << lost_trackers_[pair.first]->GetTrackID() 
-	// 						<< ", lidar id:" << frame_ptr_->lidar_tracked_objects_local[pair.second]->track_id << std::endl;
-	// }
-	// for (size_t i = 0; i < new_tracker_lidar_association_result_.track_measurment_pairs.size(); ++i) {
-	// 	auto pair = new_tracker_lidar_association_result_.track_measurment_pairs[i];
-	// 	std::cout << "	new track id:" << new_trackers_[pair.first]->GetTrackID() 
-	// 						<< ", lidar id:" << frame_ptr_->lidar_tracked_objects_local[pair.second]->track_id << std::endl;
-	// }
-
-	// std::cout << " $$$ front vision association result: " << std::endl;
-	// for (size_t i = 0; i < stable_tracker_front_vision_association_result_.track_measurment_pairs.size(); ++i) {
-	// 	auto pair = stable_tracker_front_vision_association_result_.track_measurment_pairs[i];
-	// 	std::cout << "	stable track id:" << stable_trackers_[pair.first]->GetTrackID() 
-	// 						<< ", vis id:" << frame_ptr_->front_vision_tracked_objects_local[pair.second]->track_id << std::endl;
-	// }
-	// for (size_t i = 0; i < lost_tracker_front_vision_association_result_.track_measurment_pairs.size(); ++i) {
-	// 	auto pair = lost_tracker_front_vision_association_result_.track_measurment_pairs[i];
-	// 	std::cout << "	lost track id:" << lost_trackers_[pair.first]->GetTrackID() 
-	// 						<< ", vis id:" << frame_ptr_->front_vision_tracked_objects_local[pair.second]->track_id << std::endl;
-	// }
-	// for (size_t i = 0; i < new_tracker_front_vision_association_result_.track_measurment_pairs.size(); ++i) {
-	// 	auto pair = new_tracker_front_vision_association_result_.track_measurment_pairs[i];
-	// 	std::cout << "	new track id:" << new_trackers_[pair.first]->GetTrackID() 
-	// 						<< ", vis id:" << frame_ptr_->front_vision_tracked_objects_local[pair.second]->track_id << std::endl;
-	// }
-
-	// std::cout << " $$$ front radar association result: " << std::endl;
-	// for (size_t i = 0; i < stable_tracker_radar_association_result_.track_measurment_pairs.size(); ++i) {
-	// 	auto pair = stable_tracker_radar_association_result_.track_measurment_pairs[i];
-	// 	std::cout << "	stable track id:" << stable_trackers_[pair.first]->GetTrackID() 
-	// 						<< ", radar id:" << unsigned(frame_ptr_->front_radar_objects_local[pair.second]->radar_obj.id) << std::endl;
-	// }
-	// for (size_t i = 0; i < lost_tracker_radar_association_result_.track_measurment_pairs.size(); ++i) {
-	// 	auto pair = lost_tracker_radar_association_result_.track_measurment_pairs[i];
-	// 	std::cout << "	lost track id:" << lost_trackers_[pair.first]->GetTrackID() 
-	// 						<< ", radar id:" << unsigned(frame_ptr_->front_radar_objects_local[pair.second]->radar_obj.id) << std::endl;
-	// }
-	// for (size_t i = 0; i < new_tracker_radar_association_result_.track_measurment_pairs.size(); ++i) {
-	// 	auto pair = new_tracker_radar_association_result_.track_measurment_pairs[i];
-	// 	std::cout << "	new track id:" << new_trackers_[pair.first]->GetTrackID() 
-	// 						<< ", radar id:" << unsigned(frame_ptr_->front_radar_objects_local[pair.second]->radar_obj.id) << std::endl;
-	// }
-
 }
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

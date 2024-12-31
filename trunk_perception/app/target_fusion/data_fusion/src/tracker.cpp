@@ -226,7 +226,8 @@ void Tracker::Update(const VisionMeasureFrame::ConstPtr& front_vision_measure_pt
 		TERROR << "[Tracker] front_vision_measure_ptr is nullptr";
 		return;
 	}
-	Eigen::VectorXd z = GetMeasurementFromFrontVision(front_vision_measure_ptr);
+	// @author zzg 2024-12-30 暂时不使用 前向视觉 对 运动属性(位置、速度)做更新
+	// Eigen::VectorXd z = GetMeasurementFromFrontVision(front_vision_measure_ptr);
 
   object_ptr_->type = front_vision_measure_ptr->type;
 	if (type_fusion_->Update(front_vision_measure_ptr) != ErrorCode::SUCCESS) {

@@ -57,9 +57,20 @@ class TrackerObjectsMatch {
              const std::vector<ars430::RadarMeasureFrame::Ptr>& front_radar_objects,
              AssociationResult& association_result);
 
+  /**
+   * @brief 前向视觉数据关联
+   *
+   * @param trackers 跟踪器列表
+   * @param lidar_objects 激光雷达检测到的目标
+   * @param result 关联结果
+   */
+  void Match(const std::vector<TrackerPtr>& trackers, const std::vector<VisionMeasureFrame::Ptr>& front_vision_objects,
+             AssociationResult& association_result);
+
  private:
   std::shared_ptr<TrackObjectDistance> lidar_distance_compute_ptr_ = nullptr;
   std::shared_ptr<TrackObjectDistance> front_radar_distance_compute_ptr_ = nullptr;
+  std::shared_ptr<TrackObjectDistance> front_vision_distance_compute_ptr_ = nullptr;
   std::shared_ptr<GatedHungarianMatcher<float>> hungarian_matcher_ptr_ = nullptr;
 
   float filter_thresh_front_radar_velocity_abs_ = 5.0;
@@ -73,6 +84,9 @@ class TrackerObjectsMatch {
 
   float hungarian_match_cost_thresh_radar_ = 4.99;
   float hungarian_match_bound_value_radar_ = 5.00;
+
+  float hungarian_match_cost_thresh_front_vision_ = 4.99;
+  float hungarian_match_bound_value_front_vision_ = 5.00;
 };
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

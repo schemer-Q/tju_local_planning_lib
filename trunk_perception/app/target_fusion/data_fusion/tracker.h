@@ -19,6 +19,7 @@
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_base.h"
 #include "trunk_perception/app/target_fusion/data_fusion/kalman_motion_fusion.h"
 #include "trunk_perception/app/target_fusion/data_fusion/shape_fusion_base.h"
+#include "trunk_perception/app/target_fusion/data_fusion/type_fusion_base.h"
 #include "trunk_perception/app/target_fusion/data_fusion/yaw_fusion_base.h"
 #include "trunk_perception/common/macros.h"
 #include "trunk_perception/common/types/fused_object.h"
@@ -40,6 +41,7 @@ class Tracker {
   explicit Tracker(const FusedObject::Ptr& object_ptr, const MotionFusionConfig& motion_kf_config,
                    const ShapeFusionConfig::ConstPtr& shape_fusion_config,
                    const ExistenceFusionConfig::ConstPtr& existence_fusion_config,
+                   const TypeFusionConfig::ConstPtr& type_fusion_config,
                    const LidarMeasureFrame::ConstPtr& lidar_measure_ptr = nullptr,
                    const ars430::RadarMeasureFrame::ConstPtr& front_radar_measure_ptr = nullptr);
   ~Tracker();
@@ -52,11 +54,19 @@ class Tracker {
 
   void Update(const ars430::RadarMeasureFrame::ConstPtr& front_radar_measure_ptr);
 
+  void Update(const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr);
+
   LidarMeasureFrame::ConstPtr GetLidarObject() const;
 
   ars430::RadarMeasureFrame::ConstPtr GetFrontRadarObject() const;
 
+  VisionMeasureFrame::ConstPtr GetFrontVisionObject() const;
+
   FusedObject::ConstPtr GetFusedObject() const;
+
+  void SetFusedObjectOdometry(Odometry::Ptr odo_ptr);
+
+  Odometry::ConstPtr GetFusedObjectOdometry() const;
 
   int GetTrackID() const;
 
@@ -67,23 +77,30 @@ class Tracker {
 
   void UpdateObjectShape();
 
+  void UpdateObjectType();
+
   Eigen::VectorXd GetMeasurementFromLidar(const LidarMeasureFrame::ConstPtr& lidar_measure_ptr);
 
   Eigen::VectorXd GetMeasurementFromFrontRadar(const ars430::RadarMeasureFrame::ConstPtr& front_radar_measure_ptr);
+
+  Eigen::VectorXd GetMeasurementFromFrontVision(const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr);
 
   // 配置
   MotionFusionConfig motion_kf_config_;
   ShapeFusionConfig::ConstPtr shape_fusion_config_ = nullptr;
   ExistenceFusionConfig::ConstPtr existence_fusion_config_ = nullptr;
+  TypeFusionConfig::ConstPtr type_fusion_config_ = nullptr;
   // 数据
   FusedObject::Ptr object_ptr_ = nullptr;  ///< 被跟踪的目标
 
   LidarMeasureFrame::ConstPtr object_lidar_ptr_ = nullptr;                ///< 最新的激光雷达观测
   ars430::RadarMeasureFrame::ConstPtr object_front_radar_ptr_ = nullptr;  ///< 最新的前向毫米波雷达观测
+  VisionMeasureFrame::ConstPtr object_front_vision_ptr_ = nullptr;        ///< 最新的前向视觉观测
 
   std::shared_ptr<KalmanMotionFusion> motion_fusion_ = nullptr;
   std::shared_ptr<ShapeFusionBase> shape_fusion_ = nullptr;
   std::shared_ptr<ExistenceFusionBase> existence_fusion_ = nullptr;
+  std::shared_ptr<TypeFusionBase> type_fusion_ = nullptr;
 };
 
 typedef std::shared_ptr<Tracker> TrackerPtr;

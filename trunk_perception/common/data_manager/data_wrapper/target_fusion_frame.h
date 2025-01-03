@@ -14,6 +14,7 @@
 #include <Eigen/Dense>
 #include <cstddef>
 
+#include "trunk_perception/common/data_manager/data_wrapper/fod_vision_frame.h"
 #include "trunk_perception/common/macros.h"
 #include "trunk_perception/common/types/fused_object.h"
 #include "trunk_perception/common/types/odometry.h"
@@ -37,18 +38,25 @@ struct TargetFusionFrame {
 
   // 来自毫米波雷达检测管线的数据
   double front_radar_timestamp = 0.0;
-  std::vector<ars430::RadarMeasureFrame::Ptr> front_radar_objects;              ///< 毫米波雷达检测到的目标
+  std::vector<ars430::RadarMeasureFrame::Ptr> front_radar_objects;  ///< 毫米波雷达检测到的目标
   std::vector<ars430::RadarMeasureFrame::Ptr> front_radar_objects_compensated;  ///< 补偿到激光雷达时间的目标, 车体系下
   std::vector<ars430::RadarMeasureFrame::Ptr> front_radar_objects_local;  ///< 局部坐标下的毫米波雷达检测到的目标
+
+  // 来自前向视觉检测管线的数据 @author zzg 2024-12-13
+  double front_vision_timestamp = 0.0;
+  std::vector<VisionMeasureFrame::Ptr> front_vision_tracked_objects;  ///< 前向视觉检测目标，车体系下
+  std::vector<VisionMeasureFrame::Ptr> front_vision_tracked_objects_local;  ///< 局部坐标系下，前向视觉检测到的目标
 
   // Odometry数据
   Odometry::Ptr odometry_lidar_ptr = nullptr;
   Odometry::Ptr odometry_front_radar_ptr = nullptr;
+  Odometry::Ptr odometry_front_vision_ptr = nullptr;
   Odometry::Ptr odometry_ts_ptr = nullptr;
 
   // 未分配的观测数据
   std::vector<size_t> unassigned_lidar_objects_;
   std::vector<size_t> unassigned_front_radar_objects_;
+  std::vector<size_t> unassigned_front_vision_objects_;
 
   // 融合后的目标
   std::vector<FusedObject::Ptr> fused_objects;

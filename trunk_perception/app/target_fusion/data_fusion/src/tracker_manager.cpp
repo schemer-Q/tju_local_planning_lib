@@ -1,9 +1,11 @@
 #include "trunk_perception/app/target_fusion/data_fusion/tracker_manager.h"
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l1r.h"
+#include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l1r1v.h"
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_base.h"
 #include "trunk_perception/app/target_fusion/data_fusion/kalman_motion_fusion.h"
 #include "trunk_perception/app/target_fusion/data_fusion/measurement_functions.h"
 #include "trunk_perception/app/target_fusion/data_fusion/shape_fusion_lidar_only_impl.h"
+#include "trunk_perception/app/target_fusion/data_fusion/type_fusion_sliding_window.h"
 #include "trunk_perception/common/error/code.hpp"
 #include "trunk_perception/common/types/fused_object.h"
 #include "trunk_perception/tools/log/t_log.h"
@@ -36,8 +38,24 @@ std::uint32_t TrackerManager::Init(const YAML::Node& config) {
       auto existence_fusion_config = std::make_shared<ExistenceFusion1L1RConfig>();
       existence_fusion_config->type = existence_fusion_type;
       existence_fusion_config_ = existence_fusion_config;
+    } else if (existence_fusion_type == "1L1R1V") {
+      auto existence_fusion_config = std::make_shared<ExistenceFusion1L1R1VConfig>();
+      existence_fusion_config->type = existence_fusion_type;
+      existence_fusion_config_ = existence_fusion_config;
     } else {
       TFATAL << "[TrackerManager] Init failed: existence_fusion_type is not supported";
+      return ErrorCode::TARGET_FUSION_INIT_TRACKER_MANAGER_FAILED;
+    }
+
+    std::string type_fusion_type = config["TypeFusion"]["Type"].as<std::string>();
+    if (type_fusion_type == "SlidingWindow") {
+      auto type_fusion_config = std::make_shared<TypeFusionSlidingWindowConfig>();
+      type_fusion_config->config_type = type_fusion_type;
+      type_fusion_config->window_size = config["TypeFusion"]["Params"]["WindowSize"].as<int>();
+      type_fusion_config->min_valid_frame = config["TypeFusion"]["Params"]["MinValidFrame"].as<int>();
+      type_fusion_config_ = type_fusion_config;
+    } else {
+      TFATAL << "[TrackerManager] Init failed: type_fusion_type is not supported";  // @zzg 2024-12-26
       return ErrorCode::TARGET_FUSION_INIT_TRACKER_MANAGER_FAILED;
     }
   } catch (const std::exception& e) {
@@ -60,8 +78,9 @@ TrackerPtr TrackerManager::CreateTracker(const int& track_id, const LidarMeasure
   object_ptr->confidence = lidar_object->confidence;
   object_ptr->type = lidar_object->type;
   object_ptr->InitTrackPoint();
+  object_ptr->odo_lidar_ptr = lidar_object->odo_lidar_ptr;
   TrackerPtr tracker = std::make_shared<Tracker>(object_ptr, motion_kf_config_, shape_fusion_config_,
-                                                  existence_fusion_config_, lidar_object);
+                                                 existence_fusion_config_, type_fusion_config_, lidar_object);
   return tracker;
 }
 

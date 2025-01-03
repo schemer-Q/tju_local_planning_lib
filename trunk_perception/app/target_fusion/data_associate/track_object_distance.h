@@ -42,6 +42,16 @@ class TrackObjectDistance {
    */
   float Compute(const TrackerPtr& tracker_ptr, const ars430::RadarMeasureFrame::ConstPtr& front_radar_object);
 
+  /**
+   * @brief 计算跟踪目标与前向视觉检测目标之间的距离
+   *
+   * @param tracker_ptr [IN] 跟踪目标
+   * @param front_vision_object [IN] 前向视觉检测目标
+   * @return float [OUT] 距离
+   * @author zzg 2024-12-13
+   */
+  float Compute(const TrackerPtr& tracker_ptr, const VisionMeasureFrame::ConstPtr& front_vision_object);
+
  private:
   template <typename T>
   float Compute2DEuclideanDistance(const Eigen::Matrix<T, 3, 1>& des, const Eigen::Matrix<T, 3, 1>& src);

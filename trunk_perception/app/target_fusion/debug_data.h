@@ -34,6 +34,10 @@ struct AssociateDebugData {
   AssociationResult stable_tracker_radar_association_result;
   AssociationResult lost_tracker_radar_association_result;
 
+  AssociationResult new_tracker_front_vision_association_result;
+  AssociationResult stable_tracker_front_vision_association_result;
+  AssociationResult lost_tracker_front_vision_association_result;
+
   typedef std::shared_ptr<AssociateDebugData> Ptr;
 };
 

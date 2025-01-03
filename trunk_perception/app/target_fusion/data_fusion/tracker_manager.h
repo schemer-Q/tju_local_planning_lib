@@ -40,6 +40,7 @@ class TrackerManager {
   MotionFusionConfig motion_kf_config_;
   ShapeFusionConfig::Ptr shape_fusion_config_ = nullptr;
   ExistenceFusionConfig::Ptr existence_fusion_config_ = nullptr;
+  TypeFusionConfig::Ptr type_fusion_config_ = nullptr;
 };
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

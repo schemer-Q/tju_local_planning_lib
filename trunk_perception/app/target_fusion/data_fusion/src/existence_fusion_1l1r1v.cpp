@@ -49,8 +49,8 @@ float ExistenceFusion1L1R1V::Compute(const FusedObject::Ptr& fused_object_ptr) {
 			score = 0.3;
 		}
 
-		if ((front_radar_consecutive_hit >= 10) && (lidar_consecutive_lost < 20) &&
-				(front_vision_consecutive_hit < 30)) {
+		if ((front_radar_consecutive_hit >= 25) && (lidar_consecutive_lost < 10) &&
+				(front_vision_consecutive_hit < 15)) {
 			score = 0.3;
 		}
 

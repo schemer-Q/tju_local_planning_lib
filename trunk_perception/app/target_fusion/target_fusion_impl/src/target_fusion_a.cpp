@@ -217,20 +217,20 @@ uint32_t TargetFusionA::GetFrontRadarData() {
 
 uint32_t TargetFusionA::GetFrontVisionData() {
   auto front_vision_frame_ptr = GET_FOD_VISION_FRAME();
-  if(front_vision_frame_ptr == nullptr) {
+  if (front_vision_frame_ptr == nullptr) {
     TWARNING << "TargetFusionA::GetFrontVisionData GET_FOD_VISION_FRAME failed";
     return ErrorCode::TARGET_FUSION_GET_DATA_FRONT_VISION_FAILED;
   }
 
   frame_ptr_->front_vision_tracked_objects.reserve(front_vision_frame_ptr->tracked_objects.size());
   std::transform(front_vision_frame_ptr->tracked_objects.begin(), front_vision_frame_ptr->tracked_objects.end(),
-                  std::back_inserter(frame_ptr_->front_vision_tracked_objects),
-                  [](const Object& obj) { return std::make_shared<VisionMeasureFrame>(obj); });
+                 std::back_inserter(frame_ptr_->front_vision_tracked_objects),
+                 [](const Object& obj) { return std::make_shared<VisionMeasureFrame>(obj); });
 
   frame_ptr_->front_vision_timestamp = front_vision_frame_ptr->timestamp;
 
-  CHECK_AND_RETURN(
-      GetOdometryData(frame_ptr_->front_vision_timestamp, frame_ptr_->odometry_front_vision_ptr, if_time_compensate_front_vision_odometry_));
+  CHECK_AND_RETURN(GetOdometryData(frame_ptr_->front_vision_timestamp, frame_ptr_->odometry_front_vision_ptr,
+                                   if_time_compensate_front_vision_odometry_));
 
   return ErrorCode::SUCCESS;
 }
@@ -256,7 +256,7 @@ void TargetFusionA::ConvertToLocalCoordinate() {
   // 前向视觉数据转到局部坐标系下 @author zzg 2024-12-13
   frame_ptr_->front_vision_tracked_objects_local.resize(frame_ptr_->front_vision_tracked_objects.size());
   for (size_t i = 0; i < frame_ptr_->front_vision_tracked_objects.size(); ++i) {
-    frame_ptr_->front_vision_tracked_objects_local[i] = 
+    frame_ptr_->front_vision_tracked_objects_local[i] =
         std::make_shared<VisionMeasureFrame>(*frame_ptr_->front_vision_tracked_objects[i]);
     frame_ptr_->front_vision_tracked_objects_local[i]->Transform(frame_ptr_->odometry_lidar_ptr->Matrix());
   }
@@ -289,7 +289,8 @@ void TargetFusionA::Association() {
   // 整理剩余的未关联上的数据
   frame_ptr_->unassigned_lidar_objects_ = stable_tracker_lidar_association_result_.unassigned_measurment_indices;
   frame_ptr_->unassigned_front_radar_objects_ = stable_tracker_radar_association_result_.unassigned_measurment_indices;
-  frame_ptr_->unassigned_front_vision_objects_ = stable_tracker_front_vision_association_result_.unassigned_measurment_indices;
+  frame_ptr_->unassigned_front_vision_objects_ =
+      stable_tracker_front_vision_association_result_.unassigned_measurment_indices;
 
   // new tracker数据关联
   std::vector<LidarMeasureFrame::Ptr> unassigned_lidar_objects_tmp;
@@ -316,13 +317,14 @@ void TargetFusionA::Association() {
                                     new_tracker_radar_association_result_);
   ConvertIdx(frame_ptr_->unassigned_front_radar_objects_, new_tracker_radar_association_result_);
 
-  tracker_objects_match_ptr_->Match(new_trackers_, unassigned_front_vision_objects_temp, 
+  tracker_objects_match_ptr_->Match(new_trackers_, unassigned_front_vision_objects_temp,
                                     new_tracker_front_vision_association_result_);
   ConvertIdx(frame_ptr_->unassigned_front_vision_objects_, new_tracker_front_vision_association_result_);
   // 整理剩余的未关联上的数据
   frame_ptr_->unassigned_lidar_objects_ = new_tracker_lidar_association_result_.unassigned_measurment_indices;
   frame_ptr_->unassigned_front_radar_objects_ = new_tracker_radar_association_result_.unassigned_measurment_indices;
-  frame_ptr_->unassigned_front_vision_objects_ = new_tracker_front_vision_association_result_.unassigned_measurment_indices;
+  frame_ptr_->unassigned_front_vision_objects_ =
+      new_tracker_front_vision_association_result_.unassigned_measurment_indices;
 
   // lost tracker数据关联
   std::vector<LidarMeasureFrame::Ptr> unassigned_lidar_objects_tmp2;
@@ -354,7 +356,8 @@ void TargetFusionA::Association() {
   // 整理剩余的未关联上的数据
   frame_ptr_->unassigned_lidar_objects_ = lost_tracker_lidar_association_result_.unassigned_measurment_indices;
   frame_ptr_->unassigned_front_radar_objects_ = lost_tracker_radar_association_result_.unassigned_measurment_indices;
-  frame_ptr_->unassigned_front_vision_objects_ = lost_tracker_front_vision_association_result_.unassigned_measurment_indices;
+  frame_ptr_->unassigned_front_vision_objects_ =
+      lost_tracker_front_vision_association_result_.unassigned_measurment_indices;
 
   // 打印当前tracker状态
   GenerateAssociateDebugData();
@@ -528,8 +531,10 @@ void TargetFusionA::GenerateAssociateDebugData() {
   associate_debug_data_ptr_->stable_tracker_radar_association_result = stable_tracker_radar_association_result_;
   associate_debug_data_ptr_->lost_tracker_radar_association_result = lost_tracker_radar_association_result_;
   associate_debug_data_ptr_->new_tracker_front_vision_association_result = new_tracker_front_vision_association_result_;
-  associate_debug_data_ptr_->stable_tracker_front_vision_association_result = stable_tracker_front_vision_association_result_;
-  associate_debug_data_ptr_->lost_tracker_front_vision_association_result = lost_tracker_front_vision_association_result_;
+  associate_debug_data_ptr_->stable_tracker_front_vision_association_result =
+      stable_tracker_front_vision_association_result_;
+  associate_debug_data_ptr_->lost_tracker_front_vision_association_result =
+      lost_tracker_front_vision_association_result_;
 }
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

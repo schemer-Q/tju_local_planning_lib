@@ -8,17 +8,17 @@
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 
-TypeFusionSlidingWindow::TypeFusionSlidingWindow(const TypeFusionConfig::ConstPtr& config)
-    : TypeFusionBase(config) {
+TypeFusionSlidingWindow::TypeFusionSlidingWindow(const TypeFusionConfig::ConstPtr& config) : TypeFusionBase(config) {
   if (config->config_type != "SlidingWindow") {
     TERROR << "TypeFusionSlidingWindow::TypeFusionSlidingWindow: config type is not SlidingWindow";
     return;
   }
 
-  TypeFusionSlidingWindowConfig::ConstPtr type_fusion_sliding_window_config = 
+  TypeFusionSlidingWindowConfig::ConstPtr type_fusion_sliding_window_config =
       std::dynamic_pointer_cast<const TypeFusionSlidingWindowConfig>(config);
   if (!type_fusion_sliding_window_config) {
-    TERROR << "TypeFusionSlidingWindowConfig::TypeFusionSlidingWindowConfig: type_fusion_sliding_window_config is nullptr";
+    TERROR
+        << "TypeFusionSlidingWindowConfig::TypeFusionSlidingWindowConfig: type_fusion_sliding_window_config is nullptr";
     return;
   }
 
@@ -46,10 +46,10 @@ std::uint32_t TypeFusionSlidingWindow::Update(const SensorMeasureFrame::ConstPtr
   }
 
   if (sensor_measure_frame->sensor_type == MeasureSensorType::Lidar) {
-    LidarMeasureFrame::ConstPtr lidar_measure_frame = 
-                  std::dynamic_pointer_cast<const LidarMeasureFrame>(sensor_measure_frame);
+    LidarMeasureFrame::ConstPtr lidar_measure_frame =
+        std::dynamic_pointer_cast<const LidarMeasureFrame>(sensor_measure_frame);
     if (!lidar_measure_frame) {
-      TERROR << "TypeFusionSlidingWindow::Update: measure_frame is nullptr";                // @zzg 2024-12-26
+      TERROR << "TypeFusionSlidingWindow::Update: measure_frame is nullptr";  // @zzg 2024-12-26
       return ErrorCode::PARAMETER_ERROR;
     }
 
@@ -57,11 +57,11 @@ std::uint32_t TypeFusionSlidingWindow::Update(const SensorMeasureFrame::ConstPtr
     return SlidingWindow(lidar_type_history_, lidar_type_map_, object_type_);
 
   } else if (sensor_measure_frame->sensor_type == MeasureSensorType::FrontVision) {
-    VisionMeasureFrame::ConstPtr front_vision_measure_frame = 
-                   std::dynamic_pointer_cast<const VisionMeasureFrame>(sensor_measure_frame);
+    VisionMeasureFrame::ConstPtr front_vision_measure_frame =
+        std::dynamic_pointer_cast<const VisionMeasureFrame>(sensor_measure_frame);
 
     if (!front_vision_measure_frame) {
-      TERROR << "TypeFusionSlidingWindow::Update: measure_frame is nullptr";                // @zzg 2024-12-26
+      TERROR << "TypeFusionSlidingWindow::Update: measure_frame is nullptr";  // @zzg 2024-12-26
       return ErrorCode::PARAMETER_ERROR;
     }
     object_type_ = front_vision_measure_frame->type;
@@ -69,8 +69,9 @@ std::uint32_t TypeFusionSlidingWindow::Update(const SensorMeasureFrame::ConstPtr
   }
 }
 
-std::uint32_t TypeFusionSlidingWindow::SlidingWindow(std::deque<ObjectType>& type_history, 
-                std::unordered_map<ObjectType,int>& type_map, ObjectType& measure_type) {
+std::uint32_t TypeFusionSlidingWindow::SlidingWindow(std::deque<ObjectType>& type_history,
+                                                     std::unordered_map<ObjectType, int>& type_map,
+                                                     ObjectType& measure_type) {
   type_history.push_back(measure_type);
   if (type_map.find(measure_type) != type_map.end()) {
     int num = type_map[measure_type];
@@ -106,6 +107,5 @@ std::uint32_t TypeFusionSlidingWindow::SlidingWindow(std::deque<ObjectType>& typ
 
   return ErrorCode::SUCCESS;
 }
-
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

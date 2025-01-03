@@ -24,8 +24,10 @@ std::uint32_t TrackerObjectsMatch::Init(const YAML::Node& config) {
     hungarian_match_bound_value_lidar_ = config["HungarianMatcher"]["Lidar"]["MatchBoundValue"].as<float>();
     hungarian_match_cost_thresh_radar_ = config["HungarianMatcher"]["FrontRadar"]["MatchCostThresh"].as<float>();
     hungarian_match_bound_value_radar_ = config["HungarianMatcher"]["FrontRadar"]["MatchBoundValue"].as<float>();
-    hungarian_match_cost_thresh_front_vision_ = config["HungarianMatcher"]["FrontVision"]["MatchCostThresh"].as<float>();
-    hungarian_match_bound_value_front_vision_ = config["HungarianMatcher"]["FrontVision"]["MatchBoundValue"].as<float>();
+    hungarian_match_cost_thresh_front_vision_ =
+        config["HungarianMatcher"]["FrontVision"]["MatchCostThresh"].as<float>();
+    hungarian_match_bound_value_front_vision_ =
+        config["HungarianMatcher"]["FrontVision"]["MatchBoundValue"].as<float>();
   } catch (const std::exception& e) {
     TFATAL << "TrackerObjectsMatch Init failed: " << e.what();
     return ErrorCode::YAML_CONFIG_ERROR;
@@ -122,7 +124,7 @@ void TrackerObjectsMatch::Match(const std::vector<TrackerPtr>& trackers,
                                 &association_result.unassigned_measurment_indices);
 }
 
-// 前向视觉目标与航迹进行匹配 @author zzg 2024-12-13 
+// 前向视觉目标与航迹进行匹配 @author zzg 2024-12-13
 void TrackerObjectsMatch::Match(const std::vector<TrackerPtr>& trackers,
                                 const std::vector<VisionMeasureFrame::Ptr>& front_vision_objects,
                                 AssociationResult& association_result) {
@@ -132,8 +134,8 @@ void TrackerObjectsMatch::Match(const std::vector<TrackerPtr>& trackers,
     association_result.unassigned_measurment_indices = std::vector<size_t>(front_vision_objects.size());
     std::iota(association_result.unassigned_track_indices.begin(), association_result.unassigned_track_indices.end(),
               0);
-    std::iota(association_result.unassigned_measurment_indices.begin(), association_result.unassigned_measurment_indices.end(),
-              0);
+    std::iota(association_result.unassigned_measurment_indices.begin(),
+              association_result.unassigned_measurment_indices.end(), 0);
     return;
   }
 
@@ -151,8 +153,8 @@ void TrackerObjectsMatch::Match(const std::vector<TrackerPtr>& trackers,
 
   // 匈牙利匹配
   const auto opt_flag = GatedHungarianMatcher<float>::OptimizeFlag::OPTMIN;
-  hungarian_matcher_ptr_->Match(hungarian_match_cost_thresh_front_vision_, hungarian_match_bound_value_front_vision_, opt_flag,
-                                &association_result.track_measurment_pairs,
+  hungarian_matcher_ptr_->Match(hungarian_match_cost_thresh_front_vision_, hungarian_match_bound_value_front_vision_,
+                                opt_flag, &association_result.track_measurment_pairs,
                                 &association_result.unassigned_track_indices,
                                 &association_result.unassigned_measurment_indices);
 }

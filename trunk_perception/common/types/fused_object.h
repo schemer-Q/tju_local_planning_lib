@@ -15,8 +15,8 @@
 #include <cstddef>
 #include "trunk_perception/common/macros.h"
 #include "trunk_perception/common/types/object.h"
-#include "trunk_perception/common/types/radar_ars430.h"
 #include "trunk_perception/common/types/odometry.h"
+#include "trunk_perception/common/types/radar_ars430.h"
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
@@ -79,8 +79,9 @@ struct alignas(32) LidarMeasureFrame : SensorMeasureFrame {
 
   Eigen::Matrix4f state_covariance = Eigen::Matrix4f::Zero();  ///< state covariance matrix
 
-  BoundingBox bbox;                                             ///< 保留激光测量的 bbox，车体坐标系下，用于计算后角点
-  Odometry::Ptr odo_lidar_ptr = nullptr;    ///< 激光测量时间戳下的 odometry ，用于将 center 转到 车体系下，存在性更新中用于限制目标距离
+  BoundingBox bbox;  ///< 保留激光测量的 bbox，车体坐标系下，用于计算后角点
+  Odometry::Ptr odo_lidar_ptr =
+      nullptr;  ///< 激光测量时间戳下的 odometry ，用于将 center 转到 车体系下，存在性更新中用于限制目标距离
 
   LidarMeasureFrame(const Object& lidar_obj) {
     timestamp = lidar_obj.timestamp;
@@ -190,7 +191,7 @@ struct alignas(32) RadarMeasureFrame : SensorMeasureFrame {
 };
 }  // namespace ars430
 
-// @author zzg 2024-12-13 
+// @author zzg 2024-12-13
 struct alignas(32) VisionMeasureFrame : SensorMeasureFrame {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -242,9 +243,9 @@ struct alignas(32) VisionMeasureFrame : SensorMeasureFrame {
 
   /**
    * @brief 进行坐标系转换
-   * 
+   *
    * @param trans_mat 转换矩阵
-  */
+   */
   void Transform(const Eigen::Matrix4d& trans_mat) override {
     // 转换中心点
     Eigen::Vector4d center_vec(center.x(), center.y(), center.z(), 1.0);
@@ -305,15 +306,15 @@ struct alignas(32) FusedObject {
   TrackPointType track_point_type = TrackPointType::Center;  ///< 跟踪点类型
 
   // 观测源信息
-  int life = 0;                    ///< 生命周期, frame
-  int lidar_total_life = 0;        ///< 激光雷达总生命周期, frame
-  int front_radar_total_life = 0;  ///< 前向毫米波雷达总生命周期, frame
-  int front_vision_total_life = 0; ///< 前向视觉总生命周期, frame
+  int life = 0;                     ///< 生命周期, frame
+  int lidar_total_life = 0;         ///< 激光雷达总生命周期, frame
+  int front_radar_total_life = 0;   ///< 前向毫米波雷达总生命周期, frame
+  int front_vision_total_life = 0;  ///< 前向视觉总生命周期, frame
 
   int lidar_consecutive_hit = 0;   ///< 激光雷达连续命中帧数
   int lidar_consecutive_lost = 0;  ///< 激光雷达连续丢失帧数
 
-  int lidar_consecutive_hit_his = 0;        ///< 激光雷达最近一次连续命中帧数             @author zzg 2024_12_04
+  int lidar_consecutive_hit_his = 0;  ///< 激光雷达最近一次连续命中帧数             @author zzg 2024_12_04
   double lidar_consecutive_hit_his_ts = 0;  ///< 激光雷达最近一次连续命中帧数对应的时间戳    @author zzg 2024_12_04
 
   int front_radar_consecutive_hit = 0;   ///< 前向毫米波雷达连续命中帧数
@@ -322,11 +323,12 @@ struct alignas(32) FusedObject {
   int front_vision_consecutive_hit = 0;   ///< 前向视觉目标连续命中帧数
   int front_vision_consecutive_lost = 0;  ///< 前向视觉目标连续丢失帧数
 
-  LidarMeasureFrame::ConstPtr obj_lidar_ptr_ = nullptr;                 ///< 最新的激光雷达观测
-  ars430::RadarMeasureFrame::ConstPtr obj_front_radar_ptr_ = nullptr;   ///< 最新的前向毫米波雷达观测
-  VisionMeasureFrame::ConstPtr obj_front_vision_ptr_ = nullptr;         ///< 最新的前向视觉观测
+  LidarMeasureFrame::ConstPtr obj_lidar_ptr_ = nullptr;                ///< 最新的激光雷达观测
+  ars430::RadarMeasureFrame::ConstPtr obj_front_radar_ptr_ = nullptr;  ///< 最新的前向毫米波雷达观测
+  VisionMeasureFrame::ConstPtr obj_front_vision_ptr_ = nullptr;        ///< 最新的前向视觉观测
 
-  Odometry::Ptr odo_lidar_ptr = nullptr;    ///< 激光测量时间戳下的 odometry ，用于将 center 转到 车体系下，存在性更新中用于限制目标距离
+  Odometry::Ptr odo_lidar_ptr =
+      nullptr;  ///< 激光测量时间戳下的 odometry ，用于将 center 转到 车体系下，存在性更新中用于限制目标距离
 
   std::vector<Eigen::Vector3d> GetConvexPoints() const {
     // 根据center, theta, size计算4个角点
@@ -335,7 +337,6 @@ struct alignas(32) FusedObject {
     // 有激光测量，使用激光测量 bbox 的后角点，根据后角点再使用 融合的 size 计算前角点
     // 无激光测量，使用融合后的 center、theta 和 size 计算四个角点
     if ((obj_lidar_ptr_ != nullptr) && (std::fabs(timestamp - obj_lidar_ptr_->timestamp) < 0.05)) {
-
       // 计算旋转角的三角函数值
       double cos_yaw = std::cos(obj_lidar_ptr_->bbox.theta);
       double sin_yaw = std::sin(obj_lidar_ptr_->bbox.theta);
@@ -349,14 +350,14 @@ struct alignas(32) FusedObject {
 
       // 右后角点
       corners[1] = temp_center + Eigen::Vector3d(-cos_yaw * half_length + sin_yaw * half_width,
-                                            -sin_yaw * half_length - cos_yaw * half_width, 0.0);
+                                                 -sin_yaw * half_length - cos_yaw * half_width, 0.0);
 
       // 右前角点
       corners[0] = corners[1] + Eigen::Vector3d(cos_yaw * size.x(), sin_yaw * size.x(), 0.0);
 
       // 左后角点
       corners[2] = temp_center + Eigen::Vector3d(-cos_yaw * half_length - sin_yaw * half_width,
-                                            -sin_yaw * half_length + cos_yaw * half_width, 0.0);
+                                                 -sin_yaw * half_length + cos_yaw * half_width, 0.0);
 
       // 左前角点
       corners[3] = corners[2] + Eigen::Vector3d(cos_yaw * size.x(), sin_yaw * size.x(), 0.0);

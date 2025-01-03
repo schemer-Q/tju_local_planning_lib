@@ -8,14 +8,14 @@ std::shared_ptr<TypeFusionBase> TypeFusionFactory::Create(const TypeFusionConfig
   std::shared_ptr<TypeFusionBase> type_fusion = nullptr;
 
   if (!config) {
-    TFATAL << "TypeFusionFactory::Create: config is nullptr";              // @zzg 2024-12-26
+    TFATAL << "TypeFusionFactory::Create: config is nullptr";  // @zzg 2024-12-26
     return nullptr;
   }
 
   if (config->config_type == "SlidingWindow") {
     type_fusion = std::make_shared<TypeFusionSlidingWindow>(config);
   } else {
-    TFATAL << "TypeFusionFactory::Create: type is not supported: ";        // @zzg 2024-12-26
+    TFATAL << "TypeFusionFactory::Create: type is not supported: ";  // @zzg 2024-12-26
     return nullptr;
   }
 

@@ -60,9 +60,9 @@ class TargetFusionA : public TargetFusionBase {
 
   /**
    * @brief 获取前向视觉数据
-   * 
+   *
    * @return uint32_t 错误码
-   * 
+   *
    * @author zzg 2024-12-13
    */
   uint32_t GetFrontVisionData();
@@ -122,7 +122,7 @@ class TargetFusionA : public TargetFusionBase {
 
   /**
    * @brief 给下游的输出
-   * 
+   *
    */
   void GenerateFusedObject();
 
@@ -158,9 +158,9 @@ class TargetFusionA : public TargetFusionBase {
   AssociateDebugData::Ptr associate_debug_data_ptr_;
 
   // 参数
-  int new_to_stable_life_thresh_ = 3;   ///< 起始集进入稳定集跟踪帧数阈值,否则直接删除
-  int stable_to_lost_life_thresh_ = 5;  ///< 稳定集进入丢失集跟踪帧数阈值
-  int lost_to_stable_life_thresh_ = 3;  ///< 丢失集进入稳定集跟踪帧数阈值
+  int new_to_stable_life_thresh_ = 3;    ///< 起始集进入稳定集跟踪帧数阈值,否则直接删除
+  int stable_to_lost_life_thresh_ = 5;   ///< 稳定集进入丢失集跟踪帧数阈值
+  int lost_to_stable_life_thresh_ = 3;   ///< 丢失集进入稳定集跟踪帧数阈值
   int lost_to_delete_life_thresh_ = 10;  ///< 丢失集删除跟踪帧数阈值
 };
 

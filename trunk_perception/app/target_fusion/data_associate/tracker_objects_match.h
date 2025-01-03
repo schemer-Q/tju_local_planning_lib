@@ -59,13 +59,13 @@ class TrackerObjectsMatch {
 
   /**
    * @brief 前向视觉数据关联
-   * 
+   *
    * @param trackers 跟踪器列表
    * @param lidar_objects 激光雷达检测到的目标
    * @param result 关联结果
-  */
+   */
   void Match(const std::vector<TrackerPtr>& trackers, const std::vector<VisionMeasureFrame::Ptr>& front_vision_objects,
-            AssociationResult& association_result);
+             AssociationResult& association_result);
 
  private:
   std::shared_ptr<TrackObjectDistance> lidar_distance_compute_ptr_ = nullptr;

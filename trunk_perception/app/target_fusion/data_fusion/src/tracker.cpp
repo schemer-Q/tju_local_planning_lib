@@ -74,8 +74,8 @@ Tracker::Tracker(const FusedObject::Ptr& object_ptr, const MotionFusionConfig& m
     object_ptr_->obj_lidar_ptr_ = lidar_measure_ptr;
     object_ptr_->lidar_total_life = 1;
     object_ptr_->lidar_consecutive_hit = 1;
-    object_ptr_->lidar_consecutive_hit_his = object_ptr_->lidar_consecutive_hit;      // @author zzg 2024_12_04
-    object_ptr_->lidar_consecutive_hit_his_ts = lidar_measure_ptr->timestamp;         // @author zzg 2024_12_04
+    object_ptr_->lidar_consecutive_hit_his = object_ptr_->lidar_consecutive_hit;  // @author zzg 2024_12_04
+    object_ptr_->lidar_consecutive_hit_his_ts = lidar_measure_ptr->timestamp;     // @author zzg 2024_12_04
   }
   if (front_radar_measure_ptr) {
     object_front_radar_ptr_ = front_radar_measure_ptr;
@@ -179,12 +179,12 @@ void Tracker::Update(const LidarMeasureFrame::ConstPtr& lidar_measure_ptr) {
 
   object_ptr_->theta = lidar_measure_ptr->theta;
   object_ptr_->confidence = lidar_measure_ptr->confidence;
-  
+
   object_ptr_->lidar_consecutive_lost = 0;
   object_ptr_->lidar_total_life += 1;
   object_ptr_->lidar_consecutive_hit += 1;
-  object_ptr_->lidar_consecutive_hit_his = object_ptr_->lidar_consecutive_hit;          // @author zzg 2024_12_04
-  object_ptr_->lidar_consecutive_hit_his_ts = object_ptr_->timestamp;                   // @author zzg 2024_12_04
+  object_ptr_->lidar_consecutive_hit_his = object_ptr_->lidar_consecutive_hit;  // @author zzg 2024_12_04
+  object_ptr_->lidar_consecutive_hit_his_ts = object_ptr_->timestamp;           // @author zzg 2024_12_04
   object_lidar_ptr_ = lidar_measure_ptr;
   object_ptr_->obj_lidar_ptr_ = lidar_measure_ptr;
 }
@@ -234,7 +234,7 @@ void Tracker::Update(const VisionMeasureFrame::ConstPtr& front_vision_measure_pt
     TERROR << "[Tracker] update type fusion with front vision measure failed!";
   }
   UpdateObjectType();
-  
+
   object_ptr_->front_vision_consecutive_lost = 0;
   object_ptr_->front_vision_total_life += 1;
   object_ptr_->front_vision_consecutive_hit += 1;
@@ -297,8 +297,7 @@ Eigen::VectorXd Tracker::GetMeasurementFromFrontRadar(
   return Eigen::VectorXd();
 }
 
-Eigen::VectorXd Tracker::GetMeasurementFromFrontVision(
-    const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr) {
+Eigen::VectorXd Tracker::GetMeasurementFromFrontVision(const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr) {
   switch (motion_kf_config_.motion_model) {
     case MotionModel::CV:
       Eigen::Vector4d z;
@@ -306,8 +305,8 @@ Eigen::VectorXd Tracker::GetMeasurementFromFrontVision(
         z << front_vision_measure_ptr->rear_middle_point.x(), front_vision_measure_ptr->rear_middle_point.y(),
             front_vision_measure_ptr->velocity.x(), front_vision_measure_ptr->velocity.y();
       } else if (object_ptr_->track_point_type == TrackPointType::Center) {
-        z << front_vision_measure_ptr->center.x(), front_vision_measure_ptr->center.y(), front_vision_measure_ptr->velocity.x(),
-            front_vision_measure_ptr->velocity.y();
+        z << front_vision_measure_ptr->center.x(), front_vision_measure_ptr->center.y(),
+            front_vision_measure_ptr->velocity.x(), front_vision_measure_ptr->velocity.y();
       } else {
         TERROR << "[Tracker] GetMeasurementFromFrontVision track_point_type is not implemented!";
         return Eigen::VectorXd();

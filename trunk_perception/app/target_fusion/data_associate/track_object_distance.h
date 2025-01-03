@@ -43,7 +43,7 @@ class TrackObjectDistance {
   float Compute(const TrackerPtr& tracker_ptr, const ars430::RadarMeasureFrame::ConstPtr& front_radar_object);
 
   /**
-   * @brief 计算跟踪目标与前向视觉检测目标之间的距离   
+   * @brief 计算跟踪目标与前向视觉检测目标之间的距离
    *
    * @param tracker_ptr [IN] 跟踪目标
    * @param front_vision_object [IN] 前向视觉检测目标

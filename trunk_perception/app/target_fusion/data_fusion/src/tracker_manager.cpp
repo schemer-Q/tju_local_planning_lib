@@ -55,7 +55,7 @@ std::uint32_t TrackerManager::Init(const YAML::Node& config) {
       type_fusion_config->min_valid_frame = config["TypeFusion"]["Params"]["MinValidFrame"].as<int>();
       type_fusion_config_ = type_fusion_config;
     } else {
-      TFATAL << "[TrackerManager] Init failed: type_fusion_type is not supported";      // @zzg 2024-12-26
+      TFATAL << "[TrackerManager] Init failed: type_fusion_type is not supported";  // @zzg 2024-12-26
       return ErrorCode::TARGET_FUSION_INIT_TRACKER_MANAGER_FAILED;
     }
   } catch (const std::exception& e) {

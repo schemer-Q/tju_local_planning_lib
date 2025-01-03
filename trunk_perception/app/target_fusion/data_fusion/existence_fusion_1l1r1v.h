@@ -4,9 +4,9 @@
  * @brief 1L1R1V 融合目标存在性更新策略 初版调试
  * @version 0.1
  * @date 2024-12-18
- * 
+ *
  * @copyright Copyright (c) 2024
-*/
+ */
 
 #pragma once
 
@@ -25,7 +25,7 @@ struct ExistenceFusion1L1R1VConfig : ExistenceFusionConfig {
 /**
  * @brief 1L1R1V 1L1R1V 融合目标存在性更新策略
  * @note 设计文档：https://trunk.feishu.cn/docx/X2paddDDFoIcx7x299wc0cN1ntb
- * 
+ *
  */
 class ExistenceFusion1L1R1V : public ExistenceFusionBase {
  public:

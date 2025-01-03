@@ -1,6 +1,6 @@
+#include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_base.h"
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l1r.h"
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l1r1v.h"
-#include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_base.h"
 #include "trunk_perception/tools/log/t_log.h"
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN

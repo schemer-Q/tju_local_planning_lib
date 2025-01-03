@@ -23,13 +23,13 @@ using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
 Tracker::Tracker(const FusedObject::Ptr& object_ptr, const MotionFusionConfig& motion_kf_config,
                  const ShapeFusionConfig::ConstPtr& shape_fusion_config,
                  const ExistenceFusionConfig::ConstPtr& existence_fusion_config,
-								 const TypeFusionConfig::ConstPtr& type_fusion_config,
+                 const TypeFusionConfig::ConstPtr& type_fusion_config,
                  const LidarMeasureFrame::ConstPtr& lidar_measure_ptr,
                  const ars430::RadarMeasureFrame::ConstPtr& front_radar_measure_ptr)
     : motion_kf_config_(motion_kf_config),
       shape_fusion_config_(shape_fusion_config),
       existence_fusion_config_(existence_fusion_config),
-			type_fusion_config_(type_fusion_config),
+      type_fusion_config_(type_fusion_config),
       object_ptr_(object_ptr),
       motion_fusion_(std::make_shared<KalmanMotionFusion>(motion_kf_config)) {
   if (!object_ptr_) {
@@ -60,26 +60,26 @@ Tracker::Tracker(const FusedObject::Ptr& object_ptr, const MotionFusionConfig& m
     TFATAL << "[Tracker] create existence fusion failed!";
   }
 
-	// 初始化type_fusion_
-	type_fusion_ = TypeFusionFactory::Create(type_fusion_config_);
-	if (!type_fusion_) {
-		TERROR << "[Tracker] create type fusion failed!";
-	}
-	type_fusion_->Init(object_ptr_->type);
+  // 初始化type_fusion_
+  type_fusion_ = TypeFusionFactory::Create(type_fusion_config_);
+  if (!type_fusion_) {
+    TERROR << "[Tracker] create type fusion failed!";
+  }
+  type_fusion_->Init(object_ptr_->type);
 
   object_ptr_->life = 1;
 
   if (lidar_measure_ptr) {
     object_lidar_ptr_ = lidar_measure_ptr;
-		object_ptr_->obj_lidar_ptr_ = lidar_measure_ptr;
+    object_ptr_->obj_lidar_ptr_ = lidar_measure_ptr;
     object_ptr_->lidar_total_life = 1;
     object_ptr_->lidar_consecutive_hit = 1;
-		object_ptr_->lidar_consecutive_hit_his = object_ptr_->lidar_consecutive_hit;      // @author zzg 2024_12_04
-		object_ptr_->lidar_consecutive_hit_his_ts = lidar_measure_ptr->timestamp;         // @author zzg 2024_12_04
+    object_ptr_->lidar_consecutive_hit_his = object_ptr_->lidar_consecutive_hit;      // @author zzg 2024_12_04
+    object_ptr_->lidar_consecutive_hit_his_ts = lidar_measure_ptr->timestamp;         // @author zzg 2024_12_04
   }
   if (front_radar_measure_ptr) {
     object_front_radar_ptr_ = front_radar_measure_ptr;
-		object_ptr_->obj_front_radar_ptr_ = front_radar_measure_ptr;
+    object_ptr_->obj_front_radar_ptr_ = front_radar_measure_ptr;
     object_ptr_->front_radar_total_life = 1;
     object_ptr_->front_radar_consecutive_hit = 1;
   }
@@ -106,8 +106,8 @@ void Tracker::Predict(const double& t) {
   if (object_ptr_->front_radar_consecutive_lost > 0) object_ptr_->front_radar_consecutive_hit = 0;
   object_ptr_->front_radar_consecutive_lost += 1;
 
-	if (object_ptr_->front_vision_consecutive_lost > 0) object_ptr_->front_vision_consecutive_hit = 0;
-	object_ptr_->front_vision_consecutive_lost += 1;
+  if (object_ptr_->front_vision_consecutive_lost > 0) object_ptr_->front_vision_consecutive_hit = 0;
+  object_ptr_->front_vision_consecutive_lost += 1;
 }
 
 uint32_t Tracker::Update(const std::vector<SensorMeasureFrame::ConstPtr>& measures_list) {
@@ -137,13 +137,13 @@ uint32_t Tracker::Update(const std::vector<SensorMeasureFrame::ConstPtr>& measur
       }
       Update(front_radar_measure_ptr);
     } else if (measure_ptr->sensor_type == MeasureSensorType::FrontVision) {
-			auto front_vision_measure_ptr = std::static_pointer_cast<const VisionMeasureFrame>(measure_ptr);
-			if (!front_vision_measure_ptr) {
+      auto front_vision_measure_ptr = std::static_pointer_cast<const VisionMeasureFrame>(measure_ptr);
+      if (!front_vision_measure_ptr) {
         TERROR << "[Tracker] front_vision_measure_ptr is nullptr";
         continue;
-			}
-			Update(front_vision_measure_ptr);
-		}
+      }
+      Update(front_vision_measure_ptr);
+    }
   }
 
   object_ptr_->existence = existence_fusion_->Compute(object_ptr_);
@@ -171,11 +171,11 @@ void Tracker::Update(const LidarMeasureFrame::ConstPtr& lidar_measure_ptr) {
   UpdateObjectPoseVelocity();
   UpdateObjectShape();
 
-	object_ptr_->type = lidar_measure_ptr->type;
-	if (type_fusion_->Update(lidar_measure_ptr) != ErrorCode::SUCCESS) {
+  object_ptr_->type = lidar_measure_ptr->type;
+  if (type_fusion_->Update(lidar_measure_ptr) != ErrorCode::SUCCESS) {
     TERROR << "[Tracker] update type fusion with lidar measure failed!";
-	}
-	UpdateObjectType();
+  }
+  UpdateObjectType();
 
   object_ptr_->theta = lidar_measure_ptr->theta;
   object_ptr_->confidence = lidar_measure_ptr->confidence;
@@ -183,10 +183,10 @@ void Tracker::Update(const LidarMeasureFrame::ConstPtr& lidar_measure_ptr) {
   object_ptr_->lidar_consecutive_lost = 0;
   object_ptr_->lidar_total_life += 1;
   object_ptr_->lidar_consecutive_hit += 1;
-	object_ptr_->lidar_consecutive_hit_his = object_ptr_->lidar_consecutive_hit;          // @author zzg 2024_12_04
-	object_ptr_->lidar_consecutive_hit_his_ts = object_ptr_->timestamp;                   // @author zzg 2024_12_04
+  object_ptr_->lidar_consecutive_hit_his = object_ptr_->lidar_consecutive_hit;          // @author zzg 2024_12_04
+  object_ptr_->lidar_consecutive_hit_his_ts = object_ptr_->timestamp;                   // @author zzg 2024_12_04
   object_lidar_ptr_ = lidar_measure_ptr;
-	object_ptr_->obj_lidar_ptr_ = lidar_measure_ptr;
+  object_ptr_->obj_lidar_ptr_ = lidar_measure_ptr;
 }
 
 void Tracker::Update(const ars430::RadarMeasureFrame::ConstPtr& front_radar_measure_ptr) {
@@ -218,28 +218,28 @@ void Tracker::Update(const ars430::RadarMeasureFrame::ConstPtr& front_radar_meas
   object_ptr_->front_radar_total_life += 1;
   object_ptr_->front_radar_consecutive_hit += 1;
   object_front_radar_ptr_ = front_radar_measure_ptr;
-	object_ptr_->obj_front_radar_ptr_ = front_radar_measure_ptr;
+  object_ptr_->obj_front_radar_ptr_ = front_radar_measure_ptr;
 }
 
 void Tracker::Update(const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr) {
-	if (!front_vision_measure_ptr) {
-		TERROR << "[Tracker] front_vision_measure_ptr is nullptr";
-		return;
-	}
-	// @author zzg 2024-12-30 暂时不使用 前向视觉 对 运动属性(位置、速度)做更新
-	// Eigen::VectorXd z = GetMeasurementFromFrontVision(front_vision_measure_ptr);
+  if (!front_vision_measure_ptr) {
+    TERROR << "[Tracker] front_vision_measure_ptr is nullptr";
+    return;
+  }
+  // @author zzg 2024-12-30 暂时不使用 前向视觉 对 运动属性(位置、速度)做更新
+  // Eigen::VectorXd z = GetMeasurementFromFrontVision(front_vision_measure_ptr);
 
   object_ptr_->type = front_vision_measure_ptr->type;
-	if (type_fusion_->Update(front_vision_measure_ptr) != ErrorCode::SUCCESS) {
+  if (type_fusion_->Update(front_vision_measure_ptr) != ErrorCode::SUCCESS) {
     TERROR << "[Tracker] update type fusion with front vision measure failed!";
-	}
-	UpdateObjectType();
+  }
+  UpdateObjectType();
   
   object_ptr_->front_vision_consecutive_lost = 0;
   object_ptr_->front_vision_total_life += 1;
   object_ptr_->front_vision_consecutive_hit += 1;
   object_front_vision_ptr_ = front_vision_measure_ptr;
-	object_ptr_->obj_front_vision_ptr_ = front_vision_measure_ptr;
+  object_ptr_->obj_front_vision_ptr_ = front_vision_measure_ptr;
 }
 
 Eigen::VectorXd Tracker::GetStateFromFusedObject() {
@@ -298,10 +298,10 @@ Eigen::VectorXd Tracker::GetMeasurementFromFrontRadar(
 }
 
 Eigen::VectorXd Tracker::GetMeasurementFromFrontVision(
-		const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr) {
-	switch (motion_kf_config_.motion_model) {
-		case MotionModel::CV:
-			Eigen::Vector4d z;
+    const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr) {
+  switch (motion_kf_config_.motion_model) {
+    case MotionModel::CV:
+      Eigen::Vector4d z;
       if (object_ptr_->track_point_type == TrackPointType::RearMiddle) {
         z << front_vision_measure_ptr->rear_middle_point.x(), front_vision_measure_ptr->rear_middle_point.y(),
             front_vision_measure_ptr->velocity.x(), front_vision_measure_ptr->velocity.y();
@@ -313,8 +313,8 @@ Eigen::VectorXd Tracker::GetMeasurementFromFrontVision(
         return Eigen::VectorXd();
       }
       return z;
-	}
-	return Eigen::VectorXd();
+  }
+  return Eigen::VectorXd();
 }
 
 void Tracker::UpdateObjectPoseVelocity() {

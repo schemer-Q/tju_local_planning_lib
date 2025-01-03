@@ -9,15 +9,15 @@ IDPool::~IDPool() = default;
 
 // @author zzg 2024_12_25 修改 ID 分配方式
 int IDPool::GetID() {
-	int id;
-	do {
-		next_id_ += 1;
-		next_id_ = next_id_ % max_id_;
-	}while(IsIDAllocated(next_id_));
+  int id;
+  do {
+    next_id_ += 1;
+    next_id_ = next_id_ % max_id_;
+  }while(IsIDAllocated(next_id_));
 
-	allocated_ids_.insert(next_id_);
-	id = next_id_;
-	return id;
+  allocated_ids_.insert(next_id_);
+  id = next_id_;
+  return id;
 }
 
 void IDPool::ReleaseID(const int& id) {

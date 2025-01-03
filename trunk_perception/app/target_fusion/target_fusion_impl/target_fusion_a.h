@@ -58,14 +58,14 @@ class TargetFusionA : public TargetFusionBase {
    */
   uint32_t GetFrontRadarData();
 
-	/**
-	 * @brief 获取前向视觉数据
-	 * 
-	 * @return uint32_t 错误码
-	 * 
-	 * @author zzg 2024-12-13
-	*/
-	uint32_t GetFrontVisionData();
+  /**
+   * @brief 获取前向视觉数据
+   * 
+   * @return uint32_t 错误码
+   * 
+   * @author zzg 2024-12-13
+   */
+  uint32_t GetFrontVisionData();
 
   /**
    * @brief 获取odometry数据
@@ -131,7 +131,7 @@ class TargetFusionA : public TargetFusionBase {
   bool if_time_compensate_lidar_odometry_ = true;  ///< 是否对激光雷达odometry进行补偿
   bool if_time_compensate_front_radar_ = true;     ///< 是否对毫米波雷达数据进行时间补偿
   bool if_space_compensate_front_radar_ = true;  ///< 是否对毫米波雷达数据进行空间补偿(补偿自车位移)
-	bool if_time_compensate_front_vision_odometry_ = true;  ///< 是否对前向视觉数据进行时间补偿
+  bool if_time_compensate_front_vision_odometry_ = true;  ///< 是否对前向视觉数据进行时间补偿
 
   bool is_first_frame_ = true;  ///< 是否是第一帧，第一帧则直接创建新的tracker，不需要关联
   std::shared_ptr<IDPool> id_pool_ptr_ = nullptr;
@@ -140,15 +140,15 @@ class TargetFusionA : public TargetFusionBase {
 
   AssociationResult stable_tracker_lidar_association_result_;
   AssociationResult stable_tracker_radar_association_result_;
-	AssociationResult stable_tracker_front_vision_association_result_;
+  AssociationResult stable_tracker_front_vision_association_result_;
 
   AssociationResult new_tracker_lidar_association_result_;
   AssociationResult new_tracker_radar_association_result_;
-	AssociationResult new_tracker_front_vision_association_result_;
+  AssociationResult new_tracker_front_vision_association_result_;
 
   AssociationResult lost_tracker_lidar_association_result_;
   AssociationResult lost_tracker_radar_association_result_;
-	AssociationResult lost_tracker_front_vision_association_result_;
+  AssociationResult lost_tracker_front_vision_association_result_;
 
   std::vector<TrackerPtr> new_trackers_;  ///< 起始集, 跟踪帧数低于阈值，连续多帧丢失观测后直接删除，不进入丢失集
   std::vector<TrackerPtr> stable_trackers_;  ///< 稳定集，同时也是输出集合

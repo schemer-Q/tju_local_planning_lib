@@ -14,8 +14,8 @@ ExistenceFusionBase::Ptr ExistenceFusionFactory::Create(const ExistenceFusionCon
   if (config->type == "1L1R") {
     return std::make_shared<ExistenceFusion1L1R>(config);
   } else if (config->type == "1L1R1V") {
-		return std::make_shared<ExistenceFusion1L1R1V>(config);
-	} else {
+    return std::make_shared<ExistenceFusion1L1R1V>(config);
+  } else {
     TFATAL << "ExistenceFusionFactory::Create: unknown existence fusion type: " << config->type;
   }
 

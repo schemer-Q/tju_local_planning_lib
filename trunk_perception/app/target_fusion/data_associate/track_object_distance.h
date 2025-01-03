@@ -48,7 +48,7 @@ class TrackObjectDistance {
    * @param tracker_ptr [IN] 跟踪目标
    * @param front_vision_object [IN] 前向视觉检测目标
    * @return float [OUT] 距离
-	 * @author zzg 2024-12-13
+   * @author zzg 2024-12-13
    */
   float Compute(const TrackerPtr& tracker_ptr, const VisionMeasureFrame::ConstPtr& front_vision_object);
 

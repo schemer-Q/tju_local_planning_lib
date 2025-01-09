@@ -16,6 +16,7 @@
 namespace net {
 class ObjectDetector;
 struct Sparse4dWithDistortionInput;
+struct DistortionMap;
 }
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
@@ -37,6 +38,8 @@ class OdSparse4DImpl : public OdBase {
   net::Sparse4dWithDistortionInput* input_ = nullptr;
   std::string model_config_path_;
   std::vector<std::string> cameras_;
+  int dist_min_x_, dist_min_y, dist_max_x_, dist_max_y_;
+  std::vector<std::shared_ptr<net::DistortionMap>> distortion_maps_;
   bool camera_params_initialized_ = false;
 };
 

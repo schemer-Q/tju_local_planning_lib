@@ -1,4 +1,9 @@
 Type: ODSparse4D
 Config: 
+  DistortionMap:
+    MinX: -1200
+    MinY: -300
+    MaxX: 1600
+    MaxY: 1200
   ModelConfig: /home/wangxu/Code/1_dev/A_COMMON/sparse4d/cross_modaility/sparse4d/ckpt/exps/Sany2SurOD/v1.0_DS_v1.1_3V_30m/deploy/config_3v_300query.toml
   Cameras: ["CAMERA_0_F190", "CAMERA_3_F190", "CAMERA_9_F190"]

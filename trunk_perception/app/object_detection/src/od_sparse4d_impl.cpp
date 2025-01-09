@@ -1,11 +1,12 @@
 #include "trunk_perception/app/object_detection/od_sparse4d_impl.h"
-#include "trunk_perception/common/error/code.hpp"
-#include "trunk_perception/tools/log/t_log.h"
 #include "trunk_perception/common/data_manager/data_manager.h"
+#include "trunk_perception/common/error/code.hpp"
+#include "trunk_perception/common/tools/gen_mapxy.h"
+#include "trunk_perception/tools/log/t_log.h"
 
+#include "detection_net_sdk/data.h"
 #include "detection_net_sdk/logging.h"
 #include "detection_net_sdk/object_detector.h"
-#include "detection_net_sdk/data.h"
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 
@@ -44,6 +45,10 @@ OdSparse4DImpl::~OdSparse4DImpl() {
 
 std::uint32_t OdSparse4DImpl::Init(const YAML::Node& config) {
   try {
+    dist_min_x_ = config["DistortionMap"]["MinX"].as<int>();
+    dist_min_y = config["DistortionMap"]["MinY"].as<int>();
+    dist_max_x_ = config["DistortionMap"]["MaxX"].as<int>();
+    dist_max_y_ = config["DistortionMap"]["MaxY"].as<int>();
     model_config_path_ = config["ModelConfig"].as<std::string>();
     cameras_ = config["Cameras"].as<std::vector<std::string>>();
   } catch (const std::exception& e) {
@@ -66,7 +71,7 @@ std::uint32_t OdSparse4DImpl::Init(const YAML::Node& config) {
   input_ = new net::Sparse4dWithDistortionInput();
   input_->images.resize(cameras_.size());
   input_->camera_params.resize(cameras_.size());
-
+  distortion_maps_.resize(cameras_.size(), nullptr);
   TINFO << "OdSparse4DImpl::Init success";
 
   return ErrorCode::SUCCESS;
@@ -77,7 +82,7 @@ std::uint32_t OdSparse4DImpl::Run(const double& ts) {
 
   uint32_t code = ErrorCode::SUCCESS;
 
-  if (!detector_) { 
+  if (!detector_) {
     TERROR << "OdSparse4DImpl::Run failed: detector is not initialized";
     return ErrorCode::UNINITIALIZED;
   }
@@ -122,6 +127,22 @@ std::uint32_t OdSparse4DImpl::Run(const double& ts) {
       input_->camera_params[i].intrinsic(1, 2) = meta->camera_info_ptr->cy;
 
       input_->camera_params[i].extrinsic = meta->pose_ptr->matrix();
+
+      // 畸变映射表
+      if (distortion_maps_[i] == nullptr) {
+        distortion_maps_[i] = std::make_shared<net::DistortionMap>();
+        DistortionMapResult ret = DistortionUtils::calculateDistortionMap(
+            meta->camera_info_ptr->IMG_W, meta->camera_info_ptr->IMG_H, meta->camera_info_ptr->K,
+            meta->camera_info_ptr->D, dist_min_x_, dist_min_y, dist_max_x_, dist_max_y_);
+        distortion_maps_[i]->map_x = ret.map_x;
+        distortion_maps_[i]->map_y = ret.map_y;
+        distortion_maps_[i]->min_x = ret.min_x;
+        distortion_maps_[i]->min_y = ret.min_y;
+        distortion_maps_[i]->max_x = ret.max_x;
+        distortion_maps_[i]->max_y = ret.max_y;
+      }
+      input_->camera_params[i].distortion_map_ptr = distortion_maps_[i];
+      input_->camera_params[i].distortion_map_set = true;
     }
     camera_params_initialized_ = true;
   }
@@ -163,8 +184,6 @@ std::uint32_t OdSparse4DImpl::Run(const double& ts) {
 
   return ErrorCode::SUCCESS;
 }
-
-
 
 std::any OdSparse4DImpl::GetData(const std::string& key) { return std::any(); }
 

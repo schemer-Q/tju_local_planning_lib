@@ -13,6 +13,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <mutex>
 #include "trunk_perception/common/data_manager/data_wrapper/fod_vision_frame.h"
 #include "trunk_perception/common/data_manager/data_wrapper/ld_frame.h"
 #include "trunk_perception/common/data_manager/data_wrapper/od_lidar_frame.h"
@@ -130,9 +131,15 @@ class DataManager {
 
   std::shared_ptr<FodVisionFrame> getFodVisionFrame() const { return fod_vision_frame_; }
 
-  void updateSideOdVisionFrame(const std::shared_ptr<SideOdVisionFrame>& frame) { side_od_vision_frame_ = frame; }
+  void updateSideOdVisionFrame(const std::shared_ptr<SideOdVisionFrame>& frame) {
+    std::lock_guard<std::mutex> lock(side_od_vision_frame_mutex_);
+    side_od_vision_frame_ = frame;
+  }
 
-  std::shared_ptr<SideOdVisionFrame> getSideOdVisionFrame() const { return side_od_vision_frame_; }
+  std::shared_ptr<SideOdVisionFrame> getSideOdVisionFrame() const {
+    std::lock_guard<std::mutex> lock(side_od_vision_frame_mutex_);
+    return side_od_vision_frame_;
+  }
 
  private:
   DataManager();
@@ -152,7 +159,8 @@ class DataManager {
   std::shared_ptr<LDFrame> ld_frame_ = nullptr;              ///< 车道线检测数据帧
   std::shared_ptr<TargetFusionFrame> tf_frame_ = nullptr;     ///< 后融合数据帧
   std::shared_ptr<FodVisionFrame> fod_vision_frame_ = nullptr; ///< 前向视觉目标检测数据帧
-  std::shared_ptr<SideOdVisionFrame> side_od_vision_frame_ = nullptr; ///< 环视视觉目标检测数据帧
+  mutable std::mutex side_od_vision_frame_mutex_; ///< 为了主从机数据同步，增加锁保证线程安全
+  std::shared_ptr<SideOdVisionFrame> side_od_vision_frame_ = nullptr;  ///< 环视视觉目标检测数据帧
 };
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
@@ -382,14 +390,15 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
 
 /**
  * @def UPDATE_SIDE_OD_VISION_FRAME
- * @brief 更新side_od_vision帧，线程不安全
+ * @brief 更新side_od_vision帧，线程安全
  * @param side_od_vision_frame side_od_vision帧
  */
 #define UPDATE_SIDE_OD_VISION_FRAME(side_od_vision_frame) DATA_MANAGER.updateSideOdVisionFrame(side_od_vision_frame)
 
 /**
  * @def GET_SIDE_OD_VISION_FRAME
- * @brief 获取side_od_vision帧，线程不安全
+ * @brief 获取side_od_vision帧，线程安全
  * @return side_od_vision帧
  */
 #define GET_SIDE_OD_VISION_FRAME() DATA_MANAGER.getSideOdVisionFrame()
+

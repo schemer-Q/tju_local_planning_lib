@@ -20,6 +20,7 @@
 ## [Unreleased]
 ### Changed
 - 在Sparse4D中模型输入中添加畸变映射表适配SDK0.0.3版本的修改
+- 修改UPDATE_SIDE_OD_VISION_FRAME与GET_SIDE_OD_VISION_FRAME为线程安全以适配主从机数据同步
 
 ## [0.2.0] - 2025-01-03
 ### Added

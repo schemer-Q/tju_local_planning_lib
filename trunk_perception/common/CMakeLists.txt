@@ -12,6 +12,11 @@ target_link_libraries(trunk_perception_common PUBLIC
   ${PCL_LIBRARIES}
   stdc++fs)
 
+if (OpenMP_CXX_FOUND)
+  target_link_libraries(trunk_perception_common PUBLIC OpenMP::OpenMP_CXX)
+  target_compile_options(trunk_perception_common PRIVATE ${OpenMP_CXX_FLAGS})
+endif()
+
 ########################
 # install
 ########################

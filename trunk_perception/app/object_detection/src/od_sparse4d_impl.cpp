@@ -12,6 +12,22 @@ TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 
 using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
 
+static std::unordered_map<net::ObjectType, ObjectType> SDKObjectTypeDict = {
+    {net::ObjectType::UNKNOWN, ObjectType::UNKNOWN},
+    {net::ObjectType::VEHICLE, ObjectType::VEHICLE},
+    {net::ObjectType::CYCLIST, ObjectType::BICYCLE},
+    {net::ObjectType::TRICYCLE, ObjectType::TRICYCLE},
+    {net::ObjectType::PEDESTRIAN, ObjectType::PEDESTRIAN},
+    {net::ObjectType::BUS, ObjectType::BUS},
+    {net::ObjectType::TRUCK, ObjectType::TRUCK},
+    {net::ObjectType::TRUCK_HEAD, ObjectType::TRUCK_HEAD},
+    {net::ObjectType::TRAILER, ObjectType::TRAILER},
+    {net::ObjectType::ALIEN_VEHICLE, ObjectType::ALIEN_VEHICLE},
+    {net::ObjectType::CONE, ObjectType::CONE},
+    {net::ObjectType::BARREL, ObjectType::BARREL},
+    {net::ObjectType::OTHERS, ObjectType::TRAILER},
+};
+
 class Sparse4DLogger : public net::NetLogger {
   void log(net::NetLogger::Severity severity, const std::string_view msg) noexcept override {
     switch (severity) {
@@ -171,6 +187,7 @@ std::uint32_t OdSparse4DImpl::Run(const double& ts) {
   for (const auto& bbox : sdk_bboxes) {
     Object obj;
     obj.timestamp = timestamps[0];
+    obj.type = SDKObjectTypeDict[bbox.type];
     obj.bbox.center = bbox.center;
     obj.bbox.size = bbox.size;
     obj.velocity.x() = bbox.velocity.x();

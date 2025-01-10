@@ -33,6 +33,9 @@ enum class ObjectType : std::uint8_t {
   BICYCLE = 2,     ///< 自行车、摩托车
   PEDESTRIAN = 3,  ///< 行人
   BUS = 4,         ///< 大巴车
+  TRICYCLE = 5,    ///< 三轮车
+  CONE = 6,        ///< 锥桶
+  BARREL = 7,      ///< 桶
   /********************************************************/
   ART = 10,               ///< ART (通用类型)
   ART_NO_TRAILER = 11,    ///< 不带箱ART
@@ -52,7 +55,9 @@ enum class ObjectType : std::uint8_t {
   MOBILE_CRANE = 33,          ///< 流机
   CRANE_LEG = 34,             ///< 桥腿
   /********************************************************/
-  SIZE = 20,  ///< ObjectType 枚举类成员数量(不包含SIZE类型本身)
+  OTHERS = 40,  ///< 其他
+  /********************************************************/
+  SIZE = 24,  ///< ObjectType 枚举类成员数量(不包含SIZE类型本身)
 };
 
 static std::unordered_map<ObjectType, std::string> ObjectTypeDict = {
@@ -62,6 +67,7 @@ static std::unordered_map<ObjectType, std::string> ObjectTypeDict = {
     {ObjectType::BICYCLE, "BICYCLE"},
     {ObjectType::PEDESTRIAN, "PEDESTRIAN"},
     {ObjectType::BUS, "BUS"},
+    {ObjectType::TRICYCLE, "TRICYCLE"},
     /********************************************************/
     {ObjectType::ART, "ART"},
     {ObjectType::ART_NO_TRAILER, "ART_NO_TRAILER"},

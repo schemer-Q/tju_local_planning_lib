@@ -10,6 +10,8 @@ string(JSON sdkbevlaneconedethighway_version GET ${config_json} project dependen
 string(JSON sdkbevlaneconedethighway_enable GET ${config_json} project dependencies sdk sdkbevlaneconedethighway enable)
 string(JSON sdkvisdetr3ddconffront_version GET ${config_json} project dependencies sdk sdkvisdetr3ddconffront version)
 string(JSON sdkvisdetr3ddconffront_enable GET ${config_json} project dependencies sdk sdkvisdetr3ddconffront enable)
+string(JSON detectionnetsdk_version GET ${config_json} project dependencies sdk detectionnetsdk version)
+string(JSON detectionnetsdk_enable GET ${config_json} project dependencies sdk detectionnetsdk enable)
 
 project(trunk_perception
         VERSION ${project_version}

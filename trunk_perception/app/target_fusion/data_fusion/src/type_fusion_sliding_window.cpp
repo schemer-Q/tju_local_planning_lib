@@ -67,6 +67,7 @@ std::uint32_t TypeFusionSlidingWindow::Update(const SensorMeasureFrame::ConstPtr
     object_type_ = front_vision_measure_frame->type;
     return SlidingWindow(front_vision_type_history_, front_vision_lidar_type_map_, object_type_);
   }
+  return ErrorCode::SUCCESS;
 }
 
 std::uint32_t TypeFusionSlidingWindow::SlidingWindow(std::deque<ObjectType>& type_history,

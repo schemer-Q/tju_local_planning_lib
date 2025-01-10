@@ -18,9 +18,10 @@
 > 修订号：当你做了向下兼容的问题修正。
 
 ## [Unreleased]
+
+## [0.3.0] - 2025-01-10
 ### Changed
-- 在Sparse4D中模型输入中添加畸变映射表适配SDK0.0.3版本的修改
-- 修改UPDATE_SIDE_OD_VISION_FRAME与GET_SIDE_OD_VISION_FRAME为线程安全以适配主从机数据同步
+- 增加object_detection应用，并在其中添加环视目标检测功能Sparse4D
 
 ## [0.2.0] - 2025-01-03
 ### Added

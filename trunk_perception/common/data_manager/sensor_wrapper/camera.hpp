@@ -190,7 +190,7 @@ class Camera : public SensorWrapper<Image, ImageData, CameraMetaInfo> {
   void initUndistort() {
     if (camera_undistort_) return;
     if (meta_ && meta_->camera_info_ptr) {
-      camera_undistort_ = std::make_shared<CameraUndistort>(*meta_->camera_info_ptr);
+      camera_undistort_ = std::make_shared<CameraUndistort>(*meta_->camera_info_ptr, false);
     }
   }
 

@@ -41,6 +41,11 @@ void Tracklet::Predict(const double timestamp, const bool predict_by_velocity) {
 void Tracklet::Update(const Object& object) {
   tracker_method_ptr->Update(object, current_tracking_object);
 
+  // bbox confidence update
+  const float d_area = object.bbox.size.head(2).prod();
+  const float t_area = current_tracking_object.bbox.size.head(2).prod();
+  current_tracking_object.bbox_confidence = 1.0F - std::abs(d_area - t_area) / (std::max(d_area, t_area) + 1E-6);
+
   current_tracking_object.lifetime += 1;
   current_tracking_object.consecutive_lost = 0;
   current_tracking_object.detect_id = object.detect_id;

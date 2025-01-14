@@ -515,7 +515,7 @@ void TargetFusionA::GenerateFusedObject() {
   };
 
   // 处理两类 trackers
-  process_trackers(new_trackers_);
+  // process_trackers(new_trackers_);
   process_trackers(stable_trackers_);
 }
 

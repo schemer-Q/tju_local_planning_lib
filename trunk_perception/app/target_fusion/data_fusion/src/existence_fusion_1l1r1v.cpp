@@ -83,8 +83,8 @@ float ExistenceFusion1L1R1V::Compute(const FusedObject::Ptr& fused_object_ptr) {
   }
 
   Eigen::Matrix4d local_to_car = fused_object_ptr->odo_lidar_ptr->Matrix().inverse();
-  Eigen::Vector4d center_vec(fused_object_ptr->center.x(), fused_object_ptr->center.y(),
-                              fused_object_ptr->center.z(), 1.0);
+  Eigen::Vector4d center_vec(fused_object_ptr->center.x(), fused_object_ptr->center.y(), fused_object_ptr->center.z(),
+                             1.0);
   center_vec = local_to_car * center_vec;
   Eigen::Vector3d temp_center = Eigen::Vector3d(center_vec.x(), center_vec.y(), center_vec.z());
 
@@ -99,7 +99,7 @@ float ExistenceFusion1L1R1V::Compute(const FusedObject::Ptr& fused_object_ptr) {
     }
   }
 
-  // @author zzg 解决特定问题 VTI-14470，激光测量丢失后，预测目标导致入侵车道 
+  // @author zzg 解决特定问题 VTI-14470，激光测量丢失后，预测目标导致入侵车道
   if (std::fabs(temp_center.x()) < 10 && std::fabs(temp_center.y()) < 10.0 && std::fabs(temp_center.y()) > 2.0) {
     if (lidar_consecutive_hit < 1) {
       score = 0.0;

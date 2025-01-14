@@ -235,8 +235,7 @@ void Tracker::Update(const ars430::RadarMeasureFrame::ConstPtr& front_radar_meas
 
   // @author zzg 2025-01-13 解决盲区内，无激光测量后，只由前向毫米波测量维持的融合目标入侵自车车道
   Eigen::Matrix4d local_to_car = object_ptr_->odo_lidar_ptr->Matrix().inverse();
-  Eigen::Vector4d center_vec(object_ptr_->center.x(), object_ptr_->center.y(),
-                              object_ptr_->center.z(), 1.0);
+  Eigen::Vector4d center_vec(object_ptr_->center.x(), object_ptr_->center.y(), object_ptr_->center.z(), 1.0);
   center_vec = local_to_car * center_vec;
   Eigen::Vector3d temp_center = Eigen::Vector3d(center_vec.x(), center_vec.y(), center_vec.z());
   if (std::fabs(temp_center.x()) < 15 && std::fabs(temp_center.y()) < 15) {

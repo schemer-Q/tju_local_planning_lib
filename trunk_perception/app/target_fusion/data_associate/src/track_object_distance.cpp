@@ -256,7 +256,6 @@ float TrackObjectDistance::Compute(const TrackerPtr& tracker_ptr,
             Compute2DEuclideanDistance(fused_object->rear_middle_point, front_vision_object->rear_middle_point);
       } else if (position_point_ == "Mix_CR") {
         auto dis_center = Compute2DEuclideanDistance(fused_object->center, front_vision_object->center);
-        ;
         auto dis_rear_middle =
             Compute2DEuclideanDistance(fused_object->rear_middle_point, front_vision_object->rear_middle_point);
         position_distance = std::min(dis_center, dis_rear_middle);

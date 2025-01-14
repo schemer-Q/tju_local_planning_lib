@@ -146,7 +146,7 @@ struct alignas(32) LidarMeasureFrame : SensorMeasureFrame {
     // @author zzg 2025-01-13 角度归一化修改逻辑
     float temp_theta = std::fmod(theta + M_PI, 2.0 * M_PI);
     if (temp_theta < 0.0) {
-      temp_theta += (2*M_PI);
+      temp_theta += (2 * M_PI);
     }
     temp_theta -= M_PI;
     theta = temp_theta;

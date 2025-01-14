@@ -143,7 +143,13 @@ struct alignas(32) LidarMeasureFrame : SensorMeasureFrame {
     double yaw = std::atan2(rotation_matrix(1, 0), rotation_matrix(0, 0));
     theta += yaw;
     // 将角度归一化到[-π, π]
-    theta = std::fmod(theta + M_PI, 2.0 * M_PI) - M_PI;
+    // @author zzg 2025-01-13 角度归一化修改逻辑
+    float temp_theta = std::fmod(theta + M_PI, 2.0 * M_PI);
+    if (temp_theta < 0.0) {
+      temp_theta += (2 * M_PI);
+    }
+    temp_theta -= M_PI;
+    theta = temp_theta;
   }
 
   typedef std::shared_ptr<LidarMeasureFrame> Ptr;
@@ -302,6 +308,7 @@ struct alignas(32) FusedObject {
   bool flag_special_keep_stable = false;  ///< 特殊情况保持稳定
 
   ObjectType type = ObjectType::UNKNOWN;  ///< 物体类型
+  int delta_theta_num = 0;
 
   TrackPointType track_point_type = TrackPointType::Center;  ///< 跟踪点类型
 

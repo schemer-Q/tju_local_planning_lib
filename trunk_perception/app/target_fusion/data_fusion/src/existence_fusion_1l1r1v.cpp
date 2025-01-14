@@ -59,7 +59,7 @@ float ExistenceFusion1L1R1V::Compute(const FusedObject::Ptr& fused_object_ptr) {
                                  fused_object_ptr->center.z(), 1.0);
       center_vec = local_to_car * center_vec;
       Eigen::Vector3d temp_center = Eigen::Vector3d(center_vec.x(), center_vec.y(), center_vec.z());
-      if (std::fabs(temp_center.x()) < 20 && std::fabs(temp_center.y()) < 2.0) {
+      if (std::fabs(temp_center.x()) > 8 && std::fabs(temp_center.x()) < 20 && std::fabs(temp_center.y()) < 2.0) {
         score = 0.3;
       }
     }
@@ -82,19 +82,27 @@ float ExistenceFusion1L1R1V::Compute(const FusedObject::Ptr& fused_object_ptr) {
     score = 0.3;
   }
 
+  Eigen::Matrix4d local_to_car = fused_object_ptr->odo_lidar_ptr->Matrix().inverse();
+  Eigen::Vector4d center_vec(fused_object_ptr->center.x(), fused_object_ptr->center.y(), fused_object_ptr->center.z(),
+                             1.0);
+  center_vec = local_to_car * center_vec;
+  Eigen::Vector3d temp_center = Eigen::Vector3d(center_vec.x(), center_vec.y(), center_vec.z());
+
   // @author zzg 2024_12_25 增加逻辑：目标类型为 TRUCK、VEHICLE， 激光雷达总生命周期 35 帧以上，且 毫米波一直连续命中 25
   // 帧以上，则维持融合目标 为了解决近距离怼脸 TRUCK、VEHICLE 由于 激光连续丢失多帧 导致的目标丢失；   解决特定问题
   if ((score < 0.3) && (fused_object_ptr->front_radar_consecutive_hit > 25) &&
       (fused_object_ptr->lidar_total_life > 35)) {
     if (fused_object_ptr->type == ObjectType::TRUCK || fused_object_ptr->type == ObjectType::VEHICLE) {
-      Eigen::Matrix4d local_to_car = fused_object_ptr->odo_lidar_ptr->Matrix().inverse();
-      Eigen::Vector4d center_vec(fused_object_ptr->center.x(), fused_object_ptr->center.y(),
-                                 fused_object_ptr->center.z(), 1.0);
-      center_vec = local_to_car * center_vec;
-      Eigen::Vector3d temp_center = Eigen::Vector3d(center_vec.x(), center_vec.y(), center_vec.z());
-      if (std::fabs(temp_center.x()) < 25 && std::fabs(temp_center.y()) < 2.5) {
+      if (std::fabs(temp_center.x()) > 8 && std::fabs(temp_center.x()) < 25 && std::fabs(temp_center.y()) < 2.5) {
         score = 0.3;
       }
+    }
+  }
+
+  // @author zzg 解决特定问题 VTI-14470，激光测量丢失后，预测目标导致入侵车道
+  if (std::fabs(temp_center.x()) < 10 && std::fabs(temp_center.y()) < 10.0 && std::fabs(temp_center.y()) > 2.0) {
+    if (lidar_consecutive_hit < 1) {
+      score = 0.0;
     }
   }
 

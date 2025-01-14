@@ -177,7 +177,33 @@ void Tracker::Update(const LidarMeasureFrame::ConstPtr& lidar_measure_ptr) {
   }
   UpdateObjectType();
 
-  object_ptr_->theta = lidar_measure_ptr->theta;
+  // @author zzg 2025-01-13 对于theta角前后帧变化较大的，使用上一帧融合的theta
+  // 前后变化绝对值 > 0.4363弧度(25角度) ，或相对变化大于1.5倍
+  // VTI-14538，解决 theta 角的突变，后续还需要更加合理的逻辑进行优化
+  // 存在情形：远处激光测量一开始检测theta错误，后近处检测theta正确，前后theta相差很大，用 delta_theta_num
+  // 标记变化次数，超过三次使用激光测量theta
+  float temp_theta = object_ptr_->theta;
+  if (std::fabs(lidar_measure_ptr->theta - object_ptr_->theta) > 0.22 &&
+      std::fabs((lidar_measure_ptr->theta - object_ptr_->theta) / object_ptr_->theta) > 0.5) {
+    // 正常转弯掉头会达到 6.0、1.9，使用激光测量的 theta
+    if (std::fabs(lidar_measure_ptr->theta - object_ptr_->theta) > 5.8 &&
+        std::fabs((lidar_measure_ptr->theta - object_ptr_->theta) / object_ptr_->theta) > 1.89) {
+      object_ptr_->theta = lidar_measure_ptr->theta;
+      object_ptr_->delta_theta_num = 0;
+    } else {
+      if (object_ptr_->delta_theta_num > 5) {
+        object_ptr_->theta = lidar_measure_ptr->theta;
+        object_ptr_->delta_theta_num = 0;
+      } else {
+        object_ptr_->delta_theta_num += 1;
+        object_ptr_->theta = temp_theta;
+      }
+    }
+  } else {
+    object_ptr_->theta = lidar_measure_ptr->theta;
+    object_ptr_->delta_theta_num = 0;
+  }
+
   object_ptr_->confidence = lidar_measure_ptr->confidence;
 
   object_ptr_->lidar_consecutive_lost = 0;
@@ -205,6 +231,20 @@ void Tracker::Update(const ars430::RadarMeasureFrame::ConstPtr& front_radar_meas
     motion_fusion_->SetSensorR("Radar0", R);
   } else {
     motion_fusion_->SetSensorR("Radar0", motion_kf_config_.sensor_R.at("Radar0"));
+  }
+
+  // @author zzg 2025-01-13 解决盲区内，无激光测量后，只由前向毫米波测量维持的融合目标入侵自车车道
+  Eigen::Matrix4d local_to_car = object_ptr_->odo_lidar_ptr->Matrix().inverse();
+  Eigen::Vector4d center_vec(object_ptr_->center.x(), object_ptr_->center.y(), object_ptr_->center.z(), 1.0);
+  center_vec = local_to_car * center_vec;
+  Eigen::Vector3d temp_center = Eigen::Vector3d(center_vec.x(), center_vec.y(), center_vec.z());
+  if (std::fabs(temp_center.x()) < 15 && std::fabs(temp_center.y()) < 15) {
+    Eigen::MatrixXd R = motion_kf_config_.sensor_R.at("Radar0");
+    R(0, 0) = 100.0;
+    R(1, 1) = 100.0;
+    R(0, 0) = 100.0;
+    R(1, 1) = 100.0;
+    motion_fusion_->SetSensorR("Radar0", R);
   }
 
   if (!motion_fusion_->Update("Radar0", z)) {

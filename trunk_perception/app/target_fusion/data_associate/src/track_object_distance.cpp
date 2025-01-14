@@ -83,6 +83,33 @@ float TrackObjectDistance::Compute(const TrackerPtr& tracker_ptr, const LidarMea
     }
   }
 
+  // 2025-01-12 若激光测量类型与融合目标类型差距过大，不允许匹配上
+  bool use_type_filter_ = true;
+  if (use_type_filter_) {
+    ObjectType f_type = fused_obj->type;
+    ObjectType l_type = lidar_object->type;
+    if (f_type != l_type) {
+      if ((f_type == ObjectType::PEDESTRIAN || f_type == ObjectType::CONE || f_type == ObjectType::BARREL) &&
+          !(l_type == ObjectType::PEDESTRIAN || l_type == ObjectType::CONE || l_type != ObjectType::BARREL)) {
+        return distance;
+      }
+      if ((l_type == ObjectType::PEDESTRIAN || l_type == ObjectType::CONE || l_type == ObjectType::BARREL) &&
+          !(f_type == ObjectType::PEDESTRIAN || f_type == ObjectType::CONE || f_type == ObjectType::BARREL)) {
+        return distance;
+      }
+    }
+  }
+
+  // 2025-01-12 若激光测量size与融合目标size差距过大，不允许匹配上
+  bool use_size_filter_ = true;
+  if (use_size_filter_) {
+    Eigen::Vector3f f_size = fused_obj->size;
+    Eigen::Vector3f l_size = lidar_object->size;
+    if ((f_size[0] / l_size[0] > 5) || (f_size[1] / l_size[1] > 5) || (f_size[2] / l_size[2] > 5)) {
+      return distance;
+    }
+  }
+
   // cal distance
   float position_distance = 0.0;
   if (use_position_) {
@@ -229,7 +256,6 @@ float TrackObjectDistance::Compute(const TrackerPtr& tracker_ptr,
             Compute2DEuclideanDistance(fused_object->rear_middle_point, front_vision_object->rear_middle_point);
       } else if (position_point_ == "Mix_CR") {
         auto dis_center = Compute2DEuclideanDistance(fused_object->center, front_vision_object->center);
-        ;
         auto dis_rear_middle =
             Compute2DEuclideanDistance(fused_object->rear_middle_point, front_vision_object->rear_middle_point);
         position_distance = std::min(dis_center, dis_rear_middle);

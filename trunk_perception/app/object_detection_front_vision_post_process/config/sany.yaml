@@ -8,6 +8,7 @@ Config:
         min_lifetime_output: 3
         max_consecutive_lost_num: 5
         min_consecutive_valid_num: 3
+        max_velocity: 50.0 # 障碍物最大速度(m/s)
       IDPool:
         start_id: 1
         max_id: 255

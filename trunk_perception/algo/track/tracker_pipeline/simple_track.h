@@ -25,7 +25,8 @@ struct SimpleTrackParams {
   int min_consecutive_valid_num = 3;
   bool nms_by_polygon = false;
   bool predict_by_velocity = true;
-  
+  float max_velocity = 50.0F;
+
   std::string traker_method = "";
   YAML::Node traker_params;
 };

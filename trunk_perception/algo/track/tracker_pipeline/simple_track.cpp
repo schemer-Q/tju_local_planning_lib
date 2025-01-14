@@ -24,6 +24,7 @@ int SimpleTrack::Init(const YAML::Node& config) {
     params_.min_lifetime_output = params_config["min_lifetime_output"].as<int>();
     params_.max_consecutive_lost_num = params_config["max_consecutive_lost_num"].as<int>();
     params_.min_consecutive_valid_num = params_config["min_consecutive_valid_num"].as<int>();
+    params_.max_velocity = params_config["max_velocity"].as<float>();
     if (params_config["nms_by_polygon"].IsDefined()) {
       params_.nms_by_polygon = params_config["nms_by_polygon"].as<bool>();
     }
@@ -217,6 +218,13 @@ void SimpleTrack::managerLifeCycle() {
   }
 
   if (tracklets_.empty()) return;
+
+  // 去除速度异常的目标
+  for (auto& track : tracklets_) {
+    if (track.current_tracking_object.velocity.head(2).norm() > params_.max_velocity) {
+      track.state = TrackletState::DEAD;
+    }
+  }
 
   // nms
   nms();

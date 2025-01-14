@@ -182,6 +182,7 @@ void Tracker::Update(const LidarMeasureFrame::ConstPtr& lidar_measure_ptr) {
   // VTI-14538，解决 theta 角的突变，后续还需要更加合理的逻辑进行优化
   // 存在情形：远处激光测量一开始检测theta错误，后近处检测theta正确，前后theta相差很大，用 delta_theta_num
   // 标记变化次数，超过三次使用激光测量theta
+  float temp_theta = object_ptr_->theta;
   if (std::fabs(lidar_measure_ptr->theta - object_ptr_->theta) > 0.22 &&
       std::fabs((lidar_measure_ptr->theta - object_ptr_->theta) / object_ptr_->theta) > 0.5) {
     // 正常转弯掉头会达到 6.0、1.9，使用激光测量的 theta
@@ -195,7 +196,7 @@ void Tracker::Update(const LidarMeasureFrame::ConstPtr& lidar_measure_ptr) {
         object_ptr_->delta_theta_num = 0;
       } else {
         object_ptr_->delta_theta_num += 1;
-        object_ptr_->theta = object_ptr_->theta;
+        object_ptr_->theta = temp_theta;
       }
     }
   } else {

@@ -30,6 +30,10 @@
 ### Added
 - 视觉车道线检测输出confidence
 
+### Changed
+- 跟踪目标中添加bbox confidence
+- 跟踪算法中滤除速度异常的跟踪目标以减少检测不稳定导致的跟踪异常目标
+
 ## [0.3.1] - 2025-01-14
 ### Added
 - 激光物体检测增加cone和barrel类别

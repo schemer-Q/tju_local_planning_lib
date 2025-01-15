@@ -234,7 +234,28 @@ uint32_t TargetFusionA::GetFrontVisionData() {
   frame_ptr_->front_vision_timestamp = front_vision_frame_ptr->timestamp;
 
   CHECK_AND_RETURN(GetOdometryData(frame_ptr_->front_vision_timestamp, frame_ptr_->odometry_front_vision_ptr,
-                                   if_time_compensate_front_vision_odometry_));
+                                   if_time_compensate_vision_odometry_));
+
+  return ErrorCode::SUCCESS;
+}
+
+// @author zzg 2025-01-15 获取环视检测数据
+uint32_t TargetFusionA::GetSideVisionData() {
+  auto side_vision_frame_ptr = GET_SIDE_OD_VISION_FRAME();
+  if (side_vision_frame_ptr == nullptr) {
+    TWARNING << "TargetFusionA::GetSideVisionData GET_SIDE_OD_VISION_FRAME failed";
+    return ErrorCode::TARGET_FUSION_GET_DATA_SIDE_VISION_FAILED;
+  }
+
+  frame_ptr_->side_vision_detected_objects.reserve(side_vision_frame_ptr->detected_objects.size());
+  std::transform(side_vision_frame_ptr->detected_objects.begin(), side_vision_frame_ptr->detected_objects.end(),
+                 std::back_inserter(frame_ptr_->side_vision_detected_objects),
+                 [](const Object& obj) { return std::make_shared<VisionMeasureFrame>(obj); });
+
+  frame_ptr_->side_vision_timestamp = side_vision_frame_ptr->timestamp;
+
+  CHECK_AND_RETURN(GetOdometryData(frame_ptr_->side_vision_timestamp, frame_ptr_->odometry_side_vision_ptr,
+                                   if_time_compensate_vision_odometry_));
 
   return ErrorCode::SUCCESS;
 }

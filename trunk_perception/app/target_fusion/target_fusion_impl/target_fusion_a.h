@@ -159,7 +159,7 @@ class TargetFusionA : public TargetFusionBase {
   bool if_time_compensate_lidar_odometry_ = true;  ///< 是否对激光雷达odometry进行补偿
   bool if_time_compensate_front_radar_ = true;     ///< 是否对毫米波雷达数据进行时间补偿
   bool if_space_compensate_front_radar_ = true;  ///< 是否对毫米波雷达数据进行空间补偿(补偿自车位移)
-  bool if_time_compensate_front_vision_odometry_ = true;  ///< 是否对前向视觉数据进行时间补偿
+  bool if_time_compensate_vision_odometry_ = true;  ///< 是否对前向视觉数据进行时间补偿
 
   bool is_first_frame_ = true;  ///< 是否是第一帧，第一帧则直接创建新的tracker，不需要关联
   std::shared_ptr<IDPool> id_pool_ptr_ = nullptr;

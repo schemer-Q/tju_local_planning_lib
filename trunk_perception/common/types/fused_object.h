@@ -206,7 +206,7 @@ struct alignas(32) RadarMeasureFrame : SensorMeasureFrame {
 };
 }  // namespace ars430
 
-// @author zzg 2024-12-13
+// @author zzg 2024-12-13 视觉数据帧
 struct alignas(32) VisionMeasureFrame : SensorMeasureFrame {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -297,7 +297,7 @@ struct alignas(32) VisionMeasureFrame : SensorMeasureFrame {
   typedef std::shared_ptr<const VisionMeasureFrame> ConstPtr;
 };
 
-// @author zzg 增加为彪角雷达
+// @author zzg 增加为彪角雷达数据帧
 namespace cubtektar {
 struct alignas(32) RadarMeasureFrame : SensorMeasureFrame {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW

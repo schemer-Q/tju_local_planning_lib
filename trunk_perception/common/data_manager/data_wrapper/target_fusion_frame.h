@@ -47,6 +47,11 @@ struct TargetFusionFrame {
   std::vector<VisionMeasureFrame::Ptr> front_vision_tracked_objects;  ///< 前向视觉检测目标，车体系下
   std::vector<VisionMeasureFrame::Ptr> front_vision_tracked_objects_local;  ///< 局部坐标系下，前向视觉检测到的目标
 
+  // 来自环视检测管线的数据 @author zzg 2025-01-15
+  double side_vision_timestamp = 0.0;
+  std::vector<VisionMeasureFrame::Ptr> side_vision_detected_objects;  ///< 前向视觉检测目标，车体系下
+  std::vector<VisionMeasureFrame::Ptr> side_vision_detected_objects_local;  ///< 局部坐标系下，前向视觉检测到的目标
+
 	// 来自右前角毫米波检测管线的数据
 	double corner_radar1_timestamp = 0.0;
 	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar1_objects;              // 右前角毫米波雷达检测到的目标, 车体系下
@@ -76,6 +81,7 @@ struct TargetFusionFrame {
   Odometry::Ptr odometry_corner_radar5_ptr = nullptr;
   Odometry::Ptr odometry_corner_radar7_ptr = nullptr;
   Odometry::Ptr odometry_corner_radar11_ptr = nullptr;
+  Odometry::Ptr odometry_side_vision_ptr = nullptr;
 
   // 未分配的观测数据
   std::vector<size_t> unassigned_lidar_objects_;

@@ -30,6 +30,7 @@ int SimpleTrack::Init(const YAML::Node& config) {
     }
     if (params_config["predict_by_velocity"].IsDefined()) {
       params_.predict_by_velocity = params_config["predict_by_velocity"].as<bool>();
+      params_.trigger_predict_count = params_config["trigger_predict_count"].as<int>();
     }
 
     // ID manager init
@@ -175,7 +176,7 @@ void SimpleTrack::updateAssignedTracks(const std::vector<Object>& objects_detect
 void SimpleTrack::updateUnassignedTracks(const std::vector<size_t>& unassigned_tracks, const double timestamp) {
   for (size_t i = 0UL; i < unassigned_tracks.size(); ++i) {
     auto& track = tracklets_[unassigned_tracks[i]];
-    track.Predict(timestamp, params_.predict_by_velocity);
+    track.Predict(timestamp);
 
     if (track.current_tracking_object.consecutive_lost >= params_.max_consecutive_lost_num ||
         track.state == TrackletState::UNCONFIRMED) {
@@ -197,7 +198,7 @@ void SimpleTrack::addObjectToTrack(const Object& object_detected) {
     return;
   }
 
-  Tracklet track;
+  Tracklet track(params_);
   track.current_tracking_object = object_detected;
   track.current_tracking_object.track_id = id_manager_ptr_->ExtractID();
   track.current_tracking_object.lifetime = 1;

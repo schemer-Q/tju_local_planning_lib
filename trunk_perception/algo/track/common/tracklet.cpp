@@ -17,11 +17,11 @@
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
-void Tracklet::Predict(const double timestamp, const bool predict_by_velocity) {
+void Tracklet::Predict(const double timestamp) {
   const double dt = timestamp - current_tracking_object.timestamp;
   tracker_method_ptr->Predict(dt, current_tracking_object);
 
-  if (predict_by_velocity) {
+  if (params_.predict_by_velocity && current_tracking_object.lifetime >= params_.trigger_predict_count) {
     const auto& velocity = current_tracking_object.velocity;
     auto& bbox = current_tracking_object.bbox;
     bbox.center += velocity * dt;

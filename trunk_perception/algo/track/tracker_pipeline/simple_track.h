@@ -13,23 +13,12 @@
 
 #include "trunk_perception/algo/track/common/geometric_algo.h"
 #include "trunk_perception/algo/track/common/id_manager.h"
+#include "trunk_perception/algo/track/common/track_param.h"
 #include "trunk_perception/algo/track/common/tracklet.h"
 #include "trunk_perception/algo/track/matcher/matcher_base.h"
 #include "trunk_perception/algo/track/tracker_pipeline/tracker_pipeline_interface.h"
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
-
-struct SimpleTrackParams {
-  int min_lifetime_output = 3;
-  int max_consecutive_lost_num = 5;
-  int min_consecutive_valid_num = 3;
-  bool nms_by_polygon = false;
-  bool predict_by_velocity = true;
-  float max_velocity = 50.0F;
-
-  std::string traker_method = "";
-  YAML::Node traker_params;
-};
 
 class SimpleTrack : virtual public TrackerPipelineInterface {
  public:

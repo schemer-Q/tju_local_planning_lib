@@ -33,6 +33,7 @@
 ### Changed
 - 跟踪目标中添加bbox confidence
 - 跟踪算法中滤除速度异常的跟踪目标以减少检测不稳定导致的跟踪异常目标
+- 跟踪目标中添加bbox theta confidence
 
 ## [0.3.1] - 2025-01-14
 ### Added

@@ -11,7 +11,9 @@
 
 #include <cmath>
 
+#include "trunk_perception/algo/track/common/geometric_algo.h"
 #include "trunk_perception/algo/track/common/tracklet.h"
+#include "trunk_perception/tools/log/t_log.h"
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
 
@@ -45,6 +47,11 @@ void Tracklet::Update(const Object& object) {
   const float d_area = object.bbox.size.head(2).prod();
   const float t_area = current_tracking_object.bbox.size.head(2).prod();
   current_tracking_object.bbox_confidence = 1.0F - std::abs(d_area - t_area) / (std::max(d_area, t_area) + 1E-6);
+
+  // bbox theta confidence update
+  const auto d_theta = object.bbox.theta;
+  const auto t_theta = current_tracking_object.bbox.theta;
+  current_tracking_object.theta_confidence = 1.0F - std::abs(getAngleDiff(t_theta, d_theta)) / M_PI;
 
   current_tracking_object.lifetime += 1;
   current_tracking_object.consecutive_lost = 0;

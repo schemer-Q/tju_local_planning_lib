@@ -67,6 +67,8 @@ static std::unordered_map<ObjectType, std::string> ObjectTypeDict = {
     {ObjectType::PEDESTRIAN, "PEDESTRIAN"},
     {ObjectType::BUS, "BUS"},
     {ObjectType::TRICYCLE, "TRICYCLE"},
+    {ObjectType::CONE, "CONE"},
+    {ObjectType::BARREL, "BARREL"},
     /********************************************************/
     {ObjectType::ART, "ART"},
     {ObjectType::ART_NO_TRAILER, "ART_NO_TRAILER"},

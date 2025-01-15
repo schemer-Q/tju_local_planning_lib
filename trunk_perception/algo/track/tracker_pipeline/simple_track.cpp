@@ -252,7 +252,7 @@ void SimpleTrack::nms() {
         iou = getOverlapRate(object_i.bbox.corners2d, object_j.bbox.corners2d);
       }
 
-      if (iou > 0.3) {
+      if (iou > 0.5) {
         if (object_j.lifetime > object_i.lifetime) {
           tracked_i.state = TrackletState::DEAD;
         } else {

@@ -57,7 +57,6 @@ enum class ObjectType : std::uint8_t {
   /********************************************************/
   OTHERS = 40,  ///< 其他
   /********************************************************/
-  SIZE = 24,  ///< ObjectType 枚举类成员数量(不包含SIZE类型本身)
 };
 
 static std::unordered_map<ObjectType, std::string> ObjectTypeDict = {

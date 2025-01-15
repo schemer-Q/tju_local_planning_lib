@@ -33,6 +33,8 @@ static std::unordered_map<lidar_net::base::ObjectType, ObjectType> SDKObjectType
     {lidar_net::base::ObjectType::FORKLIFT, ObjectType::FORKLIFT},
     {lidar_net::base::ObjectType::ECCENTRIC_TRUNK_HEAD, ObjectType::ECCENTRIC_TRUNK_HEAD},
     {lidar_net::base::ObjectType::MOBILE_CRANE, ObjectType::MOBILE_CRANE},
+    {lidar_net::base::ObjectType::CONE, ObjectType::CONE},
+    {lidar_net::base::ObjectType::BARREL, ObjectType::BARREL},
 };
 
 static ObjectType ConvertSDKObjectType(lidar_net::base::ObjectType type) {

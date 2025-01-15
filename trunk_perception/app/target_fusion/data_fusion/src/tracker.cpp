@@ -143,6 +143,13 @@ uint32_t Tracker::Update(const std::vector<SensorMeasureFrame::ConstPtr>& measur
         continue;
       }
       Update(front_vision_measure_ptr);
+    } else if (measure_ptr->sensor_type == MeasureSensorType::CUBTEKTARRadar) {
+      auto corner_radar_ptr = std::static_pointer_cast<const cubtektar::RadarMeasureFrame>(measure_ptr);
+      if (!corner_radar_ptr) {
+        TERROR << "[Tracker] corner_radar_ptr is nullptr";
+        continue;
+      }
+      Update(corner_radar_ptr);
     }
   }
 
@@ -282,6 +289,61 @@ void Tracker::Update(const VisionMeasureFrame::ConstPtr& front_vision_measure_pt
   object_ptr_->obj_front_vision_ptr_ = front_vision_measure_ptr;
 }
 
+void Tracker::Update(const cubtektar::RadarMeasureFrame::ConstPtr& corner_radar_measure_ptr) {
+  if (!corner_radar_measure_ptr) {
+    TERROR << "[Tracker] corner_radar_measure_ptr is nullptr";
+    return;
+  }
+
+  Eigen::VectorXd z = GetMeasurementFromCornerRadar(corner_radar_measure_ptr);
+
+  // 此时因为只有radar观测，需要加快radar的位置收敛速度
+  if (object_ptr_->flag_special_keep_stable) {
+    Eigen::MatrixXd R = motion_kf_config_.sensor_R.at("Radar0");
+    R(0, 0) = 1.0;
+    R(1, 1) = 1.0;
+    motion_fusion_->SetSensorR("Radar0", R);
+  } else {
+    motion_fusion_->SetSensorR("Radar0", motion_kf_config_.sensor_R.at("Radar0"));
+  }
+
+  if (!motion_fusion_->Update("Radar0", z)) {
+    TERROR << "[Tracker] update motion fusion with front radar measure failed!";
+    return;
+  }
+
+  UpdateObjectPoseVelocity();
+
+  object_ptr_->front_radar_consecutive_lost = 0;
+  object_ptr_->front_radar_total_life += 1;
+  object_ptr_->front_radar_consecutive_hit += 1;
+  if (corner_radar_measure_ptr->corner_radar_name_ == CornerRadarName::RADAR1) {
+    object_corner_radar1_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->obj_corner_radar1_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->corner_radar1_consecutive_lost = 0;
+    object_ptr_->corner_radar1_consecutive_hit += 1;
+    object_ptr_->corner_radar1_total_life += 1;
+  } else if (corner_radar_measure_ptr->corner_radar_name_ == CornerRadarName::RADAR5) {
+    object_corner_radar5_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->obj_corner_radar5_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->corner_radar5_consecutive_lost = 0;
+    object_ptr_->corner_radar5_consecutive_hit += 1;
+    object_ptr_->corner_radar5_total_life += 1;
+  } else if (corner_radar_measure_ptr->corner_radar_name_ == CornerRadarName::RADAR7) {
+    object_corner_radar7_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->obj_corner_radar7_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->corner_radar7_consecutive_lost = 0;
+    object_ptr_->corner_radar7_consecutive_hit += 1;
+    object_ptr_->corner_radar7_total_life += 1;
+  } else if (corner_radar_measure_ptr->corner_radar_name_ == CornerRadarName::RADAR11) {
+    object_corner_radar11_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->obj_corner_radar11_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->corner_radar11_consecutive_lost = 0;
+    object_ptr_->corner_radar11_consecutive_hit += 1;
+    object_ptr_->corner_radar11_total_life += 1;
+  }
+}
+
 Eigen::VectorXd Tracker::GetStateFromFusedObject() {
   switch (motion_kf_config_.motion_model) {
     case MotionModel::CV:
@@ -332,6 +394,30 @@ Eigen::VectorXd Tracker::GetMeasurementFromFrontRadar(
         return Eigen::VectorXd();
       }
 
+      return z;
+  }
+  return Eigen::VectorXd();
+}
+
+Eigen::VectorXd Tracker::GetMeasurementFromCornerRadar(
+    const cubtektar::RadarMeasureFrame::ConstPtr& corner_radar_measure_ptr) {
+  switch (motion_kf_config_.motion_model) {
+    case MotionModel::CV:
+      Eigen::Vector4d z;
+      if (object_ptr_->track_point_type == TrackPointType::RearMiddle) {
+        z << corner_radar_measure_ptr->local_distance2d.x(), corner_radar_measure_ptr->local_distance2d.y(),
+            corner_radar_measure_ptr->local_velocity2d.x(), corner_radar_measure_ptr->local_velocity2d.y();
+      } else if (object_ptr_->track_point_type == TrackPointType::Center) {
+        double cos_yaw = std::cos(object_ptr_->theta);
+        double sin_yaw = std::sin(object_ptr_->theta);
+        double center_x = corner_radar_measure_ptr->local_distance2d.x() + cos_yaw * object_ptr_->size.x() / 2.0;
+        double center_y = corner_radar_measure_ptr->local_distance2d.y() + sin_yaw * object_ptr_->size.x() / 2.0;
+        z << center_x, center_y, corner_radar_measure_ptr->local_velocity2d.x(),
+            corner_radar_measure_ptr->local_velocity2d.y();
+      } else {
+        TERROR << "[Tracker] GetMeasurementFromFrontRadar track_point_type is not implemented!";
+        return Eigen::VectorXd();
+      }
       return z;
   }
   return Eigen::VectorXd();

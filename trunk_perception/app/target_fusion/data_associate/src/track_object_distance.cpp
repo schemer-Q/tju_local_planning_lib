@@ -273,6 +273,56 @@ float TrackObjectDistance::Compute(const TrackerPtr& tracker_ptr,
   return distance;
 }
 
+float TrackObjectDistance::Compute(const TrackerPtr& tracker_ptr,
+                                   const cubtektar::RadarMeasureFrame::ConstPtr& corner_radar_object) {
+  float distance = std::numeric_limits<float>::max();
+  if (!tracker_ptr || !corner_radar_object) {
+    TERROR << "TrackObjectDistance::Compute input is nullptr";
+    return distance;
+  }
+
+  FusedObject::ConstPtr fused_obj = tracker_ptr->GetFusedObject();
+  Eigen::Vector3d radar_obj_pos(corner_radar_object->local_distance2d.x(), corner_radar_object->local_distance2d.y(),
+                                0);
+  Eigen::Vector3f radar_obj_velocity(corner_radar_object->local_velocity2d.x(),
+                                     corner_radar_object->local_velocity2d.y(), 0);
+
+  // filter
+  if (use_velocity_filter_) {
+    float velocity_rel_distance = Compute2DRelEuclideanDistance(fused_obj->velocity, radar_obj_velocity);
+    float velocity_abs_distance = Compute2DEuclideanDistance(fused_obj->velocity, radar_obj_velocity);
+    if (velocity_rel_distance > velocity_filter_rel_thresh_ && velocity_abs_distance > velocity_filter_abs_thresh_) {
+      return distance;
+    }
+  }
+
+  if (use_position_filter_) {
+    Eigen::Vector2f position_distance =
+        ComputeOrthogonalDistance(fused_obj->rear_middle_point, radar_obj_pos, fused_obj->theta);
+    if (position_distance.x() > position_filter_orthogonal_thresh_ ||
+        position_distance.y() > position_filter_longitudinal_thresh_) {
+      return distance;
+    }
+  }
+
+  // cal distance
+  float position_distance = 0.0;
+  if (use_position_) {
+    // position_distance = ComputeOrthogonalDistance(fused_obj->rear_middle_point, radar_obj_pos, fused_obj->theta).x();
+    // @author zzg 修改距离计算方式 为 Compute2DEuclideanDistance
+    position_distance = Compute2DEuclideanDistance(fused_obj->rear_middle_point, radar_obj_pos);
+  }
+
+  float velocity_distance = 0.0;
+  if (use_velocity_) {
+    velocity_distance = Compute2DEuclideanDistance(fused_obj->velocity, radar_obj_velocity);
+  }
+
+  distance = position_distance * position_weight_ + velocity_distance * velocity_weight_;
+
+  return distance;
+}
+
 template <typename T>
 float TrackObjectDistance::Compute2DEuclideanDistance(const Eigen::Matrix<T, 3, 1>& des,
                                                       const Eigen::Matrix<T, 3, 1>& src) {

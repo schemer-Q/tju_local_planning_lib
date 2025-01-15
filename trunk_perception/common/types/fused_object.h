@@ -17,6 +17,7 @@
 #include "trunk_perception/common/types/object.h"
 #include "trunk_perception/common/types/odometry.h"
 #include "trunk_perception/common/types/radar_ars430.h"
+#include "trunk_perception/common/types/radar_cubtektar.h"
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_BEGIN
 
@@ -33,6 +34,14 @@ enum class MeasureSensorType {
   Lidar = 0,
   ARS430Radar = 1,
   FrontVision = 2,
+  CUBTEKTARRadar = 3,
+};
+
+enum class CornerRadarName {
+  RADAR1 = 0,
+  RADAR5 = 1,
+  RADAR7 = 2,
+  RADAR11 = 3,
 };
 
 struct alignas(32) SensorMeasureFrame {
@@ -288,6 +297,51 @@ struct alignas(32) VisionMeasureFrame : SensorMeasureFrame {
   typedef std::shared_ptr<const VisionMeasureFrame> ConstPtr;
 };
 
+// @author zzg 增加为彪角雷达
+namespace cubtektar {
+struct alignas(32) RadarMeasureFrame : SensorMeasureFrame {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  RadarObject radar_obj;
+  Eigen::Vector2d local_distance2d = Eigen::Vector2d::Zero();  ///< 局部坐标系下的位置
+  Eigen::Vector2d local_velocity2d = Eigen::Vector2d::Zero();  ///< 局部坐标系下的速度
+  CornerRadarName corner_radar_name_;
+
+  RadarMeasureFrame(const RadarObject& radar_obj, const double& ts, const CornerRadarName& corner_radar_name)
+      : radar_obj(radar_obj) {
+    timestamp = ts;
+    sensor_type = MeasureSensorType::CUBTEKTARRadar;
+    corner_radar_name_ = corner_radar_name;
+
+    local_distance2d = Eigen::Vector2d(radar_obj.x, radar_obj.y);
+    local_velocity2d = Eigen::Vector2d(radar_obj.vx, radar_obj.vy);
+  }
+
+  /**
+   * @brief 将位置坐标转换到另一个坐标系下
+   *
+   * @param trans_mat 转换矩阵
+   */
+  void Transform(const Eigen::Matrix4d& trans_mat) override {
+    // 转换位置坐标
+    Eigen::Vector4d distance4d(radar_obj.x, radar_obj.y, 0, 1);
+    distance4d = trans_mat * distance4d;
+    local_distance2d = Eigen::Vector2d(distance4d.x(), distance4d.y());
+
+    // 提取旋转矩阵用于速度向量变换
+    Eigen::Matrix3d rotation_matrix = trans_mat.block<3, 3>(0, 0);
+
+    // 转换速度向量
+    Eigen::Vector3d velocity3d(radar_obj.vx, radar_obj.vy, 0);
+    velocity3d = rotation_matrix * velocity3d;
+    local_velocity2d = Eigen::Vector2d(velocity3d.x(), velocity3d.y());
+  }
+
+  typedef std::shared_ptr<RadarMeasureFrame> Ptr;
+  typedef std::shared_ptr<const RadarMeasureFrame> ConstPtr;
+};
+}  // namespace cubtektar
+
 struct alignas(32) FusedObject {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -313,10 +367,14 @@ struct alignas(32) FusedObject {
   TrackPointType track_point_type = TrackPointType::Center;  ///< 跟踪点类型
 
   // 观测源信息
-  int life = 0;                     ///< 生命周期, frame
-  int lidar_total_life = 0;         ///< 激光雷达总生命周期, frame
-  int front_radar_total_life = 0;   ///< 前向毫米波雷达总生命周期, frame
-  int front_vision_total_life = 0;  ///< 前向视觉总生命周期, frame
+  int life = 0;                       ///< 生命周期, frame
+  int lidar_total_life = 0;           ///< 激光雷达总生命周期, frame
+  int front_radar_total_life = 0;     ///< 前向毫米波雷达总生命周期, frame
+  int front_vision_total_life = 0;    ///< 前向视觉总生命周期, frame
+  int corner_radar1_total_life = 0;   ///< 右前角毫米波总生命周期, frame
+  int corner_radar11_total_life = 0;  ///< 右后角毫米波总生命周期, frame
+  int corner_radar5_total_life = 0;   ///< 左后角毫米波总生命周期, frame
+  int corner_radar7_total_life = 0;   ///< 左前角毫米波总生命周期, frame
 
   int lidar_consecutive_hit = 0;   ///< 激光雷达连续命中帧数
   int lidar_consecutive_lost = 0;  ///< 激光雷达连续丢失帧数
@@ -330,9 +388,22 @@ struct alignas(32) FusedObject {
   int front_vision_consecutive_hit = 0;   ///< 前向视觉目标连续命中帧数
   int front_vision_consecutive_lost = 0;  ///< 前向视觉目标连续丢失帧数
 
-  LidarMeasureFrame::ConstPtr obj_lidar_ptr_ = nullptr;                ///< 最新的激光雷达观测
-  ars430::RadarMeasureFrame::ConstPtr obj_front_radar_ptr_ = nullptr;  ///< 最新的前向毫米波雷达观测
-  VisionMeasureFrame::ConstPtr obj_front_vision_ptr_ = nullptr;        ///< 最新的前向视觉观测
+  int corner_radar1_consecutive_hit = 0;    ///< 右前角毫米波雷达连续命中帧数
+  int corner_radar1_consecutive_lost = 0;   ///< 右前角毫米波雷达连续丢失帧数
+  int corner_radar5_consecutive_hit = 0;    ///< 右后角毫米波雷达连续命中帧数
+  int corner_radar5_consecutive_lost = 0;   ///< 右后角毫米波雷达连续丢失帧数
+  int corner_radar7_consecutive_hit = 0;    ///< 左后角毫米波雷达连续命中帧数
+  int corner_radar7_consecutive_lost = 0;   ///< 左后角毫米波雷达连续丢失帧数
+  int corner_radar11_consecutive_hit = 0;   ///< 左前角毫米波雷达连续命中帧数
+  int corner_radar11_consecutive_lost = 0;  ///< 左前角毫米波雷达连续丢失帧数
+
+  LidarMeasureFrame::ConstPtr obj_lidar_ptr_ = nullptr;                      ///< 最新的激光雷达观测
+  ars430::RadarMeasureFrame::ConstPtr obj_front_radar_ptr_ = nullptr;        ///< 最新的前向毫米波雷达观测
+  VisionMeasureFrame::ConstPtr obj_front_vision_ptr_ = nullptr;              ///< 最新的前向视觉观测
+  cubtektar::RadarMeasureFrame::ConstPtr obj_corner_radar1_ptr_ = nullptr;   ///< 最新的右前角毫米波观测
+  cubtektar::RadarMeasureFrame::ConstPtr obj_corner_radar11_ptr_ = nullptr;  ///< 最新的左前角毫米波观测
+  cubtektar::RadarMeasureFrame::ConstPtr obj_corner_radar5_ptr_ = nullptr;   ///< 最新的右后角毫米波观测
+  cubtektar::RadarMeasureFrame::ConstPtr obj_corner_radar7_ptr_ = nullptr;   ///< 最新的左后角毫米波观测
 
   Odometry::Ptr odo_lidar_ptr =
       nullptr;  ///< 激光测量时间戳下的 odometry ，用于将 center 转到 车体系下，存在性更新中用于限制目标距离

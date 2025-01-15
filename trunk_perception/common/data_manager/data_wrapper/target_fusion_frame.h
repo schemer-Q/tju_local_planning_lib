@@ -47,16 +47,44 @@ struct TargetFusionFrame {
   std::vector<VisionMeasureFrame::Ptr> front_vision_tracked_objects;  ///< 前向视觉检测目标，车体系下
   std::vector<VisionMeasureFrame::Ptr> front_vision_tracked_objects_local;  ///< 局部坐标系下，前向视觉检测到的目标
 
+	// 来自右前角毫米波检测管线的数据
+	double corner_radar1_timestamp = 0.0;
+	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar1_objects;              // 右前角毫米波雷达检测到的目标, 车体系下
+	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar1_objects_local;        // 局部坐标系下右前角毫米波雷达检测到的目标
+
+	// 来自右后角毫米波检测管线的数据
+	double corner_radar5_timestamp = 0.0;
+	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar5_objects;              // 右后角毫米波雷达检测到的目标，车体系下
+	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar5_objects_local;        // 局部坐标系下右后角毫米波雷达检测到的目标
+
+	// 来自左后角毫米波检测管线的数据
+	double corner_radar7_timestamp = 0.0;
+	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar7_objects;              // 左后角毫米波雷达检测到的目标，车体系下
+	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar7_objects_local;        // 局部坐标系下左后角毫米波雷达检测到的目标
+
+	// 来自左前角毫米波检测管线的数据
+	double corner_radar11_timestamp = 0.0;
+	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar11_objects;              // 左前角毫米波雷达检测到的目标, 车体系下
+	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar11_objects_local;        // 局部坐标系下左前角毫米波雷达检测到的目标
+
   // Odometry数据
   Odometry::Ptr odometry_lidar_ptr = nullptr;
   Odometry::Ptr odometry_front_radar_ptr = nullptr;
   Odometry::Ptr odometry_front_vision_ptr = nullptr;
   Odometry::Ptr odometry_ts_ptr = nullptr;
+  Odometry::Ptr odometry_corner_radar1_ptr = nullptr;
+  Odometry::Ptr odometry_corner_radar5_ptr = nullptr;
+  Odometry::Ptr odometry_corner_radar7_ptr = nullptr;
+  Odometry::Ptr odometry_corner_radar11_ptr = nullptr;
 
   // 未分配的观测数据
   std::vector<size_t> unassigned_lidar_objects_;
   std::vector<size_t> unassigned_front_radar_objects_;
   std::vector<size_t> unassigned_front_vision_objects_;
+  std::vector<size_t> unassigned_corner_radar_1_objects_;
+  std::vector<size_t> unassigned_corner_radar_5_objects_;
+  std::vector<size_t> unassigned_corner_radar_7_objects_;
+  std::vector<size_t> unassigned_corner_radar_11_objects_;
 
   // 融合后的目标
   std::vector<FusedObject::Ptr> fused_objects;

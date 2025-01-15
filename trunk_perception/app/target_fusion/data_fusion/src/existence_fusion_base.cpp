@@ -1,6 +1,7 @@
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_base.h"
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l1r.h"
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l1r1v.h"
+#include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l5r1v.h"
 #include "trunk_perception/tools/log/t_log.h"
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
@@ -15,6 +16,8 @@ ExistenceFusionBase::Ptr ExistenceFusionFactory::Create(const ExistenceFusionCon
     return std::make_shared<ExistenceFusion1L1R>(config);
   } else if (config->type == "1L1R1V") {
     return std::make_shared<ExistenceFusion1L1R1V>(config);
+  } else if (config->type == "1L5R1V") {
+    return std::make_shared<ExistenceFusion1L5R1V>(config);
   } else {
     TFATAL << "ExistenceFusionFactory::Create: unknown existence fusion type: " << config->type;
   }

@@ -68,6 +68,34 @@ class TargetFusionA : public TargetFusionBase {
   uint32_t GetFrontVisionData();
 
   /**
+   * @brief 获取右前角毫米波雷达数据
+   * @author zzg 2024-11-28
+   * @return uint32_t 错误码
+   */
+  uint32_t GetRightFrontCubtektarRadarData();
+
+  /**
+   * @brief 获取右后角毫米波雷达数据
+   * @author zzg 2024-11-28
+   * @return uint32_t 错误码
+   */
+  uint32_t GetRightRearCubtektarRadarData();
+
+  /**
+   * @brief 获取左后角毫米波雷达数据
+   * @author zzg 2024-11-28
+   * @return uint32_t 错误码
+   */
+  uint32_t GetLeftRearCubtektarRadarData();
+
+  /**
+   * @brief 获取左前角毫米波雷达数据
+   * @author zzg 2024-11-28
+   * @return uint32_t 错误码
+   */
+  uint32_t GetLeftFrontCubtektarRadarData();
+
+  /**
    * @brief 获取odometry数据
    *
    * @param ts [IN] 需要对齐的时间戳, 秒
@@ -141,14 +169,26 @@ class TargetFusionA : public TargetFusionBase {
   AssociationResult stable_tracker_lidar_association_result_;
   AssociationResult stable_tracker_radar_association_result_;
   AssociationResult stable_tracker_front_vision_association_result_;
+  AssociationResult stable_tracker_corner_radar_1_association_result_;
+  AssociationResult stable_tracker_corner_radar_5_association_result_;
+  AssociationResult stable_tracker_corner_radar_7_association_result_;
+  AssociationResult stable_tracker_corner_radar_11_association_result_;
 
   AssociationResult new_tracker_lidar_association_result_;
   AssociationResult new_tracker_radar_association_result_;
   AssociationResult new_tracker_front_vision_association_result_;
+  AssociationResult new_tracker_corner_radar_1_association_result_;
+  AssociationResult new_tracker_corner_radar_5_association_result_;
+  AssociationResult new_tracker_corner_radar_7_association_result_;
+  AssociationResult new_tracker_corner_radar_11_association_result_;
 
   AssociationResult lost_tracker_lidar_association_result_;
   AssociationResult lost_tracker_radar_association_result_;
   AssociationResult lost_tracker_front_vision_association_result_;
+  AssociationResult lost_tracker_corner_radar_1_association_result_;
+  AssociationResult lost_tracker_corner_radar_5_association_result_;
+  AssociationResult lost_tracker_corner_radar_7_association_result_;
+  AssociationResult lost_tracker_corner_radar_11_association_result_;
 
   std::vector<TrackerPtr> new_trackers_;  ///< 起始集, 跟踪帧数低于阈值，连续多帧丢失观测后直接删除，不进入丢失集
   std::vector<TrackerPtr> stable_trackers_;  ///< 稳定集，同时也是输出集合

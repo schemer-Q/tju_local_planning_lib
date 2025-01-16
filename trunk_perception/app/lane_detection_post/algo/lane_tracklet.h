@@ -19,6 +19,7 @@
 #include <opencv2/video/tracking.hpp>
 #include <vector>
 #include "trunk_perception/app/lane_detection_post/algo/type_filter.h"
+#include "trunk_perception/app/lane_detection_post/algo/lane_quality.h"
 #include "trunk_perception/common/macros.h"
 #include "trunk_perception/common/tools/camera_undistort.hpp"
 #include "trunk_perception/common/tools/standard_camera_projection.hpp"
@@ -58,7 +59,7 @@ class LaneTracklet {
    * @param camera_name 相机名称
    */
   LaneTracklet(const int& tracklet_id, const LaneLineVision& lane, const Eigen::Matrix4d& cur_pose,
-               const std::string& camera_name);
+               const std::string& camera_name, std::shared_ptr<LaneQualityEvaluator> lane_quality_evaluator);
   ~LaneTracklet();
 
   /**
@@ -248,6 +249,8 @@ class LaneTracklet {
 
   std::deque<float> a0_queue_;   ///< a0的队列,用于统计0m处的方差
   std::deque<float> a70_queue_;  ///< a70的队列,用于统计70m处的方差
+
+  std::shared_ptr<LaneQualityEvaluator> quality_estimator_ = nullptr;   ///< 车道线质量估计器
 
   int poly_num_ = 1;  ///< 多项式次数,允许被设置为1或3
 

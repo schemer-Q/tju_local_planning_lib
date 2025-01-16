@@ -28,6 +28,7 @@ using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
 class BevLanePostImpl : public LdPostBase {
  public:
   using LaneTrackletPtr = std::shared_ptr<ld_post::LaneTracklet>;
+  using LaneQualityEvaluatorPrt = std::shared_ptr<ld_post::LaneQualityEvaluator>;
 
   BevLanePostImpl();
   ~BevLanePostImpl() override;
@@ -321,6 +322,8 @@ class BevLanePostImpl : public LdPostBase {
   bool lane_parallelization_ = true;    ///< 是否进行车道线平行化
   float egolane_parallel_fit_near_x_ = 0;
   float egolane_parallel_fit_far_x_ = 100;
+
+  LaneQualityEvaluatorPrt lane_quality_evaluator_ = nullptr;
 };
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

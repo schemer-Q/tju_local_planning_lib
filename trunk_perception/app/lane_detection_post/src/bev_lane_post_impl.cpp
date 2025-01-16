@@ -19,6 +19,20 @@ BevLanePostImpl::~BevLanePostImpl() = default;
 std::uint32_t BevLanePostImpl::Init(const YAML::Node& config) {
   try {
     camera_name_ = config["Name"].as<std::string>();
+    // LaneQualityEstimator
+    float check_range_near_x = config["LaneQuality"]["CheckRangeNearX"].as<float>();
+    float check_range_far_x = config["LaneQuality"]["CheckRangeFarX"].as<float>();
+    float line_outliner_thres = config["LaneQuality"]["LineOutlinerThres"].as<float>();
+    float norm_max_std_deviation = config["LaneQuality"]["NormMaxStdDeviation"].as<float>();
+    lane_quality_evaluator_ = std::make_shared<ld_post::LaneQualityEvaluator>(
+      check_range_near_x, check_range_far_x, line_outliner_thres, norm_max_std_deviation
+    );
+    if (lane_quality_evaluator_ == nullptr) {
+      TERROR << "BevLanePostImpl::Init() failed, lane_quality_evaluator_ is nullptr";
+      return ErrorCode::YAML_CONFIG_ERROR;
+    }
+
+
   } catch (const std::exception& e) {
     TFATAL << "BevLanePostImpl::Init() failed, " << e.what();
     return ErrorCode::YAML_CONFIG_ERROR;
@@ -59,10 +73,7 @@ std::uint32_t BevLanePostImpl::Run(const double& ts) {
     }
   }
   GenerateTracklets(ld_frame->lanes_tracked);
-  for (auto& lane: ld_frame->lanes_tracked) {
-    lane.lane_conf = 1.0f;
-  }
-  
+
   return ErrorCode::SUCCESS;
 }
 
@@ -200,7 +211,7 @@ void BevLanePostImpl::Update(const std::vector<LaneLineVision>& lanes_detected) 
       continue;
     }
     // 未被关联的检测目标，为其创建新的target
-    auto new_tracklet = std::make_shared<ld_post::LaneTracklet>(new_id, lanes_detected[j], cur_pose_, camera_name_);
+    auto new_tracklet = std::make_shared<ld_post::LaneTracklet>(new_id, lanes_detected[j], cur_pose_, camera_name_, lane_quality_evaluator_);
     tracklets_.push_back(new_tracklet);
     TDEBUG << "create new tracklet " << new_tracklet->GetTrackletId();
   }

@@ -14,9 +14,13 @@ namespace ld_post {
 
 using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
 
-LaneTracklet::LaneTracklet(const int& tracklet_id, const LaneLineVision& lane, const Eigen::Matrix4d& cur_pose,
-                           const std::string& camera_name)
-    : camera_name_(camera_name), tracklet_id_(tracklet_id), latest_lane_(lane), latest_pose_(cur_pose) {
+LaneTracklet::LaneTracklet(const int& tracklet_id, 
+                           const LaneLineVision& lane, 
+                           const Eigen::Matrix4d& cur_pose,
+                           const std::string& camera_name, 
+                           std::shared_ptr<LaneQualityEvaluator> lane_quality_evaluator)
+    : camera_name_(camera_name), tracklet_id_(tracklet_id), latest_lane_(lane), 
+      latest_pose_(cur_pose), quality_estimator_(lane_quality_evaluator) {
   InitCameraProjection();
   InitFusionPtGridOccupancy();
   InitFusionPts();
@@ -322,6 +326,10 @@ void LaneTracklet::Update(const LaneLineVision& det_lane) {
   }
 
   latest_lane_.lane_line_type = LaneLineType(type_filter_.Update(latest_lane_.lane_line_type));
+  
+  // update lane_conf
+  float quality_score = quality_estimator_->EvaluateLaneQuality(latest_lane_);
+  latest_lane_.lane_conf = quality_score;
 }
 
 void LaneTracklet::UpdateFusionPts() {

@@ -10,6 +10,7 @@
  */
 
 #include <cmath>
+#include <numeric>
 
 #include "trunk_perception/algo/track/common/geometric_algo.h"
 #include "trunk_perception/algo/track/common/tracklet.h"
@@ -38,6 +39,10 @@ void Tracklet::Predict(const double timestamp) {
 
   current_tracking_object.consecutive_lost += 1;
   current_tracking_object.timestamp = timestamp;
+
+  // motion direction update
+  history_object_distance_.emplace_back(current_tracking_object.bbox.center.head(2).norm());
+  current_tracking_object.motion_direction = checkObjectMotionDirection(history_object_distance_);
 }
 
 void Tracklet::Update(const Object& object) {
@@ -66,6 +71,10 @@ void Tracklet::Update(const Object& object) {
   current_tracking_object.l_shape_feature = object.l_shape_feature;
   current_tracking_object.tail_center_feature = object.tail_center_feature;
   current_tracking_object.convex_polygon = object.convex_polygon;
+
+  // motion direction update
+  history_object_distance_.emplace_back(current_tracking_object.bbox.center.head(2).norm());
+  current_tracking_object.motion_direction = checkObjectMotionDirection(history_object_distance_);
 }
 
 void Tracklet::TransformToCurrent(const Eigen::Isometry3f& tf) {
@@ -134,6 +143,22 @@ void Tracklet::TransformToCurrent(const Eigen::Isometry3f& tf) {
 
   // tracker method
   tracker_method_ptr->TransformToCurrent(tf);
+
+  // history object distance
+  while (history_object_distance_.size() > 5) {
+    history_object_distance_.pop_front();
+  }
+}
+
+MotionDirection Tracklet::checkObjectMotionDirection(const std::deque<float>& distances) {
+  if (distances.size() <= 1UL) return MotionDirection::UNKNOWN;
+  const float sum_distance = std::accumulate(distances.begin(), distances.end(), 0.0F);
+  const float mean_distance = sum_distance / distances.size();
+  if (distances.back() > mean_distance) {
+    return MotionDirection::DEPARTURE;
+  } else {
+    return MotionDirection::ARRIVAL;
+  }
 }
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

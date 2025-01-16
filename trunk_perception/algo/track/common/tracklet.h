@@ -14,7 +14,11 @@
 #include "trunk_perception/algo/track/common/track_param.h"
 #include "trunk_perception/algo/track/tracker_method/tracker_method_base.h"
 
+#include <deque>
+
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
+
+using common::MotionDirection;
 
 enum class TrackletState { UNCONFIRMED, CONFIRMED, DEAD };
 
@@ -53,13 +57,17 @@ class Tracklet {
    */
   inline bool Dieout() const { return state == TrackletState::DEAD; }
 
+ private:
+  static MotionDirection checkObjectMotionDirection(const std::deque<float>& distances);
+
  public:
   Object current_tracking_object;
   std::shared_ptr<TrackerMethodBase> tracker_method_ptr = nullptr;
   TrackletState state = TrackletState::UNCONFIRMED;
 
  private:
-  SimpleTrackParams params_;  // track param
+  SimpleTrackParams params_;                   // track param
+  std::deque<float> history_object_distance_;  // history object distance
 };
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

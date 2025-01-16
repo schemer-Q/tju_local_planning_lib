@@ -68,6 +68,15 @@ class TargetFusionA : public TargetFusionBase {
   uint32_t GetFrontVisionData();
 
   /**
+   * @brief 获取环视视觉数据
+   *
+   * @return uint32_t 错误码
+   *
+   * @author zzg 2025-01-13
+   */
+  uint32_t GetSideVisionData();
+
+  /**
    * @brief 获取右前角毫米波雷达数据
    * @author zzg 2024-11-28
    * @return uint32_t 错误码
@@ -169,6 +178,7 @@ class TargetFusionA : public TargetFusionBase {
   AssociationResult stable_tracker_lidar_association_result_;
   AssociationResult stable_tracker_radar_association_result_;
   AssociationResult stable_tracker_front_vision_association_result_;
+  AssociationResult stable_tracker_side_vision_association_result_;
   AssociationResult stable_tracker_corner_radar_1_association_result_;
   AssociationResult stable_tracker_corner_radar_5_association_result_;
   AssociationResult stable_tracker_corner_radar_7_association_result_;
@@ -177,6 +187,7 @@ class TargetFusionA : public TargetFusionBase {
   AssociationResult new_tracker_lidar_association_result_;
   AssociationResult new_tracker_radar_association_result_;
   AssociationResult new_tracker_front_vision_association_result_;
+  AssociationResult new_tracker_side_vision_association_result_;
   AssociationResult new_tracker_corner_radar_1_association_result_;
   AssociationResult new_tracker_corner_radar_5_association_result_;
   AssociationResult new_tracker_corner_radar_7_association_result_;
@@ -185,6 +196,7 @@ class TargetFusionA : public TargetFusionBase {
   AssociationResult lost_tracker_lidar_association_result_;
   AssociationResult lost_tracker_radar_association_result_;
   AssociationResult lost_tracker_front_vision_association_result_;
+  AssociationResult lost_tracker_side_vision_association_result_;
   AssociationResult lost_tracker_corner_radar_1_association_result_;
   AssociationResult lost_tracker_corner_radar_5_association_result_;
   AssociationResult lost_tracker_corner_radar_7_association_result_;
@@ -198,7 +210,7 @@ class TargetFusionA : public TargetFusionBase {
   AssociateDebugData::Ptr associate_debug_data_ptr_;
 
   // 参数
-  int new_to_stable_life_thresh_ = 5;    ///< 起始集进入稳定集跟踪帧数阈值,否则直接删除  2025-01-13 修改阈值 3 -> 5
+  int new_to_stable_life_thresh_ = 5;  ///< 起始集进入稳定集跟踪帧数阈值,否则直接删除  2025-01-13 修改阈值 3 -> 5
   int stable_to_lost_life_thresh_ = 5;   ///< 稳定集进入丢失集跟踪帧数阈值
   int lost_to_stable_life_thresh_ = 3;   ///< 丢失集进入稳定集跟踪帧数阈值
   int lost_to_delete_life_thresh_ = 10;  ///< 丢失集删除跟踪帧数阈值

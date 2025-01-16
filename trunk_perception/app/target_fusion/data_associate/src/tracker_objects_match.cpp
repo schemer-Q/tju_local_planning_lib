@@ -12,15 +12,18 @@ TrackerObjectsMatch::TrackerObjectsMatch() {
   front_radar_distance_compute_ptr_ = std::make_shared<TrackObjectDistance>();
   lidar_distance_compute_ptr_ = std::make_shared<TrackObjectDistance>();
   front_vision_distance_compute_ptr_ = std::make_shared<TrackObjectDistance>();
+  side_vision_distance_compute_ptr_ = std::make_shared<TrackObjectDistance>();
   corner_radar_distance_compute_ptr_ = std::make_shared<TrackObjectDistance>();
 }
 
 std::uint32_t TrackerObjectsMatch::Init(const YAML::Node& config) {
-  YAML::Node radar_dis_config, lidar_dis_config, front_vision_dis_config, corner_radar_dis_config;
+  YAML::Node radar_dis_config, lidar_dis_config, front_vision_dis_config, side_vision_dis_config,
+      corner_radar_dis_config;
   try {
     radar_dis_config = config["DistanceCompute"]["FrontRadar"];
     lidar_dis_config = config["DistanceCompute"]["Lidar"];
     front_vision_dis_config = config["DistanceCompute"]["FrontVision"];
+    side_vision_dis_config = config["DistanceCompute"]["SideVision"];
     corner_radar_dis_config = config["DistanceCompute"]["CornerRadar"];
     hungarian_match_cost_thresh_lidar_ = config["HungarianMatcher"]["Lidar"]["MatchCostThresh"].as<float>();
     hungarian_match_bound_value_lidar_ = config["HungarianMatcher"]["Lidar"]["MatchBoundValue"].as<float>();
@@ -30,6 +33,8 @@ std::uint32_t TrackerObjectsMatch::Init(const YAML::Node& config) {
         config["HungarianMatcher"]["FrontVision"]["MatchCostThresh"].as<float>();
     hungarian_match_bound_value_front_vision_ =
         config["HungarianMatcher"]["FrontVision"]["MatchBoundValue"].as<float>();
+    hungarian_match_cost_thresh_side_vision_ = config["HungarianMatcher"]["SideVision"]["MatchCostThresh"].as<float>();
+    hungarian_match_bound_value_side_vision_ = config["HungarianMatcher"]["SideVision"]["MatchBoundValue"].as<float>();
     hungarian_match_cost_thresh_corner_radar_ =
         config["HungarianMatcher"]["CornerRadar"]["MatchCostThresh"].as<float>();
     hungarian_match_bound_value_corner_radar_ =
@@ -52,6 +57,11 @@ std::uint32_t TrackerObjectsMatch::Init(const YAML::Node& config) {
   }
 
   ret = front_vision_distance_compute_ptr_->Init(front_vision_dis_config);
+  if (ret != ErrorCode::SUCCESS) {
+    return ret;
+  }
+
+  ret = side_vision_distance_compute_ptr_->Init(side_vision_dis_config);
   if (ret != ErrorCode::SUCCESS) {
     return ret;
   }
@@ -165,6 +175,41 @@ void TrackerObjectsMatch::Match(const std::vector<TrackerPtr>& trackers,
   // 匈牙利匹配
   const auto opt_flag = GatedHungarianMatcher<float>::OptimizeFlag::OPTMIN;
   hungarian_matcher_ptr_->Match(hungarian_match_cost_thresh_front_vision_, hungarian_match_bound_value_front_vision_,
+                                opt_flag, &association_result.track_measurment_pairs,
+                                &association_result.unassigned_track_indices,
+                                &association_result.unassigned_measurment_indices);
+}
+
+// 环视视觉目标与航迹进行匹配 @author zzg 2025-01-13
+void TrackerObjectsMatch::Match(const std::vector<TrackerPtr>& trackers,
+                                const std::vector<SideVisionMeasureFrame::Ptr>& side_vision_objects,
+                                AssociationResult& association_result) {
+  association_result = AssociationResult();
+  if (trackers.empty() || side_vision_objects.empty()) {
+    association_result.unassigned_track_indices = std::vector<size_t>(trackers.size());
+    association_result.unassigned_measurment_indices = std::vector<size_t>(side_vision_objects.size());
+    std::iota(association_result.unassigned_track_indices.begin(), association_result.unassigned_track_indices.end(),
+              0);
+    std::iota(association_result.unassigned_measurment_indices.begin(),
+              association_result.unassigned_measurment_indices.end(), 0);
+    return;
+  }
+
+  // 计算距离矩阵
+  const size_t sz_track = trackers.size();
+  const size_t sz_detect = side_vision_objects.size();
+  auto global_costs = hungarian_matcher_ptr_->mutable_global_costs();
+  global_costs->Resize(sz_track, sz_detect);
+
+  for (size_t i = 0; i < sz_track; ++i) {
+    for (size_t j = 0; j < sz_detect; ++j) {
+      (*global_costs)(i, j) = side_vision_distance_compute_ptr_->Compute(trackers[i], side_vision_objects[j]);
+    }
+  }
+
+  // 匈牙利匹配
+  const auto opt_flag = GatedHungarianMatcher<float>::OptimizeFlag::OPTMIN;
+  hungarian_matcher_ptr_->Match(hungarian_match_cost_thresh_side_vision_, hungarian_match_bound_value_side_vision_,
                                 opt_flag, &association_result.track_measurment_pairs,
                                 &association_result.unassigned_track_indices,
                                 &association_result.unassigned_measurment_indices);

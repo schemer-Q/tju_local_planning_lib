@@ -53,6 +53,16 @@ class TrackObjectDistance {
   float Compute(const TrackerPtr& tracker_ptr, const VisionMeasureFrame::ConstPtr& front_vision_object);
 
   /**
+   * @brief 计算跟踪目标与环视视觉检测目标之间的距离
+   *
+   * @param tracker_ptr [IN] 跟踪目标
+   * @param side_vision_object [IN] 环视视觉检测目标
+   * @return float [OUT] 距离
+   * @author zzg 2025-01-13
+   */
+  float Compute(const TrackerPtr& tracker_ptr, const SideVisionMeasureFrame::ConstPtr& side_vision_object);
+
+  /**
    * @brief 计算跟踪目标与角毫米波目标之间的距离
    *
    * @param tracker_ptr [IN] 跟踪目标

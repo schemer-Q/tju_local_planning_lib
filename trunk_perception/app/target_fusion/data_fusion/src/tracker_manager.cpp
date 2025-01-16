@@ -2,6 +2,7 @@
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l1r.h"
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l1r1v.h"
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l5r1v.h"
+#include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_1l5r2v.h"
 #include "trunk_perception/app/target_fusion/data_fusion/existence_fusion_base.h"
 #include "trunk_perception/app/target_fusion/data_fusion/kalman_motion_fusion.h"
 #include "trunk_perception/app/target_fusion/data_fusion/measurement_functions.h"
@@ -45,6 +46,10 @@ std::uint32_t TrackerManager::Init(const YAML::Node& config) {
       existence_fusion_config_ = existence_fusion_config;
     } else if (existence_fusion_type == "1L5R1V") {
       auto existence_fusion_config = std::make_shared<ExistenceFusion1L5R1VConfig>();
+      existence_fusion_config->type = existence_fusion_type;
+      existence_fusion_config_ = existence_fusion_config;
+    } else if (existence_fusion_type == "1L5R2V") {
+      auto existence_fusion_config = std::make_shared<ExistenceFusion1L5R2VConfig>();
       existence_fusion_config->type = existence_fusion_type;
       existence_fusion_config_ = existence_fusion_config;
     } else {

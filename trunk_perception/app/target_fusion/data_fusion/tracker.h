@@ -56,6 +56,8 @@ class Tracker {
 
   void Update(const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr);
 
+  void Update(const SideVisionMeasureFrame::ConstPtr& side_vision_measure_ptr);
+
   void Update(const cubtektar::RadarMeasureFrame::ConstPtr& corner_radar_measure_ptr);
 
   LidarMeasureFrame::ConstPtr GetLidarObject() const;
@@ -87,6 +89,8 @@ class Tracker {
 
   Eigen::VectorXd GetMeasurementFromFrontVision(const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr);
 
+  Eigen::VectorXd GetMeasurementFromSideVision(const SideVisionMeasureFrame::ConstPtr& side_vision_measure_ptr);
+
   Eigen::VectorXd GetMeasurementFromCornerRadar(const cubtektar::RadarMeasureFrame::ConstPtr& corner_radar_measure_ptr);
 
   // 配置
@@ -100,6 +104,7 @@ class Tracker {
   LidarMeasureFrame::ConstPtr object_lidar_ptr_ = nullptr;                     ///< 最新的激光雷达观测
   ars430::RadarMeasureFrame::ConstPtr object_front_radar_ptr_ = nullptr;       ///< 最新的前向毫米波雷达观测
   VisionMeasureFrame::ConstPtr object_front_vision_ptr_ = nullptr;             ///< 最新的前向视觉观测
+  SideVisionMeasureFrame::ConstPtr object_side_vision_ptr_ = nullptr;          ///< 最新的环视视觉观测
   cubtektar::RadarMeasureFrame::ConstPtr object_corner_radar1_ptr_ = nullptr;  ///< 最新的右前角毫米波观测
   cubtektar::RadarMeasureFrame::ConstPtr object_corner_radar5_ptr_ = nullptr;  ///< 最新的右后角毫米波观测
   cubtektar::RadarMeasureFrame::ConstPtr object_corner_radar7_ptr_ = nullptr;  ///< 最新的左后角毫米波观测

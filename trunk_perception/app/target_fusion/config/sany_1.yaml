@@ -14,7 +14,7 @@ Config:
         MinValidFrame: 10 # 低于该阈值，则不使用历史帧进行滤波
         Threshold: 0.05
     ExistenceFusion:
-      Type: 1L5R1V          # 1L1R, 1L1R1V, 1L5R1V
+      Type: 1L5R2V          # 1L1R, 1L1R1V, 1L5R1V, 1L5R2V
     TypeFusion:
       Type: SlidingWindow
       Params:
@@ -68,7 +68,25 @@ Config:
           PositionThresh: # 横纵向距离阈值
             Switch: true
             Orthogonal: 5.0 # 垂直航向的距离阈值
-            Longitudinal: 5.0 # 纵向距离阈值 
+            Longitudinal: 5.0 # 纵向距离阈值
+      SideVision:
+        Position:
+          Switch: true
+          Weight: 0.3
+          Type: Orthogonal
+          Point: Mix_CR
+        Velocity:
+          Switch: true
+          Weight: 0.7
+        Filter:
+          VelocityThresh: # 绝对值或相对值小于该阈值则符合阈值限制
+            Switch: true
+            Abs: 5.0 # m/s # 针对低速目标
+            Rel: 30.0 # %
+          PositionThresh: # 横纵向距离阈值
+            Switch: true
+            Orthogonal: 5.0 # 垂直航向的距离阈值
+            Longitudinal: 5.0 # 纵向距离阈值
       CornerRadar:
         Position:
           Switch: true
@@ -95,6 +113,9 @@ Config:
         MatchCostThresh: 4.99
         MatchBoundValue: 5.00
       FrontVision:
+        MatchCostThresh: 4.99
+        MatchBoundValue: 5.00
+      SideVision:
         MatchCostThresh: 4.99
         MatchBoundValue: 5.00
       CornerRadar:

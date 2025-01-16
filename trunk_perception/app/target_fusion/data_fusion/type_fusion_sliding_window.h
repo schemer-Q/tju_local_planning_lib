@@ -46,6 +46,8 @@ class TypeFusionSlidingWindow : public TypeFusionBase {
   std::unordered_map<ObjectType, int> lidar_type_map_;
   std::deque<ObjectType> front_vision_type_history_;
   std::unordered_map<ObjectType, int> front_vision_lidar_type_map_;
+  std::deque<ObjectType> side_vision_type_history_;
+  std::unordered_map<ObjectType, int> side_vision_lidar_type_map_;
 };
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

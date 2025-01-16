@@ -49,28 +49,32 @@ struct TargetFusionFrame {
 
   // 来自环视检测管线的数据 @author zzg 2025-01-15
   double side_vision_timestamp = 0.0;
-  std::vector<VisionMeasureFrame::Ptr> side_vision_detected_objects;  ///< 前向视觉检测目标，车体系下
-  std::vector<VisionMeasureFrame::Ptr> side_vision_detected_objects_local;  ///< 局部坐标系下，前向视觉检测到的目标
+  std::vector<SideVisionMeasureFrame::Ptr> side_vision_detected_objects;  ///< 环视视觉检测目标，车体系下
+  std::vector<SideVisionMeasureFrame::Ptr> side_vision_detected_objects_local;  ///< 局部坐标系下，环视视觉检测到的目标
 
-	// 来自右前角毫米波检测管线的数据
-	double corner_radar1_timestamp = 0.0;
-	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar1_objects;              // 右前角毫米波雷达检测到的目标, 车体系下
-	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar1_objects_local;        // 局部坐标系下右前角毫米波雷达检测到的目标
+  // 来自右前角毫米波检测管线的数据
+  double corner_radar1_timestamp = 0.0;
+  std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar1_objects;  // 右前角毫米波雷达检测到的目标, 车体系下
+  std::vector<cubtektar::RadarMeasureFrame::Ptr>
+      corner_radar1_objects_local;  // 局部坐标系下右前角毫米波雷达检测到的目标
 
-	// 来自右后角毫米波检测管线的数据
-	double corner_radar5_timestamp = 0.0;
-	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar5_objects;              // 右后角毫米波雷达检测到的目标，车体系下
-	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar5_objects_local;        // 局部坐标系下右后角毫米波雷达检测到的目标
+  // 来自右后角毫米波检测管线的数据
+  double corner_radar5_timestamp = 0.0;
+  std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar5_objects;  // 右后角毫米波雷达检测到的目标，车体系下
+  std::vector<cubtektar::RadarMeasureFrame::Ptr>
+      corner_radar5_objects_local;  // 局部坐标系下右后角毫米波雷达检测到的目标
 
-	// 来自左后角毫米波检测管线的数据
-	double corner_radar7_timestamp = 0.0;
-	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar7_objects;              // 左后角毫米波雷达检测到的目标，车体系下
-	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar7_objects_local;        // 局部坐标系下左后角毫米波雷达检测到的目标
+  // 来自左后角毫米波检测管线的数据
+  double corner_radar7_timestamp = 0.0;
+  std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar7_objects;  // 左后角毫米波雷达检测到的目标，车体系下
+  std::vector<cubtektar::RadarMeasureFrame::Ptr>
+      corner_radar7_objects_local;  // 局部坐标系下左后角毫米波雷达检测到的目标
 
-	// 来自左前角毫米波检测管线的数据
-	double corner_radar11_timestamp = 0.0;
-	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar11_objects;              // 左前角毫米波雷达检测到的目标, 车体系下
-	std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar11_objects_local;        // 局部坐标系下左前角毫米波雷达检测到的目标
+  // 来自左前角毫米波检测管线的数据
+  double corner_radar11_timestamp = 0.0;
+  std::vector<cubtektar::RadarMeasureFrame::Ptr> corner_radar11_objects;  // 左前角毫米波雷达检测到的目标, 车体系下
+  std::vector<cubtektar::RadarMeasureFrame::Ptr>
+      corner_radar11_objects_local;  // 局部坐标系下左前角毫米波雷达检测到的目标
 
   // Odometry数据
   Odometry::Ptr odometry_lidar_ptr = nullptr;
@@ -87,6 +91,7 @@ struct TargetFusionFrame {
   std::vector<size_t> unassigned_lidar_objects_;
   std::vector<size_t> unassigned_front_radar_objects_;
   std::vector<size_t> unassigned_front_vision_objects_;
+  std::vector<size_t> unassigned_side_vision_objects_;
   std::vector<size_t> unassigned_corner_radar_1_objects_;
   std::vector<size_t> unassigned_corner_radar_5_objects_;
   std::vector<size_t> unassigned_corner_radar_7_objects_;

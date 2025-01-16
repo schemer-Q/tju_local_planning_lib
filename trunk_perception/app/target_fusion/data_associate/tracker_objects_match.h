@@ -68,6 +68,17 @@ class TrackerObjectsMatch {
              AssociationResult& association_result);
 
   /**
+   * @brief 环视视觉数据关联
+   *
+   * @param trackers 跟踪器列表
+   * @param lidar_objects 激光雷达检测到的目标
+   * @param result 关联结果
+   */
+  void Match(const std::vector<TrackerPtr>& trackers,
+             const std::vector<SideVisionMeasureFrame::Ptr>& side_vision_objects,
+             AssociationResult& association_result);
+
+  /**
    * @brief 角毫米波雷达数据关联
    *
    * @param trackers 跟踪器列表
@@ -82,6 +93,7 @@ class TrackerObjectsMatch {
   std::shared_ptr<TrackObjectDistance> lidar_distance_compute_ptr_ = nullptr;
   std::shared_ptr<TrackObjectDistance> front_radar_distance_compute_ptr_ = nullptr;
   std::shared_ptr<TrackObjectDistance> front_vision_distance_compute_ptr_ = nullptr;
+  std::shared_ptr<TrackObjectDistance> side_vision_distance_compute_ptr_ = nullptr;
   std::shared_ptr<TrackObjectDistance> corner_radar_distance_compute_ptr_ = nullptr;
   std::shared_ptr<GatedHungarianMatcher<float>> hungarian_matcher_ptr_ = nullptr;
 
@@ -99,6 +111,9 @@ class TrackerObjectsMatch {
 
   float hungarian_match_cost_thresh_front_vision_ = 4.99;
   float hungarian_match_bound_value_front_vision_ = 5.00;
+
+  float hungarian_match_cost_thresh_side_vision_ = 4.99;
+  float hungarian_match_bound_value_side_vision_ = 5.00;
 
   float hungarian_match_cost_thresh_corner_radar_ = 4.99;
   float hungarian_match_bound_value_corner_radar_ = 5.00;

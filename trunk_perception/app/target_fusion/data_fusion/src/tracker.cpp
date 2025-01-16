@@ -108,6 +108,9 @@ void Tracker::Predict(const double& t) {
 
   if (object_ptr_->front_vision_consecutive_lost > 0) object_ptr_->front_vision_consecutive_hit = 0;
   object_ptr_->front_vision_consecutive_lost += 1;
+
+  if (object_ptr_->side_vision_consecutive_lost > 0) object_ptr_->side_vision_consecutive_hit = 0;
+  object_ptr_->side_vision_consecutive_lost += 1;
 }
 
 uint32_t Tracker::Update(const std::vector<SensorMeasureFrame::ConstPtr>& measures_list) {
@@ -150,6 +153,13 @@ uint32_t Tracker::Update(const std::vector<SensorMeasureFrame::ConstPtr>& measur
         continue;
       }
       Update(corner_radar_ptr);
+    } else if (measure_ptr->sensor_type == MeasureSensorType::SideVision) {
+      auto side_vision_measure_ptr = std::static_pointer_cast<const SideVisionMeasureFrame>(measure_ptr);
+      if (!side_vision_measure_ptr) {
+        TERROR << "[Tracker] side_vision_measure_ptr is nullptr";
+        continue;
+      }
+      Update(side_vision_measure_ptr);
     }
   }
 
@@ -287,6 +297,27 @@ void Tracker::Update(const VisionMeasureFrame::ConstPtr& front_vision_measure_pt
   object_ptr_->front_vision_consecutive_hit += 1;
   object_front_vision_ptr_ = front_vision_measure_ptr;
   object_ptr_->obj_front_vision_ptr_ = front_vision_measure_ptr;
+}
+
+void Tracker::Update(const SideVisionMeasureFrame::ConstPtr& side_vision_measure_ptr) {
+  if (!side_vision_measure_ptr) {
+    TERROR << "[Tracker] side_vision_measure_ptr is nullptr";
+    return;
+  }
+  // @author zzg 2025-01-13 暂时不使用 环视视觉 对 运动属性(位置、速度)做更新
+  Eigen::VectorXd z = GetMeasurementFromSideVision(side_vision_measure_ptr);
+
+  object_ptr_->type = side_vision_measure_ptr->type;
+  if (type_fusion_->Update(side_vision_measure_ptr) != ErrorCode::SUCCESS) {
+    TERROR << "[Tracker] update type fusion with front vision measure failed!";
+  }
+  UpdateObjectType();
+
+  object_ptr_->side_vision_consecutive_lost = 0;
+  object_ptr_->side_vision_total_life += 1;
+  object_ptr_->side_vision_consecutive_hit += 1;
+  object_side_vision_ptr_ = side_vision_measure_ptr;
+  object_ptr_->obj_side_vision_ptr_ = side_vision_measure_ptr;
 }
 
 void Tracker::Update(const cubtektar::RadarMeasureFrame::ConstPtr& corner_radar_measure_ptr) {
@@ -435,6 +466,25 @@ Eigen::VectorXd Tracker::GetMeasurementFromFrontVision(const VisionMeasureFrame:
             front_vision_measure_ptr->velocity.x(), front_vision_measure_ptr->velocity.y();
       } else {
         TERROR << "[Tracker] GetMeasurementFromFrontVision track_point_type is not implemented!";
+        return Eigen::VectorXd();
+      }
+      return z;
+  }
+  return Eigen::VectorXd();
+}
+
+Eigen::VectorXd Tracker::GetMeasurementFromSideVision(const SideVisionMeasureFrame::ConstPtr& side_vision_measure_ptr) {
+  switch (motion_kf_config_.motion_model) {
+    case MotionModel::CV:
+      Eigen::Vector4d z;
+      if (object_ptr_->track_point_type == TrackPointType::RearMiddle) {
+        z << side_vision_measure_ptr->rear_middle_point.x(), side_vision_measure_ptr->rear_middle_point.y(),
+            side_vision_measure_ptr->velocity.x(), side_vision_measure_ptr->velocity.y();
+      } else if (object_ptr_->track_point_type == TrackPointType::Center) {
+        z << side_vision_measure_ptr->center.x(), side_vision_measure_ptr->center.y(),
+            side_vision_measure_ptr->velocity.x(), side_vision_measure_ptr->velocity.y();
+      } else {
+        TERROR << "[Tracker] GetMeasurementFromSideVision track_point_type is not implemented!";
         return Eigen::VectorXd();
       }
       return z;

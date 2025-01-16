@@ -90,6 +90,7 @@ std::uint32_t TargetFusionA::GetInputData(const double& ts) {
   CHECK_AND_RETURN(GetLidarData());
   CHECK_AND_RETURN(GetFrontRadarData());
   CHECK_AND_RETURN(GetFrontVisionData());
+  CHECK_AND_RETURN(GetSideVisionData());
   CHECK_AND_RETURN(GetRightFrontCubtektarRadarData());
   CHECK_AND_RETURN(GetRightRearCubtektarRadarData());
   CHECK_AND_RETURN(GetLeftRearCubtektarRadarData());
@@ -250,7 +251,7 @@ uint32_t TargetFusionA::GetSideVisionData() {
   frame_ptr_->side_vision_detected_objects.reserve(side_vision_frame_ptr->detected_objects.size());
   std::transform(side_vision_frame_ptr->detected_objects.begin(), side_vision_frame_ptr->detected_objects.end(),
                  std::back_inserter(frame_ptr_->side_vision_detected_objects),
-                 [](const Object& obj) { return std::make_shared<VisionMeasureFrame>(obj); });
+                 [](const Object& obj) { return std::make_shared<SideVisionMeasureFrame>(obj); });
 
   frame_ptr_->side_vision_timestamp = side_vision_frame_ptr->timestamp;
 
@@ -404,6 +405,14 @@ void TargetFusionA::ConvertToLocalCoordinate() {
     frame_ptr_->front_vision_tracked_objects_local[i]->Transform(frame_ptr_->odometry_lidar_ptr->Matrix());
   }
 
+  // 环视视觉数据转到局部坐标系下 @author zzg 2025-01-13
+  frame_ptr_->side_vision_detected_objects_local.resize(frame_ptr_->side_vision_detected_objects.size());
+  for (size_t i = 0; i < frame_ptr_->side_vision_detected_objects.size(); ++i) {
+    frame_ptr_->side_vision_detected_objects_local[i] =
+        std::make_shared<SideVisionMeasureFrame>(*frame_ptr_->side_vision_detected_objects[i]);
+    frame_ptr_->side_vision_detected_objects_local[i]->Transform(frame_ptr_->odometry_lidar_ptr->Matrix());
+  }
+
   // 右前角毫米波雷达数据转到局部坐标系下
   frame_ptr_->corner_radar1_objects_local.resize(frame_ptr_->corner_radar1_objects.size());
   for (size_t i = 0; i < frame_ptr_->corner_radar1_objects.size(); ++i) {
@@ -460,6 +469,8 @@ void TargetFusionA::Association() {
                                     stable_tracker_radar_association_result_);
   tracker_objects_match_ptr_->Match(stable_trackers_, frame_ptr_->front_vision_tracked_objects_local,
                                     stable_tracker_front_vision_association_result_);
+  tracker_objects_match_ptr_->Match(stable_trackers_, frame_ptr_->side_vision_detected_objects_local,
+                                    stable_tracker_side_vision_association_result_);
   tracker_objects_match_ptr_->Match(stable_trackers_, frame_ptr_->corner_radar1_objects_local,
                                     stable_tracker_corner_radar_1_association_result_);
   tracker_objects_match_ptr_->Match(stable_trackers_, frame_ptr_->corner_radar5_objects_local,
@@ -474,6 +485,8 @@ void TargetFusionA::Association() {
   frame_ptr_->unassigned_front_radar_objects_ = stable_tracker_radar_association_result_.unassigned_measurment_indices;
   frame_ptr_->unassigned_front_vision_objects_ =
       stable_tracker_front_vision_association_result_.unassigned_measurment_indices;
+  frame_ptr_->unassigned_side_vision_objects_ =
+      stable_tracker_side_vision_association_result_.unassigned_measurment_indices;
   frame_ptr_->unassigned_corner_radar_1_objects_ =
       stable_tracker_corner_radar_1_association_result_.unassigned_measurment_indices;
   frame_ptr_->unassigned_corner_radar_5_objects_ =
@@ -487,6 +500,7 @@ void TargetFusionA::Association() {
   std::vector<LidarMeasureFrame::Ptr> unassigned_lidar_objects_tmp;
   std::vector<ars430::RadarMeasureFrame::Ptr> unassigned_front_radar_objects_tmp;
   std::vector<VisionMeasureFrame::Ptr> unassigned_front_vision_objects_temp;
+  std::vector<SideVisionMeasureFrame::Ptr> unassigned_side_vision_objects_temp;
   std::vector<cubtektar::RadarMeasureFrame::Ptr> unassigned_corner_radar_1_objects_temp;
   std::vector<cubtektar::RadarMeasureFrame::Ptr> unassigned_corner_radar_5_objects_temp;
   std::vector<cubtektar::RadarMeasureFrame::Ptr> unassigned_corner_radar_7_objects_temp;
@@ -495,6 +509,7 @@ void TargetFusionA::Association() {
   unassigned_lidar_objects_tmp.reserve(frame_ptr_->unassigned_lidar_objects_.size());
   unassigned_front_radar_objects_tmp.reserve(frame_ptr_->unassigned_front_radar_objects_.size());
   unassigned_front_vision_objects_temp.reserve(frame_ptr_->unassigned_front_vision_objects_.size());
+  unassigned_side_vision_objects_temp.reserve(frame_ptr_->unassigned_side_vision_objects_.size());
   unassigned_corner_radar_1_objects_temp.reserve(frame_ptr_->unassigned_corner_radar_1_objects_.size());
   unassigned_corner_radar_5_objects_temp.reserve(frame_ptr_->unassigned_corner_radar_5_objects_.size());
   unassigned_corner_radar_7_objects_temp.reserve(frame_ptr_->unassigned_corner_radar_7_objects_.size());
@@ -508,6 +523,9 @@ void TargetFusionA::Association() {
   }
   for (const auto& idx : frame_ptr_->unassigned_front_vision_objects_) {
     unassigned_front_vision_objects_temp.push_back(frame_ptr_->front_vision_tracked_objects_local[idx]);
+  }
+  for (const auto& idx : frame_ptr_->unassigned_side_vision_objects_) {
+    unassigned_side_vision_objects_temp.push_back(frame_ptr_->side_vision_detected_objects_local[idx]);
   }
   for (const auto& idx : frame_ptr_->unassigned_corner_radar_1_objects_) {
     unassigned_corner_radar_1_objects_temp.push_back(frame_ptr_->corner_radar1_objects_local[idx]);
@@ -533,6 +551,10 @@ void TargetFusionA::Association() {
                                     new_tracker_front_vision_association_result_);
   ConvertIdx(frame_ptr_->unassigned_front_vision_objects_, new_tracker_front_vision_association_result_);
 
+  tracker_objects_match_ptr_->Match(new_trackers_, unassigned_side_vision_objects_temp,
+                                    new_tracker_side_vision_association_result_);
+  ConvertIdx(frame_ptr_->unassigned_side_vision_objects_, new_tracker_side_vision_association_result_);
+
   tracker_objects_match_ptr_->Match(new_trackers_, unassigned_corner_radar_1_objects_temp,
                                     new_tracker_corner_radar_1_association_result_);
   ConvertIdx(frame_ptr_->unassigned_corner_radar_1_objects_, new_tracker_corner_radar_1_association_result_);
@@ -554,6 +576,8 @@ void TargetFusionA::Association() {
   frame_ptr_->unassigned_front_radar_objects_ = new_tracker_radar_association_result_.unassigned_measurment_indices;
   frame_ptr_->unassigned_front_vision_objects_ =
       new_tracker_front_vision_association_result_.unassigned_measurment_indices;
+  frame_ptr_->unassigned_side_vision_objects_ =
+      new_tracker_side_vision_association_result_.unassigned_measurment_indices;
   frame_ptr_->unassigned_corner_radar_1_objects_ =
       new_tracker_corner_radar_1_association_result_.unassigned_measurment_indices;
   frame_ptr_->unassigned_corner_radar_5_objects_ =
@@ -567,6 +591,7 @@ void TargetFusionA::Association() {
   std::vector<LidarMeasureFrame::Ptr> unassigned_lidar_objects_tmp2;
   std::vector<ars430::RadarMeasureFrame::Ptr> unassigned_front_radar_objects_tmp2;
   std::vector<VisionMeasureFrame::Ptr> unassigned_front_vision_objects_tmp2;
+  std::vector<SideVisionMeasureFrame::Ptr> unassigned_side_vision_objects_tmp2;
   std::vector<cubtektar::RadarMeasureFrame::Ptr> unassigned_corner_radar_1_objects_temp2;
   std::vector<cubtektar::RadarMeasureFrame::Ptr> unassigned_corner_radar_5_objects_temp2;
   std::vector<cubtektar::RadarMeasureFrame::Ptr> unassigned_corner_radar_7_objects_temp2;
@@ -574,6 +599,7 @@ void TargetFusionA::Association() {
   unassigned_lidar_objects_tmp2.reserve(frame_ptr_->unassigned_lidar_objects_.size());
   unassigned_front_radar_objects_tmp2.reserve(frame_ptr_->unassigned_front_radar_objects_.size());
   unassigned_front_vision_objects_tmp2.reserve(frame_ptr_->unassigned_front_vision_objects_.size());
+  unassigned_side_vision_objects_tmp2.reserve(frame_ptr_->unassigned_side_vision_objects_.size());
   unassigned_corner_radar_1_objects_temp2.reserve(frame_ptr_->unassigned_corner_radar_1_objects_.size());
   unassigned_corner_radar_5_objects_temp2.reserve(frame_ptr_->unassigned_corner_radar_5_objects_.size());
   unassigned_corner_radar_7_objects_temp2.reserve(frame_ptr_->unassigned_corner_radar_7_objects_.size());
@@ -587,6 +613,9 @@ void TargetFusionA::Association() {
   }
   for (const auto& idx : frame_ptr_->unassigned_front_vision_objects_) {
     unassigned_front_vision_objects_tmp2.push_back(frame_ptr_->front_vision_tracked_objects_local[idx]);
+  }
+  for (const auto& idx : frame_ptr_->unassigned_side_vision_objects_) {
+    unassigned_side_vision_objects_tmp2.push_back(frame_ptr_->side_vision_detected_objects_local[idx]);
   }
   for (const auto& idx : frame_ptr_->unassigned_corner_radar_1_objects_) {
     unassigned_corner_radar_1_objects_temp2.push_back(frame_ptr_->corner_radar1_objects_local[idx]);
@@ -606,6 +635,8 @@ void TargetFusionA::Association() {
                                     lost_tracker_radar_association_result_);
   tracker_objects_match_ptr_->Match(lost_trackers_, unassigned_front_vision_objects_tmp2,
                                     lost_tracker_front_vision_association_result_);
+  tracker_objects_match_ptr_->Match(lost_trackers_, unassigned_side_vision_objects_tmp2,
+                                    lost_tracker_side_vision_association_result_);
   tracker_objects_match_ptr_->Match(lost_trackers_, unassigned_corner_radar_1_objects_temp2,
                                     lost_tracker_corner_radar_1_association_result_);
   tracker_objects_match_ptr_->Match(lost_trackers_, unassigned_corner_radar_5_objects_temp2,
@@ -617,6 +648,7 @@ void TargetFusionA::Association() {
   ConvertIdx(frame_ptr_->unassigned_lidar_objects_, lost_tracker_lidar_association_result_);
   ConvertIdx(frame_ptr_->unassigned_front_radar_objects_, lost_tracker_radar_association_result_);
   ConvertIdx(frame_ptr_->unassigned_front_vision_objects_, lost_tracker_front_vision_association_result_);
+  ConvertIdx(frame_ptr_->unassigned_side_vision_objects_, lost_tracker_side_vision_association_result_);
   ConvertIdx(frame_ptr_->unassigned_corner_radar_1_objects_, lost_tracker_corner_radar_1_association_result_);
   ConvertIdx(frame_ptr_->unassigned_corner_radar_5_objects_, lost_tracker_corner_radar_5_association_result_);
   ConvertIdx(frame_ptr_->unassigned_corner_radar_7_objects_, lost_tracker_corner_radar_7_association_result_);
@@ -627,6 +659,8 @@ void TargetFusionA::Association() {
   frame_ptr_->unassigned_front_radar_objects_ = lost_tracker_radar_association_result_.unassigned_measurment_indices;
   frame_ptr_->unassigned_front_vision_objects_ =
       lost_tracker_front_vision_association_result_.unassigned_measurment_indices;
+  frame_ptr_->unassigned_side_vision_objects_ =
+      lost_tracker_side_vision_association_result_.unassigned_measurment_indices;
   frame_ptr_->unassigned_corner_radar_1_objects_ =
       lost_tracker_corner_radar_1_association_result_.unassigned_measurment_indices;
   frame_ptr_->unassigned_corner_radar_5_objects_ =
@@ -686,6 +720,11 @@ void TargetFusionA::Update() {
       tracker_measures[pair.first].push_back(frame_ptr_->front_vision_tracked_objects_local[pair.second]);
     }
 
+    // 添加环视视觉目标关联结果
+    for (const auto& pair : new_tracker_side_vision_association_result_.track_measurment_pairs) {
+      tracker_measures[pair.first].push_back(frame_ptr_->side_vision_detected_objects_local[pair.second]);
+    }
+
     // 添加右前角毫米波目标关联结果
     for (const auto& pair : new_tracker_corner_radar_1_association_result_.track_measurment_pairs) {
       tracker_measures[pair.first].push_back(frame_ptr_->corner_radar1_objects_local[pair.second]);
@@ -723,6 +762,9 @@ void TargetFusionA::Update() {
     for (const auto& pair : stable_tracker_front_vision_association_result_.track_measurment_pairs) {
       tracker_measures[pair.first].push_back(frame_ptr_->front_vision_tracked_objects_local[pair.second]);
     }
+    for (const auto& pair : stable_tracker_side_vision_association_result_.track_measurment_pairs) {
+      tracker_measures[pair.first].push_back(frame_ptr_->side_vision_detected_objects_local[pair.second]);
+    }
     for (const auto& pair : stable_tracker_corner_radar_1_association_result_.track_measurment_pairs) {
       tracker_measures[pair.first].push_back(frame_ptr_->corner_radar1_objects_local[pair.second]);
     }
@@ -750,6 +792,9 @@ void TargetFusionA::Update() {
     }
     for (const auto& pair : lost_tracker_front_vision_association_result_.track_measurment_pairs) {
       tracker_measures[pair.first].push_back(frame_ptr_->front_vision_tracked_objects_local[pair.second]);
+    }
+    for (const auto& pair : lost_tracker_side_vision_association_result_.track_measurment_pairs) {
+      tracker_measures[pair.first].push_back(frame_ptr_->side_vision_detected_objects_local[pair.second]);
     }
     for (const auto& pair : lost_tracker_corner_radar_1_association_result_.track_measurment_pairs) {
       tracker_measures[pair.first].push_back(frame_ptr_->corner_radar1_objects_local[pair.second]);
@@ -857,6 +902,11 @@ void TargetFusionA::GenerateAssociateDebugData() {
       stable_tracker_front_vision_association_result_;
   associate_debug_data_ptr_->lost_tracker_front_vision_association_result =
       lost_tracker_front_vision_association_result_;
+
+  associate_debug_data_ptr_->new_tracker_side_vision_association_result = new_tracker_side_vision_association_result_;
+  associate_debug_data_ptr_->stable_tracker_side_vision_association_result =
+      stable_tracker_side_vision_association_result_;
+  associate_debug_data_ptr_->lost_tracker_side_vision_association_result = lost_tracker_side_vision_association_result_;
 
   associate_debug_data_ptr_->new_tracker_corner_radar_1_association_result =
       new_tracker_corner_radar_1_association_result_;

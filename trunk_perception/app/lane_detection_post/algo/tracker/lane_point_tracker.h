@@ -50,6 +50,8 @@ class LanePointTracker : public BaseLaneTracker {
   size_t min_hits_ = 5;               ///< 最小观测次数
   uint min_world_pts_num_thresh_ = 10;  ///< 车道线最小点数阈值，小于则无效
   float max_start_dist_thresh_ = 15;    ///< 车道线起始点距离阈值，大于则无效
+  // tracklet basic-params
+  std::shared_ptr<LaneTrackLetInitParam> lane_tracklet_init_param_ptr_;
   //   bool lane_parallelization_ = true;    ///< 是否进行车道线平行化
   Eigen::Matrix4d cur_pose_;  ///< 当前帧自车位姿
 

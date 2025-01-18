@@ -7,31 +7,55 @@ TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 namespace ld_post {
   
 int LanePointTracker::Init(const YAML::Node& config){
-  // TODO CJS
-  camera_name_ = config["Basic"]["CameraName"].as<std::string>();
-  num_anchor_ = config["Basic"]["NumAnchor"].as<int>();
-  iou_thresh_ = config["Basic"]["IouThres"].as<float>();
-  max_id_ = config["Basic"]["MaxId"].as<int>();
-  min_hits_ = config["Basic"]["MinHits"].as<int>();
-  min_world_pts_num_thresh_ = config["Basic"]["MinWorldPtsNumThresh"].as<int>();
-  max_start_dist_thresh_ = config["Basic"]["MaxStartDistThresh"].as<float>();
-  
-  // id pool manager
-  id_pool_ptr_ = std::make_unique<IDPool>(max_id_);
-  if (id_pool_ptr_ == nullptr) {
-    TERROR << "BevLanePostImpl::Init() failed, id_pool_ptr_ is nullptr";
+  try{
+    // basic param 
+    camera_name_ = config["Basic"]["CameraName"].as<std::string>();
+    num_anchor_ = config["Basic"]["NumAnchor"].as<int>();
+    iou_thresh_ = config["Basic"]["IouThres"].as<float>();
+    max_id_ = config["Basic"]["MaxId"].as<int>();
+    min_hits_ = config["Basic"]["MinHits"].as<int>();
+    min_world_pts_num_thresh_ = config["Basic"]["MinWorldPtsNumThresh"].as<int>();
+    max_start_dist_thresh_ = config["Basic"]["MaxStartDistThresh"].as<float>();
+    
+    // tracklet basic param
+    int occ_grid_x_start = config["TrackletBasic"]["OccupiedGridXStart"].as<int>();
+    int occ_grid_x_middle = config["TrackletBasic"]["OccupiedGridXMiddle"].as<int>();
+    int occ_grid_x_end = config["TrackletBasic"]["OccupiedGridXEnd"].as<int>();
+    float occ_x_step_dense = config["TrackletBasic"]["OccupiedXStepDense"].as<float>();
+    float occ_x_step_sparse = config["TrackletBasic"]["OccupiedXStepSparse"].as<float>();
+    size_t queue_size = config["TrackletBasic"]["QueueSize"].as<size_t>();
+    float far_x_limit = config["TrackletBasic"]["FarXLimit"].as<float>();
+    float near_x_limit = config["TrackletBasic"]["NearXLimit"].as<float>();
+    float y_limit = config["TrackletBasic"]["YLimit"].as<float>();
+    size_t fit_pt_num_limit = config["TrackletBasic"]["FitPtNumLimit"].as<size_t>();
+    int max_fusion_pt_age = config["TrackletBasic"]["MaxFusionPtAge"].as<int>();
+    float output_min_quality_thresh = config["TrackletBasic"]["OutputQualityMinThresh"].as<float>();
+
+    lane_tracklet_init_param_ptr_ = std::make_shared<ld_post::LaneTrackLetInitParam>(
+      occ_grid_x_start, occ_grid_x_middle, occ_grid_x_end,
+      occ_x_step_dense, occ_x_step_sparse, queue_size,
+      far_x_limit, near_x_limit, y_limit, fit_pt_num_limit, max_fusion_pt_age,
+      output_min_quality_thresh);
+
+    // id pool manager
+    id_pool_ptr_ = std::make_unique<IDPool>(max_id_);
+    if (id_pool_ptr_ == nullptr) {
+      TERROR << "BevLanePostImpl::Init() failed, id_pool_ptr_ is nullptr";
+      return ErrorCode::YAML_CONFIG_ERROR;
+    }
+
+    // quality
+    lane_quality_evaluator_ptr_ = std::make_shared<ld_post::LaneQualityEvaluator>();
+    lane_quality_evaluator_ptr_->Init(config["LaneQuality"]);
+    if (lane_quality_evaluator_ptr_ == nullptr) {
+      TERROR << "BevLanePostImpl::Init() failed, lane_quality_evaluator_ptr_ is nullptr";
+      return ErrorCode::YAML_CONFIG_ERROR;
+    }
+
+  } catch (const std::exception& e) {
+    TFATAL << "LanePointTracker::Init() failed, ";
     return ErrorCode::YAML_CONFIG_ERROR;
   }
-
-  // quality
-  lane_quality_evaluator_ptr_ = std::make_shared<ld_post::LaneQualityEvaluator>();
-  lane_quality_evaluator_ptr_->Init(config["LaneQuality"]);
-  if (lane_quality_evaluator_ptr_ == nullptr) {
-    TERROR << "BevLanePostImpl::Init() failed, lane_quality_evaluator_ptr_ is nullptr";
-    return ErrorCode::YAML_CONFIG_ERROR;
-  }
-
-  // 
 
   return ErrorCode::SUCCESS;
 }
@@ -136,7 +160,8 @@ void LanePointTracker::Update(const std::vector<LaneLineVision>& lanelines_detec
       continue;
     }
     // 未被关联的检测目标，为其创建新的target
-    auto new_tracklet = std::make_shared<LaneTracklet>(new_id, lanelines_detected[j], cur_pose_, camera_name_, lane_quality_evaluator_ptr_);
+    auto new_tracklet = std::make_shared<LaneTracklet>(new_id, lanelines_detected[j], cur_pose_, camera_name_, 
+                                                       lane_quality_evaluator_ptr_, lane_tracklet_init_param_ptr_);
     tracklets_.push_back(new_tracklet);
     TDEBUG << "create new tracklet " << new_tracklet->GetTrackletId();
   }
@@ -148,9 +173,7 @@ void LanePointTracker::Output(std::vector<LaneLineVision>& lanelines_tracked){
   lanelines_tracked.reserve(tracklets_.size());
 
   for (const auto& tracklet : tracklets_) {
-    bool is_mature = tracklet->IsHoldOn() || (tracklet->IsTracked() && tracklet->IsGrownUp() &&
-                                              tracklet->GetHits() >= min_hits_ && tracklet->IsUpdateValid());
-    if (is_mature) {
+    if (tracklet->IsMature()) {
       auto res = tracklet->GetLaneWithFusedPts();
       if (res.OriginPointsWorld.size() < min_world_pts_num_thresh_ ||
           res.OriginPointsWorld.front().x > max_start_dist_thresh_) {

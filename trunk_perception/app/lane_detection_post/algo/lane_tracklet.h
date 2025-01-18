@@ -33,6 +33,41 @@ using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
 
 const int N_ANCHOR_POINTS = 9;
 
+struct LaneTrackLetInitParam {
+  int occupied_grid_x_start = 5;
+  int occupied_grid_x_middle = 15;
+  int occupied_grid_x_end = 80;
+  float occupied_x_step_dense = 0.05;
+  float occupied_x_step_sparse = 0.3;
+  size_t queue_size = 5;  ///< 统计方差的队列长度
+  float far_x_limit = 100.0;
+  float near_x_limit = -10.0;
+  float y_limit = 20.0;
+  size_t fit_pt_num_limit = 5;
+  int max_fusion_pt_age = 120000;  ///< 最大融合点年龄, 100min
+  float output_min_quality_thresh = 0.5;
+  int output_min_hits_thresh = 5;
+
+  LaneTrackLetInitParam(int grid_x_start = 5, int grid_x_middle = 15, int grid_x_end = 80,
+                      float x_step_dense = 0.05, float x_step_sparse = 0.3,
+                      size_t q_size = 5, float far_x = 100.0, float near_x = -10.0,
+                      float y_lim = 20.0, size_t fit_pt_num = 5, int max_fusion_age = 120000,
+                      float min_quality_thresh = 0.5, int min_hits_thresh = 5)
+    : occupied_grid_x_start(grid_x_start),
+      occupied_grid_x_middle(grid_x_middle),
+      occupied_grid_x_end(grid_x_end),
+      occupied_x_step_dense(x_step_dense),
+      occupied_x_step_sparse(x_step_sparse),
+      queue_size(q_size),
+      far_x_limit(far_x),
+      near_x_limit(near_x),
+      y_limit(y_lim),
+      fit_pt_num_limit(fit_pt_num),
+      max_fusion_pt_age(max_fusion_age),
+      output_min_quality_thresh(min_quality_thresh),
+      output_min_hits_thresh(min_hits_thresh) {}
+};
+
 /**
  * @brief 用于多帧融合的检测点
  *
@@ -50,16 +85,23 @@ struct FusionPt {
 class LaneTracklet {
  public:
   LaneTracklet() = delete;
-  /**
-   * @brief 构造函数
-   *
-   * @param tracklet_id 新跟踪序列的ID
-   * @param lane 车道线
-   * @param cur_pose 自车位姿
-   * @param camera_name 相机名称
-   */
-  LaneTracklet(const int& tracklet_id, const LaneLineVision& lane, const Eigen::Matrix4d& cur_pose,
-               const std::string& camera_name, std::shared_ptr<LaneQualityEvaluator> lane_quality_evaluator);
+  
+  LaneTracklet(const size_t& tracklet_id,
+               const LaneLineVision& lane, 
+               const Eigen::Matrix4d& cur_pose,
+               const std::string& camera_name, 
+               const std::shared_ptr<LaneQualityEvaluator>& lane_quality_evaluator,
+               const std::shared_ptr<LaneTrackLetInitParam>& lane_tracklet_init_param_ptr)
+    : tracklet_id_(tracklet_id), latest_lane_(lane), latest_pose_(cur_pose), 
+      camera_name_(camera_name), quality_estimator_(lane_quality_evaluator) {
+    InitParam(lane_tracklet_init_param_ptr);
+    InitCameraProjection();
+    InitFusionPtGridOccupancy();
+    InitFusionPts();
+    InitAnchors();
+    InitKalmanFilter();
+  }
+
   ~LaneTracklet();
 
   /**
@@ -115,17 +157,11 @@ class LaneTracklet {
 
   bool IsLost();
 
+  bool IsMature() const;
+
   LaneLinePositionIndex GetLanePosIndex() const { return latest_lane_.lane_line_position; }
 
   void SetLanePosIndex(LaneLinePositionIndex lane_pos_index) { latest_lane_.lane_line_position = lane_pos_index; }
-
-  bool IsTracked() const { return lost_age_ <= 0; }
-
-  bool IsGrownUp() const { return age_ > 1; }
-
-  size_t GetHits() const { return hits_; }
-
-  bool IsUpdateValid() const { return update_valid_; }
 
   std::vector<cv::Point3f> GetRefitPts() const { return refit_pts_; }
 
@@ -136,12 +172,13 @@ class LaneTracklet {
     latest_lane_.a3 = a3;
   }
 
-  bool IsHoldOn() const { return is_hold_on_; }
   void SetHoldOn(bool is_hold_on) { is_hold_on_ = is_hold_on; }
 
   void SetFitNum(int num) { poly_num_ = num; }
 
  private:
+  void InitParam(const std::shared_ptr<LaneTrackLetInitParam>& param_ptr);
+  
   /**
    * @brief fusion pts 融合
    *
@@ -275,6 +312,8 @@ class LaneTracklet {
   float y_limit_ = 20.0;
   size_t fit_pt_num_limit_ = 5;
   int max_fusion_pt_age_ = 120000;  ///< 最大融合点年龄, 100min
+  float output_min_quality_thresh_ = 0.5; 
+  int output_min_hits_thresh_ = 5;
 };
 
 };  // namespace ld_post

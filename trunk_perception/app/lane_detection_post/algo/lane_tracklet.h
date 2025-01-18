@@ -252,7 +252,7 @@ class LaneTracklet {
 
   std::shared_ptr<LaneQualityEvaluator> quality_estimator_ = nullptr;   ///< 车道线质量估计器
 
-  int poly_num_ = 1;  ///< 多项式次数,允许被设置为1或3
+  int poly_num_ = 3;  ///< 多项式次数,允许被设置为1或3
 
   std::shared_ptr<StandardCameraProjection> camera_projection_ = nullptr;
   std::shared_ptr<CameraUndistort> camera_undistort_ = nullptr;

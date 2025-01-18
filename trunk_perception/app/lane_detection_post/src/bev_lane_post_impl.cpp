@@ -19,14 +19,10 @@ BevLanePostImpl::~BevLanePostImpl() = default;
 std::uint32_t BevLanePostImpl::Init(const YAML::Node& config) {
   try {
     camera_name_ = config["Name"].as<std::string>();
+
     // LaneQualityEstimator
-    float check_range_near_x = config["LaneQuality"]["CheckRangeNearX"].as<float>();
-    float check_range_far_x = config["LaneQuality"]["CheckRangeFarX"].as<float>();
-    float line_outliner_thres = config["LaneQuality"]["LineOutlinerThres"].as<float>();
-    float norm_max_std_deviation = config["LaneQuality"]["NormMaxStdDeviation"].as<float>();
-    lane_quality_evaluator_ = std::make_shared<ld_post::LaneQualityEvaluator>(
-      check_range_near_x, check_range_far_x, line_outliner_thres, norm_max_std_deviation
-    );
+    lane_quality_evaluator_ = std::make_shared<ld_post::LaneQualityEvaluator>();
+    lane_quality_evaluator_->Init(config["LaneQuality"]);
     if (lane_quality_evaluator_ == nullptr) {
       TERROR << "BevLanePostImpl::Init() failed, lane_quality_evaluator_ is nullptr";
       return ErrorCode::YAML_CONFIG_ERROR;

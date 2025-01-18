@@ -20,15 +20,11 @@ using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
 
 class LaneQualityEvaluator {
 public:
-  LaneQualityEvaluator(float check_range_near_x,
-                       float check_range_far_x,
-                       float line_outliner_thres,
-                       float norm_max_std_deviation):
-    check_range_near_x_(check_range_near_x),
-    check_range_far_x_(check_range_far_x),
-    line_outliner_thres_(line_outliner_thres),
-    norm_max_std_deviation_(norm_max_std_deviation){};
-  
+  LaneQualityEvaluator() = default;
+  ~LaneQualityEvaluator() = default;
+
+  int Init(const YAML::Node& config);
+
   /**
    * @brief 评估车道线质量
    * @param lane_line 车道线实例

@@ -6,13 +6,34 @@
  */
 #include <numeric>
 #include <cmath>
+#include <yaml-cpp/yaml.h>
+
 #include "trunk_perception/app/lane_detection_post/algo/lane_quality.h"
+#include "trunk_perception/common/error/code.hpp"
+#include "trunk_perception/tools/log/t_log.h"
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 
 namespace ld_post{
 
 using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
+
+int LaneQualityEvaluator::Init(const YAML::Node& config) {
+  try{
+    float check_range_near_x = config["CheckRangeNearX"].as<float>();
+    float check_range_far_x = config["CheckRangeFarX"].as<float>();
+    float line_outliner_thres = config["LineOutlinerThres"].as<float>();
+    float norm_max_std_deviation = config["NormMaxStdDeviation"].as<float>();
+    check_range_near_x_ = check_range_near_x;
+    check_range_far_x_ = check_range_far_x;
+    line_outliner_thres_ = line_outliner_thres;
+    norm_max_std_deviation_ = norm_max_std_deviation;
+  } catch (const std::exception& e) {
+    TFATAL << "BevLanePostImpl::Init() failed, " << e.what();
+    return ErrorCode::YAML_CONFIG_ERROR;
+  }
+  return ErrorCode::SUCCESS;
+}
 
 float LaneQualityEvaluator::EvaluateLaneQuality(const LaneLineVision& lane_line) {
     float quality_score = 0.0f;

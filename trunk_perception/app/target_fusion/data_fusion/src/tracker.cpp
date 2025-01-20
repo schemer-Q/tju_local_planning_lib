@@ -327,19 +327,20 @@ void Tracker::Update(const SideVisionMeasureFrame::ConstPtr& side_vision_measure
   }
   UpdateObjectType();
 
+  // VTI-14761 暂不使用环视视觉做运动属性更新：VTI-14761 环视位置不对
   // @author zzg 2025-01-15 使用 环视视觉 对 运动属性(位置、速度)做更新
   // 限制 对 运动属性(位置、速度)做更新 的目标位置
-  Eigen::Vector2d car_center =
-      Eigen::Vector2d(side_vision_measure_ptr->car_center.x(), side_vision_measure_ptr->car_center.y());
-  if (std::fabs(car_center(0)) > 30 && std::fabs(car_center(1)) > 8) {
-    return;
-  }
-  Eigen::VectorXd z = GetMeasurementFromSideVision(side_vision_measure_ptr);
-  if (!motion_fusion_->Update("SideVision0", z)) {
-    TERROR << "[Tracker] update motion fusion with side vision measure failed!";
-    return;
-  }
-  UpdateObjectPoseVelocity();
+  // Eigen::Vector2d car_center =
+  //     Eigen::Vector2d(side_vision_measure_ptr->car_center.x(), side_vision_measure_ptr->car_center.y());
+  // if (std::fabs(car_center(0)) > 30 && std::fabs(car_center(1)) > 8) {
+  //   return;
+  // }
+  // Eigen::VectorXd z = GetMeasurementFromSideVision(side_vision_measure_ptr);
+  // if (!motion_fusion_->Update("SideVision0", z)) {
+  //   TERROR << "[Tracker] update motion fusion with side vision measure failed!";
+  //   return;
+  // }
+  // UpdateObjectPoseVelocity();
 }
 
 void Tracker::Update(const cubtektar::RadarMeasureFrame::ConstPtr& corner_radar_measure_ptr) {
@@ -377,11 +378,17 @@ void Tracker::Update(const cubtektar::RadarMeasureFrame::ConstPtr& corner_radar_
   // 暂粗略划定角毫米波使用区域，对于不在区域内的角毫米波目标，不更新融合目标的运动属性
   Eigen::Vector2d corner_radar_position =
       Eigen::Vector2d(corner_radar_measure_ptr->radar_obj.x, corner_radar_measure_ptr->radar_obj.y);
+  // 该区域外不使用角毫米波目标更新融合目标的运动属性
   if ((corner_radar_position.x() < -35) || (corner_radar_position.x() > 30) ||
       (std::fabs(corner_radar_position.y()) < 1.25)) {
     return;
   }
-
+  // 该区域可以使用角毫米波目标更新融合目标的运动属性，但反射点是在目标车辆的侧边，需要修改后使用，后续修改
+  // 目前该区域不使用角毫米波目标更新融合目标的运动属性
+  if ((corner_radar_position.x() < 10) || (corner_radar_position.x() > -8)) {
+    return;
+  }
+  // 其它区域可以认为角毫米波反射点是在目标车辆后中点，可以用于融合目标的运动属性更新
   Eigen::VectorXd z = GetMeasurementFromCornerRadar(corner_radar_measure_ptr);
   // 设置角毫米波的测量噪声
   Eigen::MatrixXd R = motion_kf_config_.sensor_R.at("Radar0");

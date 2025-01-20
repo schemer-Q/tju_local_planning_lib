@@ -48,9 +48,9 @@ static Eigen::MatrixXd H_SideVision0 = Eigen::MatrixXd::Identity(4, 4);
 // clang-format off
 static Eigen::MatrixXd R_SideVision0 = (Eigen::MatrixXd(4, 4) << 
     1.0, 0,   0,   0,
-    0,   0.6, 0,   0,
+    0,   8.0, 0,   0,
     0,   0,   0.6, 0,
-    0,   0,   0,   0.8).finished();
+    0,   0,   0,   8.0).finished();
 // clang-format on
 
 static std::unordered_map<std::string, Eigen::MatrixXd> R = {

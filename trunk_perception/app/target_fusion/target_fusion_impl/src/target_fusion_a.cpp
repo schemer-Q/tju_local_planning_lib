@@ -88,13 +88,13 @@ std::any TargetFusionA::GetData(const std::string& key) {
 
 std::uint32_t TargetFusionA::GetInputData(const double& ts) {
   CHECK_AND_RETURN(GetLidarData());
-  CHECK_AND_RETURN(GetFrontRadarData());
-  CHECK_AND_RETURN(GetFrontVisionData());
-  CHECK_AND_RETURN(GetSideVisionData());
-  CHECK_AND_RETURN(GetRightFrontCubtektarRadarData());
-  CHECK_AND_RETURN(GetRightRearCubtektarRadarData());
-  CHECK_AND_RETURN(GetLeftRearCubtektarRadarData());
-  CHECK_AND_RETURN(GetLeftFrontCubtektarRadarData());
+  GetFrontRadarData();
+  GetFrontVisionData();
+  GetSideVisionData();
+  GetRightFrontCubtektarRadarData();
+  GetRightRearCubtektarRadarData();
+  GetLeftRearCubtektarRadarData();
+  GetLeftFrontCubtektarRadarData();
   return ErrorCode::SUCCESS;
 }
 
@@ -251,6 +251,11 @@ uint32_t TargetFusionA::GetSideVisionData() {
   auto side_vision_frame_ptr = GET_SIDE_OD_VISION_FRAME();
   if (side_vision_frame_ptr == nullptr) {
     TWARNING << "TargetFusionA::GetSideVisionData GET_SIDE_OD_VISION_FRAME failed";
+    return ErrorCode::TARGET_FUSION_GET_DATA_SIDE_VISION_FAILED;
+  }
+
+  if (std::fabs(side_vision_frame_ptr->timestamp - frame_ptr_->lidar_timestamp) > 0.15) {
+    TWARNING << "TargetFusionA::GetSideVisionData GET_SIDE_OD_VISION_FRAME failed: timestamp error";
     return ErrorCode::TARGET_FUSION_GET_DATA_SIDE_VISION_FAILED;
   }
 

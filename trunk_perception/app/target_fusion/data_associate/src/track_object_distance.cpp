@@ -81,6 +81,15 @@ float TrackObjectDistance::Compute(const TrackerPtr& tracker_ptr, const LidarMea
         position_distance.y() > position_filter_longitudinal_thresh_) {
       return distance;
     }
+    // 解决误匹配问题: VTI-14613，车体系下，激光目标横向差值过大，认为不是同一个目标
+    Eigen::Matrix4d local_to_car = fused_obj->odo_lidar_ptr->Matrix().inverse();
+    Eigen::Vector4d center_vec(fused_obj->center.x(), fused_obj->center.y(),
+                                fused_obj->center.z(), 1.0);
+    center_vec = local_to_car * center_vec;
+    Eigen::Vector3d car_center = Eigen::Vector3d(center_vec.x(), center_vec.y(), center_vec.z());
+    if (std::fabs(lidar_object->bbox.center.y() - car_center.y()) > 2.5) {
+      return distance;
+    }
   }
 
   // 2025-01-12 若激光测量类型与融合目标类型差距过大，不允许匹配上

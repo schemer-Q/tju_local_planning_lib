@@ -171,6 +171,8 @@ struct alignas(32) RadarMeasureFrame : SensorMeasureFrame {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   RadarObject radar_obj;
+  Eigen::Vector2d radar_distance2d = Eigen::Vector2d::Zero();  ///< 毫米波坐标系下的位置
+  Eigen::Vector2d trunk_distance2d = Eigen::Vector2d::Zero();  ///< 车体坐标系下的位置
   Eigen::Vector2d local_distance2d = Eigen::Vector2d::Zero();  ///< 局部坐标系下的位置
   Eigen::Vector2d local_velocity2d = Eigen::Vector2d::Zero();  ///< 局部坐标系下的速度
 
@@ -323,6 +325,10 @@ struct alignas(32) SideVisionMeasureFrame : SensorMeasureFrame {
   Eigen::Vector3f track_point = Eigen::Vector3f::Zero();
   Eigen::Matrix4f state_covariance = Eigen::Matrix4f::Zero();
 
+  // 自车坐标系下的中心点、后中点
+  Eigen::Vector3d car_center = Eigen::Vector3d::Zero();
+  Eigen::Vector3d car_rear_middle_point = Eigen::Vector3d::Zero();
+
   SideVisionMeasureFrame(const Object& vision_obj) {
     timestamp = vision_obj.timestamp;
     sensor_type = MeasureSensorType::SideVision;
@@ -346,6 +352,8 @@ struct alignas(32) SideVisionMeasureFrame : SensorMeasureFrame {
     double cos_yaw = std::cos(theta);
     double sin_yaw = std::sin(theta);
     rear_middle_point = center + Eigen::Vector3d(-cos_yaw * size.x() / 2.0, -sin_yaw * size.x() / 2.0, 0.0);
+    car_center = Eigen::Vector3d(vision_obj.bbox.center.x(), vision_obj.bbox.center.y(), vision_obj.bbox.center.z());
+    car_rear_middle_point = center + Eigen::Vector3d(-cos_yaw * size.x() / 2.0, -sin_yaw * size.x() / 2.0, 0.0);
   }
 
   /**

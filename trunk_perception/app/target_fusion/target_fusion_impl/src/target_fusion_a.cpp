@@ -149,6 +149,8 @@ uint32_t TargetFusionA::GetFrontRadarData() {
   for (size_t i = 0; i < frame_ptr_->front_radar_objects.size(); ++i) {
     frame_ptr_->front_radar_objects[i] = std::make_shared<ars430::RadarMeasureFrame>(
         front_radar_data_ptr->data->objects[i], frame_ptr_->front_radar_timestamp);
+    frame_ptr_->front_radar_objects[i]->radar_distance2d = Eigen::Vector2d(
+        front_radar_data_ptr->data->objects[i].distance2d.x, front_radar_data_ptr->data->objects[i].distance2d.y);
   }
 
   // 获取前向毫米波外参
@@ -176,6 +178,9 @@ uint32_t TargetFusionA::GetFrontRadarData() {
     obj_compensated->radar_obj.distance2d.x = v4f_distance2d.x();
     obj_compensated->radar_obj.distance2d.y = v4f_distance2d.y();
     obj_compensated->local_distance2d = Eigen::Vector2d(v4f_distance2d.x(), v4f_distance2d.y());
+
+    obj_compensated->radar_distance2d = Eigen::Vector2d(obj->radar_distance2d.x(), obj->radar_distance2d.y());
+    obj_compensated->trunk_distance2d = Eigen::Vector2d(v4f_distance2d.x(), v4f_distance2d.y());
 
     // velocity2d - 只做旋转变换，不做平移
     Eigen::Vector3f v3f_velocity2d =
@@ -213,6 +218,7 @@ uint32_t TargetFusionA::GetFrontRadarData() {
         obj->radar_obj.distance2d.x = loc_vec_comp.x();
         obj->radar_obj.distance2d.y = loc_vec_comp.y();
         obj->local_distance2d = Eigen::Vector2d(obj->radar_obj.distance2d.x, obj->radar_obj.distance2d.y);
+        obj->trunk_distance2d = Eigen::Vector2d(obj->radar_obj.distance2d.x, obj->radar_obj.distance2d.y);
       }
     }
   }
@@ -395,6 +401,10 @@ void TargetFusionA::ConvertToLocalCoordinate() {
     frame_ptr_->front_radar_objects_local[i] =
         std::make_shared<ars430::RadarMeasureFrame>(*frame_ptr_->front_radar_objects_compensated[i]);
     frame_ptr_->front_radar_objects_local[i]->Transform(frame_ptr_->odometry_lidar_ptr->Matrix());
+    frame_ptr_->front_radar_objects_local[i]->radar_distance2d =
+        frame_ptr_->front_radar_objects_compensated[i]->radar_distance2d;
+    frame_ptr_->front_radar_objects_local[i]->trunk_distance2d =
+        frame_ptr_->front_radar_objects_compensated[i]->trunk_distance2d;
   }
 
   // 前向视觉数据转到局部坐标系下 @author zzg 2024-12-13

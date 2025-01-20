@@ -13,6 +13,7 @@
 
 #include <jian/spdlog/fmt/bundled/chrono.h>
 #include <yaml-cpp/yaml.h>
+#include <cmath>
 #include <cstdint>
 #include <memory>
 

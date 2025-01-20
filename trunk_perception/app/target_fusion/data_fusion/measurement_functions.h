@@ -43,14 +43,26 @@ static Eigen::MatrixXd R_radar0 = (Eigen::MatrixXd(4, 4) <<
     0,   0,   0,   0.1).finished();
 // clang-format on
 
+// 环视视觉观测: [x, y, vx, vy]
+static Eigen::MatrixXd H_SideVision0 = Eigen::MatrixXd::Identity(4, 4);
+// clang-format off
+static Eigen::MatrixXd R_SideVision0 = (Eigen::MatrixXd(4, 4) << 
+    1.0, 0,   0,   0,
+    0,   0.6, 0,   0,
+    0,   0,   0.6, 0,
+    0,   0,   0,   0.8).finished();
+// clang-format on
+
 static std::unordered_map<std::string, Eigen::MatrixXd> R = {
     {"Lidar", R_lidar},
     {"Radar0", R_radar0},
+    {"SideVision0", R_SideVision0},
 };
 
 static std::unordered_map<std::string, Eigen::MatrixXd> H = {
     {"Lidar", H_lidar},
     {"Radar0", H_radar0},
+    {"SideVision0", H_SideVision0},
 };
 
 }  // namespace Setting1

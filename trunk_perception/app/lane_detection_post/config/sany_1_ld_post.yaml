@@ -19,7 +19,7 @@ Config:
       OccupiedXStepDense: 0.05
       OccupiedXStepSparse: 0.3
       QueueSize: 5
-      FarXLimit: 100.0
+      FarXLimit: 120.0
       NearXLimit: -10.0
       YLimit: 20.0
       FitPtNumLimit: 5

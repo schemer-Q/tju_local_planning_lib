@@ -1,5 +1,6 @@
 aux_source_directory(src SRC_FILES)
 aux_source_directory(algo/src ALGO_FILES)
+aux_source_directory(algo/tracker/src ALGO_FILES)
 
 add_library(trunk_perception_app_lane_detection_post SHARED ${SRC_FILES} ${ALGO_FILES})
 

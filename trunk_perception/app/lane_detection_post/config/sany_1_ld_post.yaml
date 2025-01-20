@@ -1,4 +1,39 @@
 Type: BEVLanePost
 Config:
-  Name: "CAMERA_0_F60"
+  # Name: "CAMERA_0_F60"
   # 还有很多参数没有放出来，具体看bev_lane_post_impl.h
+  Tracker:
+    Basic:
+      CameraName: "CAMERA_0_F60"
+      NumAnchor: 9
+      IouThres: 0.5
+      MaxId: 254
+      MinHits: 5
+      MinWorldPtsNumThresh: 10
+      MaxStartDistThresh: 15
+      
+    TrackletBasic:
+      OccupiedGridXStart: 5
+      OccupiedGridXMiddle: 15
+      OccupiedGridXEnd: 80
+      OccupiedXStepDense: 0.05
+      OccupiedXStepSparse: 0.3
+      QueueSize: 5
+      FarXLimit: 120.0
+      NearXLimit: -10.0
+      YLimit: 20.0
+      FitPtNumLimit: 5
+      MaxFusionPtAge: 120000    
+      OutputQualityMinThresh: 0.6
+
+    LaneQuality:
+      CheckRangeNearX: -5.0
+      CheckRangeFarX: 70
+      LineOutlinerThres: 1.0
+      NormMaxStdDeviation: 1.0
+    
+    LanePositionSelect:
+      Switch: False
+    
+    EgoLaneHoldOnMode:
+      Switch: False

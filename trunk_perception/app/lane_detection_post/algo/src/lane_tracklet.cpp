@@ -14,17 +14,23 @@ namespace ld_post {
 
 using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
 
-LaneTracklet::LaneTracklet(const int& tracklet_id, const LaneLineVision& lane, const Eigen::Matrix4d& cur_pose,
-                           const std::string& camera_name)
-    : camera_name_(camera_name), tracklet_id_(tracklet_id), latest_lane_(lane), latest_pose_(cur_pose) {
-  InitCameraProjection();
-  InitFusionPtGridOccupancy();
-  InitFusionPts();
-  InitAnchors();
-  InitKalmanFilter();
-}
-
 LaneTracklet::~LaneTracklet() = default;
+
+void LaneTracklet::InitParam(const std::shared_ptr<LaneTrackLetInitParam>& param_ptr){
+  occupied_grid_x_start_ = param_ptr->occupied_grid_x_start;
+  occupied_grid_x_middle_ = param_ptr->occupied_grid_x_middle;
+  occupied_grid_x_end_ = param_ptr->occupied_grid_x_end;
+  occupied_x_step_dense_ = param_ptr->occupied_x_step_dense;
+  occupied_x_step_sparse_ = param_ptr->occupied_x_step_sparse;
+  queue_size_ = param_ptr->queue_size;
+  far_x_limit_ = param_ptr->far_x_limit;
+  near_x_limit_ = param_ptr->near_x_limit;
+  y_limit_ = param_ptr->y_limit;
+  fit_pt_num_limit_ = param_ptr->fit_pt_num_limit;
+  max_fusion_pt_age_ = param_ptr->max_fusion_pt_age;
+  output_min_quality_thresh_ = param_ptr->output_min_quality_thresh;
+  output_min_hits_thresh_ = param_ptr->output_min_hits_thresh;
+}
 
 void LaneTracklet::Predict(const Eigen::Matrix4d& cur_pose) {
   TDEBUG << "LaneTracklet::Predict() start: " << tracklet_id_;
@@ -322,6 +328,10 @@ void LaneTracklet::Update(const LaneLineVision& det_lane) {
   }
 
   latest_lane_.lane_line_type = LaneLineType(type_filter_.Update(latest_lane_.lane_line_type));
+  
+  // update lane_conf
+  float quality_score = quality_estimator_->EvaluateLaneQuality(latest_lane_);
+  latest_lane_.lane_conf = quality_score;
 }
 
 void LaneTracklet::UpdateFusionPts() {
@@ -461,6 +471,22 @@ bool LaneTracklet::IsLost() {
   return true;
 }
 
+
+bool LaneTracklet::IsMature() const{
+  bool res = false;
+  // tracked param good enough
+  bool param_matrue = lost_age_ <= 0 && 
+                      age_ > 1 && 
+                      hits_ >= output_min_hits_thresh_ && 
+                      update_valid_;
+  res = is_hold_on_ || param_matrue;
+  
+  // quality high enough
+  bool quality_mature = latest_lane_.lane_conf> output_min_quality_thresh_;
+  res = res && quality_mature;
+
+  return res;
+}
 }  // namespace ld_post
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_END

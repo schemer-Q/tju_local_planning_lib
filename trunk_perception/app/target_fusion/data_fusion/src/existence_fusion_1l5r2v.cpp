@@ -18,11 +18,12 @@ float ExistenceFusion1L5R2V::Compute(const FusedObject::Ptr& fused_object_ptr) {
   const int& front_radar_consecutive_hit = fused_object_ptr->front_radar_consecutive_hit;
   const int& front_radar_consecutive_lost = fused_object_ptr->front_radar_consecutive_lost;
   const int& front_vision_consecutive_hit = fused_object_ptr->front_vision_consecutive_hit;
+  const int& side_vision_consecutive_hit = fused_object_ptr->side_vision_consecutive_hit;
 
   float score = 0.0;
 
   if (lidar_consecutive_hit <= 0) {
-    if (front_vision_consecutive_hit >= 1) {
+    if (front_vision_consecutive_hit >= 1 || side_vision_consecutive_hit >= 1) {
       if (IsObjectHasNFrameRadar(fused_object_ptr, 1)) {
         if (lidar_consecutive_lost <= 3) {
           score = 1.0;
@@ -44,18 +45,22 @@ float ExistenceFusion1L5R2V::Compute(const FusedObject::Ptr& fused_object_ptr) {
       score = 0.3;
     }
 
-    if ((front_vision_consecutive_hit >= 1) && IsObjectHasNFrameRadar(fused_object_ptr, 10) &&
+    if ((front_vision_consecutive_hit >= 1 || side_vision_consecutive_hit >= 1) &&
+        IsObjectHasNFrameRadar(fused_object_ptr, 10) && (lidar_consecutive_lost < 20)) {
+      score = 0.3;
+    }
+
+    if ((side_vision_consecutive_hit >= 1) && IsObjectHasNFrameRadar(fused_object_ptr, 1) &&
         (lidar_consecutive_lost < 20)) {
       score = 0.3;
     }
 
-    if (IsObjectHasNFrameRadar(fused_object_ptr, 25) && (lidar_consecutive_lost < 10) &&
-        (front_vision_consecutive_hit < 15)) {
+    if ((side_vision_consecutive_hit >= 1) && (front_vision_consecutive_hit >= 1)) {
       score = 0.3;
     }
 
     // 2024-12-30 解决近处（盲区）无激光测量或激光测量不稳定 VTI-14302
-    if (front_radar_consecutive_hit >= 1 && front_vision_consecutive_hit >= 1) {
+    if (front_radar_consecutive_hit >= 1 && (front_vision_consecutive_hit >= 1 || side_vision_consecutive_hit >= 1)) {
       Eigen::Matrix4d local_to_car = fused_object_ptr->odo_lidar_ptr->Matrix().inverse();
       Eigen::Vector4d center_vec(fused_object_ptr->center.x(), fused_object_ptr->center.y(),
                                  fused_object_ptr->center.z(), 1.0);
@@ -68,7 +73,8 @@ float ExistenceFusion1L5R2V::Compute(const FusedObject::Ptr& fused_object_ptr) {
 
   } else if (lidar_consecutive_hit <= 1) {
     score = 0.3;
-    if (IsObjectHasNFrameRadar(fused_object_ptr, 1) || (front_vision_consecutive_hit >= 1)) {
+    if (IsObjectHasNFrameRadar(fused_object_ptr, 1) ||
+        (front_vision_consecutive_hit >= 1 || side_vision_consecutive_hit >= 1)) {
       score = 1.0;
     }
   } else if (lidar_consecutive_hit > 1) {

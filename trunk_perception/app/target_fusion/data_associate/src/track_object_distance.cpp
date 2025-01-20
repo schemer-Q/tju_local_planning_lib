@@ -81,6 +81,15 @@ float TrackObjectDistance::Compute(const TrackerPtr& tracker_ptr, const LidarMea
         position_distance.y() > position_filter_longitudinal_thresh_) {
       return distance;
     }
+    // 解决误匹配问题: VTI-14613，车体系下，激光目标横向差值过大，认为不是同一个目标
+    Eigen::Matrix4d local_to_car = fused_obj->odo_lidar_ptr->Matrix().inverse();
+    Eigen::Vector4d center_vec(fused_obj->center.x(), fused_obj->center.y(),
+                                fused_obj->center.z(), 1.0);
+    center_vec = local_to_car * center_vec;
+    Eigen::Vector3d car_center = Eigen::Vector3d(center_vec.x(), center_vec.y(), center_vec.z());
+    if (std::fabs(lidar_object->bbox.center.y() - car_center.y()) > 2.5) {
+      return distance;
+    }
   }
 
   // 2025-01-12 若激光测量类型与融合目标类型差距过大，不允许匹配上
@@ -266,6 +275,129 @@ float TrackObjectDistance::Compute(const TrackerPtr& tracker_ptr,
   float velocity_distance = 0.0;
   if (use_velocity_) {
     velocity_distance = Compute2DEuclideanDistance(fused_object->velocity, front_vision_object->velocity);
+  }
+
+  distance = position_distance * position_weight_ + velocity_distance * velocity_weight_;
+
+  return distance;
+}
+
+// 计算 环视视觉目标 与 航迹目标 的匹配距离
+float TrackObjectDistance::Compute(const TrackerPtr& tracker_ptr,
+                                   const SideVisionMeasureFrame::ConstPtr& side_vision_object) {
+  float distance = std::numeric_limits<float>::max();
+  if (!tracker_ptr || !side_vision_object) {
+    TERROR << "TrackObjectDistance::Compute input is pullptr";
+    return distance;
+  }
+
+  FusedObject::ConstPtr fused_object = tracker_ptr->GetFusedObject();
+
+  // filter
+  if (use_velocity_filter_) {
+    float velocity_rel_distance = Compute2DRelEuclideanDistance(fused_object->velocity, side_vision_object->velocity);
+    float velocity_abs_distance = Compute2DEuclideanDistance(fused_object->velocity, side_vision_object->velocity);
+    if (velocity_rel_distance > velocity_filter_rel_thresh_ && velocity_abs_distance > velocity_filter_abs_thresh_) {
+      return distance;
+    }
+  }
+
+  if (use_position_filter_) {
+    Eigen::Vector2f position_distance =
+        ComputeOrthogonalDistance(fused_object->center, side_vision_object->center, side_vision_object->theta);
+    if (position_distance.x() > position_filter_orthogonal_thresh_ ||
+        position_distance.y() > position_filter_longitudinal_thresh_) {
+      return distance;
+    }
+  }
+
+  // cal distance
+  float position_distance = 0.0;
+  if (use_position_) {
+    if (position_type_ == "Orthogonal") {
+      if (position_point_ == "Center") {
+        auto dis_2d =
+            ComputeOrthogonalDistance(fused_object->center, side_vision_object->center, side_vision_object->theta);
+        position_distance = dis_2d.x();
+      } else if (position_point_ == "RearMiddle") {
+        auto dis_2d = ComputeOrthogonalDistance(fused_object->rear_middle_point, side_vision_object->rear_middle_point,
+                                                side_vision_object->theta);
+        position_distance = dis_2d.x();
+      } else if (position_point_ == "Mix_CR") {
+        auto dis_center =
+            ComputeOrthogonalDistance(fused_object->center, side_vision_object->center, side_vision_object->theta);
+        auto dis_rear_middle = ComputeOrthogonalDistance(
+            fused_object->rear_middle_point, side_vision_object->rear_middle_point, side_vision_object->theta);
+        position_distance = std::min(dis_center.x(), dis_rear_middle.x());
+      }
+    } else if (position_type_ == "Euclidean") {
+      if (position_point_ == "Center") {
+        position_distance = Compute2DEuclideanDistance(fused_object->center, side_vision_object->center);
+      } else if (position_point_ == "RearMiddle") {
+        position_distance =
+            Compute2DEuclideanDistance(fused_object->rear_middle_point, side_vision_object->rear_middle_point);
+      } else if (position_point_ == "Mix_CR") {
+        auto dis_center = Compute2DEuclideanDistance(fused_object->center, side_vision_object->center);
+        auto dis_rear_middle =
+            Compute2DEuclideanDistance(fused_object->rear_middle_point, side_vision_object->rear_middle_point);
+        position_distance = std::min(dis_center, dis_rear_middle);
+      }
+    }
+  }
+
+  float velocity_distance = 0.0;
+  if (use_velocity_) {
+    velocity_distance = Compute2DEuclideanDistance(fused_object->velocity, side_vision_object->velocity);
+  }
+
+  distance = position_distance * position_weight_ + velocity_distance * velocity_weight_;
+
+  return distance;
+}
+
+float TrackObjectDistance::Compute(const TrackerPtr& tracker_ptr,
+                                   const cubtektar::RadarMeasureFrame::ConstPtr& corner_radar_object) {
+  float distance = std::numeric_limits<float>::max();
+  if (!tracker_ptr || !corner_radar_object) {
+    TERROR << "TrackObjectDistance::Compute input is nullptr";
+    return distance;
+  }
+
+  FusedObject::ConstPtr fused_obj = tracker_ptr->GetFusedObject();
+  Eigen::Vector3d radar_obj_pos(corner_radar_object->local_distance2d.x(), corner_radar_object->local_distance2d.y(),
+                                0);
+  Eigen::Vector3f radar_obj_velocity(corner_radar_object->local_velocity2d.x(),
+                                     corner_radar_object->local_velocity2d.y(), 0);
+
+  // filter
+  if (use_velocity_filter_) {
+    float velocity_rel_distance = Compute2DRelEuclideanDistance(fused_obj->velocity, radar_obj_velocity);
+    float velocity_abs_distance = Compute2DEuclideanDistance(fused_obj->velocity, radar_obj_velocity);
+    if (velocity_rel_distance > velocity_filter_rel_thresh_ && velocity_abs_distance > velocity_filter_abs_thresh_) {
+      return distance;
+    }
+  }
+
+  if (use_position_filter_) {
+    Eigen::Vector2f position_distance =
+        ComputeOrthogonalDistance(fused_obj->rear_middle_point, radar_obj_pos, fused_obj->theta);
+    if (position_distance.x() > position_filter_orthogonal_thresh_ ||
+        position_distance.y() > position_filter_longitudinal_thresh_) {
+      return distance;
+    }
+  }
+
+  // cal distance
+  float position_distance = 0.0;
+  if (use_position_) {
+    // position_distance = ComputeOrthogonalDistance(fused_obj->rear_middle_point, radar_obj_pos, fused_obj->theta).x();
+    // @author zzg 修改距离计算方式 为 Compute2DEuclideanDistance
+    position_distance = Compute2DEuclideanDistance(fused_obj->rear_middle_point, radar_obj_pos);
+  }
+
+  float velocity_distance = 0.0;
+  if (use_velocity_) {
+    velocity_distance = Compute2DEuclideanDistance(fused_obj->velocity, radar_obj_velocity);
   }
 
   distance = position_distance * position_weight_ + velocity_distance * velocity_weight_;

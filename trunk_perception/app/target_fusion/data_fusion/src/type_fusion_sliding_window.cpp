@@ -49,7 +49,7 @@ std::uint32_t TypeFusionSlidingWindow::Update(const SensorMeasureFrame::ConstPtr
     LidarMeasureFrame::ConstPtr lidar_measure_frame =
         std::dynamic_pointer_cast<const LidarMeasureFrame>(sensor_measure_frame);
     if (!lidar_measure_frame) {
-      TERROR << "TypeFusionSlidingWindow::Update: measure_frame is nullptr";  // @zzg 2024-12-26
+      TERROR << "TypeFusionSlidingWindow::Update: Lidar measure_frame is nullptr";  // @zzg 2024-12-26
       return ErrorCode::PARAMETER_ERROR;
     }
 
@@ -61,11 +61,21 @@ std::uint32_t TypeFusionSlidingWindow::Update(const SensorMeasureFrame::ConstPtr
         std::dynamic_pointer_cast<const VisionMeasureFrame>(sensor_measure_frame);
 
     if (!front_vision_measure_frame) {
-      TERROR << "TypeFusionSlidingWindow::Update: measure_frame is nullptr";  // @zzg 2024-12-26
+      TERROR << "TypeFusionSlidingWindow::Update: FrontVision measure_frame is nullptr";  // @zzg 2024-12-26
       return ErrorCode::PARAMETER_ERROR;
     }
     object_type_ = front_vision_measure_frame->type;
     return SlidingWindow(front_vision_type_history_, front_vision_lidar_type_map_, object_type_);
+  } else if (sensor_measure_frame->sensor_type == MeasureSensorType::SideVision) {
+    SideVisionMeasureFrame::ConstPtr side_vision_measure_frame =
+        std::dynamic_pointer_cast<const SideVisionMeasureFrame>(sensor_measure_frame);
+
+    if (!side_vision_measure_frame) {
+      TERROR << "TypeFusionSlidingWindow::Update: SideVision measure_frame is nullptr";  // @zzg 2024-12-26
+      return ErrorCode::PARAMETER_ERROR;
+    }
+    object_type_ = side_vision_measure_frame->type;
+    return SlidingWindow(side_vision_type_history_, side_vision_lidar_type_map_, object_type_);
   }
   return ErrorCode::SUCCESS;
 }

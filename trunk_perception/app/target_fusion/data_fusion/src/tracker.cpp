@@ -108,6 +108,9 @@ void Tracker::Predict(const double& t) {
 
   if (object_ptr_->front_vision_consecutive_lost > 0) object_ptr_->front_vision_consecutive_hit = 0;
   object_ptr_->front_vision_consecutive_lost += 1;
+
+  if (object_ptr_->side_vision_consecutive_lost > 0) object_ptr_->side_vision_consecutive_hit = 0;
+  object_ptr_->side_vision_consecutive_lost += 1;
 }
 
 uint32_t Tracker::Update(const std::vector<SensorMeasureFrame::ConstPtr>& measures_list) {
@@ -143,6 +146,20 @@ uint32_t Tracker::Update(const std::vector<SensorMeasureFrame::ConstPtr>& measur
         continue;
       }
       Update(front_vision_measure_ptr);
+    } else if (measure_ptr->sensor_type == MeasureSensorType::CUBTEKTARRadar) {
+      auto corner_radar_ptr = std::static_pointer_cast<const cubtektar::RadarMeasureFrame>(measure_ptr);
+      if (!corner_radar_ptr) {
+        TERROR << "[Tracker] corner_radar_ptr is nullptr";
+        continue;
+      }
+      Update(corner_radar_ptr);
+    } else if (measure_ptr->sensor_type == MeasureSensorType::SideVision) {
+      auto side_vision_measure_ptr = std::static_pointer_cast<const SideVisionMeasureFrame>(measure_ptr);
+      if (!side_vision_measure_ptr) {
+        TERROR << "[Tracker] side_vision_measure_ptr is nullptr";
+        continue;
+      }
+      Update(side_vision_measure_ptr);
     }
   }
 
@@ -221,6 +238,23 @@ void Tracker::Update(const ars430::RadarMeasureFrame::ConstPtr& front_radar_meas
     return;
   }
 
+  object_ptr_->front_radar_consecutive_lost = 0;
+  object_ptr_->front_radar_total_life += 1;
+  object_ptr_->front_radar_consecutive_hit += 1;
+  object_front_radar_ptr_ = front_radar_measure_ptr;
+  object_ptr_->obj_front_radar_ptr_ = front_radar_measure_ptr;
+
+  Eigen::Vector2d radar_position =
+      Eigen::Vector2d(front_radar_measure_ptr->radar_distance2d.x(), front_radar_measure_ptr->radar_distance2d.y());
+  // 对于目标处在毫米波坐标系原点后的（毫米波坐标系下，纵向位置 < 0.1 的），不使用毫米波进行运动属性更新
+  if (radar_position.x() < 0.1) {
+    return;
+  }
+  // 对于近处毫米波目标，位置在左右侧的，暂不确定其反射的位置点是车的后中心点还是车的侧边点，暂不使用其位置、速度做运动属性更新
+  if (radar_position.x() < 15 && (radar_position.y() / std::fabs(radar_position.x())) > sqrt(3)) {
+    return;
+  }
+
   Eigen::VectorXd z = GetMeasurementFromFrontRadar(front_radar_measure_ptr);
 
   // 此时因为只有radar观测，需要需要加快radar的位置收敛速度
@@ -253,12 +287,6 @@ void Tracker::Update(const ars430::RadarMeasureFrame::ConstPtr& front_radar_meas
   }
 
   UpdateObjectPoseVelocity();
-
-  object_ptr_->front_radar_consecutive_lost = 0;
-  object_ptr_->front_radar_total_life += 1;
-  object_ptr_->front_radar_consecutive_hit += 1;
-  object_front_radar_ptr_ = front_radar_measure_ptr;
-  object_ptr_->obj_front_radar_ptr_ = front_radar_measure_ptr;
 }
 
 void Tracker::Update(const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr) {
@@ -280,6 +308,102 @@ void Tracker::Update(const VisionMeasureFrame::ConstPtr& front_vision_measure_pt
   object_ptr_->front_vision_consecutive_hit += 1;
   object_front_vision_ptr_ = front_vision_measure_ptr;
   object_ptr_->obj_front_vision_ptr_ = front_vision_measure_ptr;
+}
+
+void Tracker::Update(const SideVisionMeasureFrame::ConstPtr& side_vision_measure_ptr) {
+  if (!side_vision_measure_ptr) {
+    TERROR << "[Tracker] side_vision_measure_ptr is nullptr";
+    return;
+  }
+  object_ptr_->side_vision_consecutive_lost = 0;
+  object_ptr_->side_vision_total_life += 1;
+  object_ptr_->side_vision_consecutive_hit += 1;
+  object_side_vision_ptr_ = side_vision_measure_ptr;
+  object_ptr_->obj_side_vision_ptr_ = side_vision_measure_ptr;
+
+  object_ptr_->type = side_vision_measure_ptr->type;
+  if (type_fusion_->Update(side_vision_measure_ptr) != ErrorCode::SUCCESS) {
+    TERROR << "[Tracker] update type fusion with side vision measure failed!";
+  }
+  UpdateObjectType();
+
+  // VTI-14761 暂不使用环视视觉做运动属性更新：VTI-14761 环视位置不对
+  // @author zzg 2025-01-15 使用 环视视觉 对 运动属性(位置、速度)做更新
+  // 限制 对 运动属性(位置、速度)做更新 的目标位置
+  // Eigen::Vector2d car_center =
+  //     Eigen::Vector2d(side_vision_measure_ptr->car_center.x(), side_vision_measure_ptr->car_center.y());
+  // if (std::fabs(car_center(0)) > 30 && std::fabs(car_center(1)) > 8) {
+  //   return;
+  // }
+  // Eigen::VectorXd z = GetMeasurementFromSideVision(side_vision_measure_ptr);
+  // if (!motion_fusion_->Update("SideVision0", z)) {
+  //   TERROR << "[Tracker] update motion fusion with side vision measure failed!";
+  //   return;
+  // }
+  // UpdateObjectPoseVelocity();
+}
+
+void Tracker::Update(const cubtektar::RadarMeasureFrame::ConstPtr& corner_radar_measure_ptr) {
+  if (!corner_radar_measure_ptr) {
+    TERROR << "[Tracker] corner_radar_measure_ptr is nullptr";
+    return;
+  }
+
+  if (corner_radar_measure_ptr->corner_radar_name_ == CornerRadarName::RADAR1) {
+    object_corner_radar1_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->obj_corner_radar1_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->corner_radar1_consecutive_lost = 0;
+    object_ptr_->corner_radar1_consecutive_hit += 1;
+    object_ptr_->corner_radar1_total_life += 1;
+  } else if (corner_radar_measure_ptr->corner_radar_name_ == CornerRadarName::RADAR5) {
+    object_corner_radar5_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->obj_corner_radar5_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->corner_radar5_consecutive_lost = 0;
+    object_ptr_->corner_radar5_consecutive_hit += 1;
+    object_ptr_->corner_radar5_total_life += 1;
+  } else if (corner_radar_measure_ptr->corner_radar_name_ == CornerRadarName::RADAR7) {
+    object_corner_radar7_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->obj_corner_radar7_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->corner_radar7_consecutive_lost = 0;
+    object_ptr_->corner_radar7_consecutive_hit += 1;
+    object_ptr_->corner_radar7_total_life += 1;
+  } else if (corner_radar_measure_ptr->corner_radar_name_ == CornerRadarName::RADAR11) {
+    object_corner_radar11_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->obj_corner_radar11_ptr_ = corner_radar_measure_ptr;
+    object_ptr_->corner_radar11_consecutive_lost = 0;
+    object_ptr_->corner_radar11_consecutive_hit += 1;
+    object_ptr_->corner_radar11_total_life += 1;
+  }
+
+  // 暂粗略划定角毫米波使用区域，对于不在区域内的角毫米波目标，不更新融合目标的运动属性
+  Eigen::Vector2d corner_radar_position =
+      Eigen::Vector2d(corner_radar_measure_ptr->radar_obj.x, corner_radar_measure_ptr->radar_obj.y);
+  // 该区域外不使用角毫米波目标更新融合目标的运动属性
+  if ((corner_radar_position.x() < -35) || (corner_radar_position.x() > 30) ||
+      (std::fabs(corner_radar_position.y()) < 1.25)) {
+    return;
+  }
+  // 该区域可以使用角毫米波目标更新融合目标的运动属性，但反射点是在目标车辆的侧边，需要修改后使用，后续修改
+  // 目前该区域不使用角毫米波目标更新融合目标的运动属性
+  if ((corner_radar_position.x() < 10) || (corner_radar_position.x() > -8)) {
+    return;
+  }
+  // 其它区域可以认为角毫米波反射点是在目标车辆后中点，可以用于融合目标的运动属性更新
+  Eigen::VectorXd z = GetMeasurementFromCornerRadar(corner_radar_measure_ptr);
+  // 设置角毫米波的测量噪声
+  Eigen::MatrixXd R = motion_kf_config_.sensor_R.at("Radar0");
+  R(0, 0) = 20.0;
+  R(1, 1) = 100.0;
+  R(2, 2) = 0.6;
+  R(3, 3) = 10.0;
+  motion_fusion_->SetSensorR("Radar0", R);
+
+  if (!motion_fusion_->Update("Radar0", z)) {
+    TERROR << "[Tracker] update motion fusion with side radar measure failed!";
+    return;
+  }
+
+  UpdateObjectPoseVelocity();
 }
 
 Eigen::VectorXd Tracker::GetStateFromFusedObject() {
@@ -337,6 +461,30 @@ Eigen::VectorXd Tracker::GetMeasurementFromFrontRadar(
   return Eigen::VectorXd();
 }
 
+Eigen::VectorXd Tracker::GetMeasurementFromCornerRadar(
+    const cubtektar::RadarMeasureFrame::ConstPtr& corner_radar_measure_ptr) {
+  switch (motion_kf_config_.motion_model) {
+    case MotionModel::CV:
+      Eigen::Vector4d z;
+      if (object_ptr_->track_point_type == TrackPointType::RearMiddle) {
+        z << corner_radar_measure_ptr->local_distance2d.x(), corner_radar_measure_ptr->local_distance2d.y(),
+            corner_radar_measure_ptr->local_velocity2d.x(), corner_radar_measure_ptr->local_velocity2d.y();
+      } else if (object_ptr_->track_point_type == TrackPointType::Center) {
+        double cos_yaw = std::cos(object_ptr_->theta);
+        double sin_yaw = std::sin(object_ptr_->theta);
+        double center_x = corner_radar_measure_ptr->local_distance2d.x() + cos_yaw * object_ptr_->size.x() / 2.0;
+        double center_y = corner_radar_measure_ptr->local_distance2d.y() + sin_yaw * object_ptr_->size.x() / 2.0;
+        z << center_x, center_y, corner_radar_measure_ptr->local_velocity2d.x(),
+            corner_radar_measure_ptr->local_velocity2d.y();
+      } else {
+        TERROR << "[Tracker] GetMeasurementFromFrontRadar track_point_type is not implemented!";
+        return Eigen::VectorXd();
+      }
+      return z;
+  }
+  return Eigen::VectorXd();
+}
+
 Eigen::VectorXd Tracker::GetMeasurementFromFrontVision(const VisionMeasureFrame::ConstPtr& front_vision_measure_ptr) {
   switch (motion_kf_config_.motion_model) {
     case MotionModel::CV:
@@ -349,6 +497,25 @@ Eigen::VectorXd Tracker::GetMeasurementFromFrontVision(const VisionMeasureFrame:
             front_vision_measure_ptr->velocity.x(), front_vision_measure_ptr->velocity.y();
       } else {
         TERROR << "[Tracker] GetMeasurementFromFrontVision track_point_type is not implemented!";
+        return Eigen::VectorXd();
+      }
+      return z;
+  }
+  return Eigen::VectorXd();
+}
+
+Eigen::VectorXd Tracker::GetMeasurementFromSideVision(const SideVisionMeasureFrame::ConstPtr& side_vision_measure_ptr) {
+  switch (motion_kf_config_.motion_model) {
+    case MotionModel::CV:
+      Eigen::Vector4d z;
+      if (object_ptr_->track_point_type == TrackPointType::RearMiddle) {
+        z << side_vision_measure_ptr->rear_middle_point.x(), side_vision_measure_ptr->rear_middle_point.y(),
+            side_vision_measure_ptr->velocity.x(), side_vision_measure_ptr->velocity.y();
+      } else if (object_ptr_->track_point_type == TrackPointType::Center) {
+        z << side_vision_measure_ptr->center.x(), side_vision_measure_ptr->center.y(),
+            side_vision_measure_ptr->velocity.x(), side_vision_measure_ptr->velocity.y();
+      } else {
+        TERROR << "[Tracker] GetMeasurementFromSideVision track_point_type is not implemented!";
         return Eigen::VectorXd();
       }
       return z;

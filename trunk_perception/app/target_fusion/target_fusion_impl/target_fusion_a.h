@@ -68,6 +68,43 @@ class TargetFusionA : public TargetFusionBase {
   uint32_t GetFrontVisionData();
 
   /**
+   * @brief 获取环视视觉数据
+   *
+   * @return uint32_t 错误码
+   *
+   * @author zzg 2025-01-13
+   */
+  uint32_t GetSideVisionData();
+
+  /**
+   * @brief 获取右前角毫米波雷达数据
+   * @author zzg 2024-11-28
+   * @return uint32_t 错误码
+   */
+  uint32_t GetRightFrontCubtektarRadarData();
+
+  /**
+   * @brief 获取右后角毫米波雷达数据
+   * @author zzg 2024-11-28
+   * @return uint32_t 错误码
+   */
+  uint32_t GetRightRearCubtektarRadarData();
+
+  /**
+   * @brief 获取左后角毫米波雷达数据
+   * @author zzg 2024-11-28
+   * @return uint32_t 错误码
+   */
+  uint32_t GetLeftRearCubtektarRadarData();
+
+  /**
+   * @brief 获取左前角毫米波雷达数据
+   * @author zzg 2024-11-28
+   * @return uint32_t 错误码
+   */
+  uint32_t GetLeftFrontCubtektarRadarData();
+
+  /**
    * @brief 获取odometry数据
    *
    * @param ts [IN] 需要对齐的时间戳, 秒
@@ -131,7 +168,7 @@ class TargetFusionA : public TargetFusionBase {
   bool if_time_compensate_lidar_odometry_ = true;  ///< 是否对激光雷达odometry进行补偿
   bool if_time_compensate_front_radar_ = true;     ///< 是否对毫米波雷达数据进行时间补偿
   bool if_space_compensate_front_radar_ = true;  ///< 是否对毫米波雷达数据进行空间补偿(补偿自车位移)
-  bool if_time_compensate_front_vision_odometry_ = true;  ///< 是否对前向视觉数据进行时间补偿
+  bool if_time_compensate_vision_odometry_ = true;  ///< 是否对前向视觉数据进行时间补偿
 
   bool is_first_frame_ = true;  ///< 是否是第一帧，第一帧则直接创建新的tracker，不需要关联
   std::shared_ptr<IDPool> id_pool_ptr_ = nullptr;
@@ -141,14 +178,29 @@ class TargetFusionA : public TargetFusionBase {
   AssociationResult stable_tracker_lidar_association_result_;
   AssociationResult stable_tracker_radar_association_result_;
   AssociationResult stable_tracker_front_vision_association_result_;
+  AssociationResult stable_tracker_side_vision_association_result_;
+  AssociationResult stable_tracker_corner_radar_1_association_result_;
+  AssociationResult stable_tracker_corner_radar_5_association_result_;
+  AssociationResult stable_tracker_corner_radar_7_association_result_;
+  AssociationResult stable_tracker_corner_radar_11_association_result_;
 
   AssociationResult new_tracker_lidar_association_result_;
   AssociationResult new_tracker_radar_association_result_;
   AssociationResult new_tracker_front_vision_association_result_;
+  AssociationResult new_tracker_side_vision_association_result_;
+  AssociationResult new_tracker_corner_radar_1_association_result_;
+  AssociationResult new_tracker_corner_radar_5_association_result_;
+  AssociationResult new_tracker_corner_radar_7_association_result_;
+  AssociationResult new_tracker_corner_radar_11_association_result_;
 
   AssociationResult lost_tracker_lidar_association_result_;
   AssociationResult lost_tracker_radar_association_result_;
   AssociationResult lost_tracker_front_vision_association_result_;
+  AssociationResult lost_tracker_side_vision_association_result_;
+  AssociationResult lost_tracker_corner_radar_1_association_result_;
+  AssociationResult lost_tracker_corner_radar_5_association_result_;
+  AssociationResult lost_tracker_corner_radar_7_association_result_;
+  AssociationResult lost_tracker_corner_radar_11_association_result_;
 
   std::vector<TrackerPtr> new_trackers_;  ///< 起始集, 跟踪帧数低于阈值，连续多帧丢失观测后直接删除，不进入丢失集
   std::vector<TrackerPtr> stable_trackers_;  ///< 稳定集，同时也是输出集合
@@ -158,7 +210,7 @@ class TargetFusionA : public TargetFusionBase {
   AssociateDebugData::Ptr associate_debug_data_ptr_;
 
   // 参数
-  int new_to_stable_life_thresh_ = 5;    ///< 起始集进入稳定集跟踪帧数阈值,否则直接删除  2025-01-13 修改阈值 3 -> 5
+  int new_to_stable_life_thresh_ = 5;  ///< 起始集进入稳定集跟踪帧数阈值,否则直接删除  2025-01-13 修改阈值 3 -> 5
   int stable_to_lost_life_thresh_ = 5;   ///< 稳定集进入丢失集跟踪帧数阈值
   int lost_to_stable_life_thresh_ = 3;   ///< 丢失集进入稳定集跟踪帧数阈值
   int lost_to_delete_life_thresh_ = 10;  ///< 丢失集删除跟踪帧数阈值

@@ -38,6 +38,26 @@ struct AssociateDebugData {
   AssociationResult stable_tracker_front_vision_association_result;
   AssociationResult lost_tracker_front_vision_association_result;
 
+  AssociationResult new_tracker_side_vision_association_result;
+  AssociationResult stable_tracker_side_vision_association_result;
+  AssociationResult lost_tracker_side_vision_association_result;
+
+  AssociationResult new_tracker_corner_radar_1_association_result;
+  AssociationResult stable_tracker_corner_radar_1_association_result;
+  AssociationResult lost_tracker_corner_radar_1_association_result;
+
+  AssociationResult new_tracker_corner_radar_5_association_result;
+  AssociationResult stable_tracker_corner_radar_5_association_result;
+  AssociationResult lost_tracker_corner_radar_5_association_result;
+
+  AssociationResult new_tracker_corner_radar_7_association_result;
+  AssociationResult stable_tracker_corner_radar_7_association_result;
+  AssociationResult lost_tracker_corner_radar_7_association_result;
+
+  AssociationResult new_tracker_corner_radar_11_association_result;
+  AssociationResult stable_tracker_corner_radar_11_association_result;
+  AssociationResult lost_tracker_corner_radar_11_association_result;
+
   typedef std::shared_ptr<AssociateDebugData> Ptr;
 };
 

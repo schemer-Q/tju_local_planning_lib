@@ -3,6 +3,7 @@
 #include "trunk_perception/tools/log/t_log.h"
 #include "trunk_perception/tools/system/utils.hpp"
 #include "trunk_perception/app/object_detection/od_sparse4d_impl.h"
+#include "trunk_perception/app/object_detection/od_mm_sparse4d_impl.h"
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 
@@ -18,6 +19,8 @@ std::shared_ptr<OdBase> OdManager::Create(const YAML::Node& config) {
 
   if (config["Type"].as<std::string>() == "ODSparse4D") {
     detector = std::make_shared<OdSparse4DImpl>();
+  } else if (config["Type"].as<std::string>() == "ODMMSparse4D") {
+    detector = std::make_shared<OdMMSparse4DImpl>();
   } else {
     TFATAL << "OdManager::Create: detector type not supported: " << config["Type"].as<std::string>();
     return nullptr;

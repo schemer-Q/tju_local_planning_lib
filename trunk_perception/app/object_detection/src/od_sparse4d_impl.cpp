@@ -3,52 +3,14 @@
 #include "trunk_perception/common/error/code.hpp"
 #include "trunk_perception/common/tools/gen_mapxy.h"
 #include "trunk_perception/tools/log/t_log.h"
+#include "trunk_perception/app/object_detection/detection_det_sdk_utils.h"
 
 #include "detection_net_sdk/data.h"
-#include "detection_net_sdk/logging.h"
 #include "detection_net_sdk/object_detector.h"
 
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 
 using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
-
-static std::unordered_map<net::ObjectType, ObjectType> SDKObjectTypeDict = {
-    {net::ObjectType::UNKNOWN, ObjectType::UNKNOWN},
-    {net::ObjectType::VEHICLE, ObjectType::VEHICLE},
-    {net::ObjectType::CYCLIST, ObjectType::BICYCLE},
-    {net::ObjectType::TRICYCLE, ObjectType::TRICYCLE},
-    {net::ObjectType::PEDESTRIAN, ObjectType::PEDESTRIAN},
-    {net::ObjectType::BUS, ObjectType::BUS},
-    {net::ObjectType::TRUCK, ObjectType::TRUCK},
-    {net::ObjectType::TRUCK_HEAD, ObjectType::TRUCK_HEAD},
-    {net::ObjectType::TRAILER, ObjectType::TRAILER},
-    {net::ObjectType::ALIEN_VEHICLE, ObjectType::ALIEN_VEHICLE},
-    {net::ObjectType::CONE, ObjectType::CONE},
-    {net::ObjectType::BARREL, ObjectType::BARREL},
-    {net::ObjectType::OTHERS, ObjectType::TRAILER},
-};
-
-class Sparse4DLogger : public net::NetLogger {
-  void log(net::NetLogger::Severity severity, const std::string_view msg) noexcept override {
-    switch (severity) {
-      case net::NetLogger::Severity::kINTERNAL_ERROR:
-        TFATAL << "[DetectionNetSDK] " << msg;
-        break;
-      case net::NetLogger::Severity::kERROR:
-        TERROR << "[DetectionNetSDK] " << msg;
-        break;
-      case net::NetLogger::Severity::kWARNING:
-        TWARNING << "[DetectionNetSDK] " << msg;
-        break;
-      case net::NetLogger::Severity::kINFO:
-        TINFO << "[DetectionNetSDK] " << msg;
-        break;
-      case net::NetLogger::Severity::kVERBOSE:
-        TDEBUG << "[DetectionNetSDK] " << msg;
-        break;
-    }
-  }
-};
 
 OdSparse4DImpl::OdSparse4DImpl() = default;
 
@@ -76,7 +38,7 @@ std::uint32_t OdSparse4DImpl::Init(const YAML::Node& config) {
     return ErrorCode::PARAMETER_ERROR;
   }
 
-  static std::shared_ptr<Sparse4DLogger> logger = std::make_shared<Sparse4DLogger>();
+  static std::shared_ptr<DetectionNetSDKLogger> logger = std::make_shared<DetectionNetSDKLogger>();
 
   detector_ = std::make_shared<net::ObjectDetector>();
   if (!detector_->Init(model_config_path_, logger)) {
@@ -187,7 +149,7 @@ std::uint32_t OdSparse4DImpl::Run(const double& ts) {
   for (const auto& bbox : sdk_bboxes) {
     Object obj;
     obj.timestamp = timestamps[0];
-    obj.type = SDKObjectTypeDict[bbox.type];
+    obj.type = DetectionNetSDKObjectTypeDict[bbox.type];
     obj.bbox.center = bbox.center;
     obj.bbox.size = bbox.size;
     obj.velocity.x() = bbox.velocity.x();

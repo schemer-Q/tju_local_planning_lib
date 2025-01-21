@@ -254,7 +254,7 @@ uint32_t TargetFusionA::GetSideVisionData() {
     return ErrorCode::TARGET_FUSION_GET_DATA_SIDE_VISION_FAILED;
   }
 
-  if (std::fabs(side_vision_frame_ptr->timestamp - frame_ptr_->lidar_timestamp) > 0.15) {
+  if (std::fabs(side_vision_frame_ptr->timestamp - frame_ptr_->lidar_timestamp) > 0.26) {
     TWARNING << "TargetFusionA::GetSideVisionData GET_SIDE_OD_VISION_FRAME failed: timestamp error";
     return ErrorCode::TARGET_FUSION_GET_DATA_SIDE_VISION_FAILED;
   }

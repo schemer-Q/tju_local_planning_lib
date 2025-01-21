@@ -56,7 +56,7 @@ float ExistenceFusion1L5R2V::Compute(const FusedObject::Ptr& fused_object_ptr) {
     }
 
     // 维持自车后方目标
-    if ((side_vision_consecutive_hit >= 1) && IsObjectHasNFrameRadar(fused_object_ptr, 1)) {
+    if (side_vision_consecutive_hit >= 2) {
       Eigen::Matrix4d local_to_car = fused_object_ptr->odo_lidar_ptr->Matrix().inverse();
       Eigen::Vector4d center_vec(fused_object_ptr->center.x(), fused_object_ptr->center.y(),
                                  fused_object_ptr->center.z(), 1.0);

@@ -385,7 +385,7 @@ void Tracker::Update(const cubtektar::RadarMeasureFrame::ConstPtr& corner_radar_
   }
   // 该区域可以使用角毫米波目标更新融合目标的运动属性，但反射点是在目标车辆的侧边，需要修改后使用，后续修改
   // 目前该区域不使用角毫米波目标更新融合目标的运动属性
-  if ((corner_radar_position.x() < 10) || (corner_radar_position.x() > -8)) {
+  if ((corner_radar_position.x() < 10) && (corner_radar_position.x() > -8)) {
     return;
   }
   // 其它区域可以认为角毫米波反射点是在目标车辆后中点，可以用于融合目标的运动属性更新

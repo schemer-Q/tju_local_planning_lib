@@ -8,6 +8,9 @@ Config:
         min_lifetime_output: 3
         max_consecutive_lost_num: 5
         min_consecutive_valid_num: 3
+        max_velocity: 50.0 # 障碍物最大速度(m/s)
+        predict_by_velocity: true # 轨迹未匹配成功时是否要根据速度进行预测(默认不预测) 参数可省略
+        trigger_predict_count: 10 # 如开启预测，生命周期需大于等于该值
       IDPool:
         start_id: 1
         max_id: 255

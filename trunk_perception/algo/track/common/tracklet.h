@@ -11,16 +11,21 @@
 
 #pragma once
 
+#include "trunk_perception/algo/track/common/track_param.h"
 #include "trunk_perception/algo/track/tracker_method/tracker_method_base.h"
 
+#include <deque>
+
 TRUNK_PERCEPTION_LIB_NAMESPACE_BEGIN
+
+using common::MotionDirection;
 
 enum class TrackletState { UNCONFIRMED, CONFIRMED, DEAD };
 
 class Tracklet {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  Tracklet() = default;
+  Tracklet(const SimpleTrackParams& param) : params_(param) {}
   ~Tracklet() = default;
 
   /**
@@ -28,7 +33,7 @@ class Tracklet {
    *
    * @param timestamp current frame timestamp
    */
-  void Predict(const double timestamp, const bool predict_by_velocity = true);
+  void Predict(const double timestamp);
 
   /**
    * @brief tracker update
@@ -52,10 +57,19 @@ class Tracklet {
    */
   inline bool Dieout() const { return state == TrackletState::DEAD; }
 
+ private:
+  static MotionDirection checkObjectMotionDirection(const std::deque<float>& distances);
+  static float checkVelocityConfidence(const std::deque<std::pair<double, Eigen::Vector3f>>& velocities);
+
  public:
   Object current_tracking_object;
   std::shared_ptr<TrackerMethodBase> tracker_method_ptr = nullptr;
   TrackletState state = TrackletState::UNCONFIRMED;
+
+ private:
+  SimpleTrackParams params_;                                                // track param
+  std::deque<float> history_object_distance_;                               // history object distance
+  std::deque<std::pair<double, Eigen::Vector3f>> history_object_velocity_;  // history object velocity
 };
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

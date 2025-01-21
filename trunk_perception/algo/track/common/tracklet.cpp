@@ -43,6 +43,11 @@ void Tracklet::Predict(const double timestamp) {
   // motion direction update
   history_object_distance_.emplace_back(current_tracking_object.bbox.center.head(2).norm());
   current_tracking_object.motion_direction = checkObjectMotionDirection(history_object_distance_);
+
+  // velocity confidence update
+  std::pair<double, Eigen::Vector3f> temp(current_tracking_object.timestamp, current_tracking_object.velocity);
+  history_object_velocity_.emplace_front(std::move(temp));
+  // current_tracking_object.velocity_confidence = checkVelocityConfidence(history_object_velocity_);
 }
 
 void Tracklet::Update(const Object& object) {
@@ -75,6 +80,11 @@ void Tracklet::Update(const Object& object) {
   // motion direction update
   history_object_distance_.emplace_back(current_tracking_object.bbox.center.head(2).norm());
   current_tracking_object.motion_direction = checkObjectMotionDirection(history_object_distance_);
+
+  // velocity confidence update
+  std::pair<double, Eigen::Vector3f> temp(current_tracking_object.timestamp, current_tracking_object.velocity);
+  history_object_velocity_.emplace_front(std::move(temp));
+  current_tracking_object.velocity_confidence = checkVelocityConfidence(history_object_velocity_);
 }
 
 void Tracklet::TransformToCurrent(const Eigen::Isometry3f& tf) {
@@ -144,9 +154,17 @@ void Tracklet::TransformToCurrent(const Eigen::Isometry3f& tf) {
   // tracker method
   tracker_method_ptr->TransformToCurrent(tf);
 
-  // history object distance
-  while (history_object_distance_.size() > 5) {
-    history_object_distance_.pop_front();
+  // 以下参数为绝对坐标系下的参数，不需要进行变换
+  {
+    // history object distance
+    while (history_object_distance_.size() > 5) {
+      history_object_distance_.pop_front();
+    }
+
+    // history object velocity
+    while (history_object_velocity_.size() > 10) {
+      history_object_velocity_.pop_back();
+    }
   }
 }
 
@@ -159,6 +177,30 @@ MotionDirection Tracklet::checkObjectMotionDirection(const std::deque<float>& di
   } else {
     return MotionDirection::ARRIVAL;
   }
+}
+
+float Tracklet::checkVelocityConfidence(const std::deque<std::pair<double, Eigen::Vector3f>>& velocities) {
+  if (velocities.size() <= 2UL) return 0.0F;
+  const float v0 = velocities[0].second.head(2).norm();
+  const float v1 = velocities[1].second.head(2).norm();
+  const float v2 = velocities[2].second.head(2).norm();
+  const double dt0 = velocities[0].first - velocities[1].first;
+  const double dt1 = velocities[1].first - velocities[2].first;
+  const double dt = (velocities[0].first - velocities[2].first) * 0.5;
+  const float a0 = (v0 - v1) / dt0;
+  const float a1 = (v1 - v2) / dt1;
+  const float jerk_abs = std::abs((a0 - a1) / dt);
+
+  float score = 0.0F;
+  if (jerk_abs < 8.0F) {
+    score = 1.0F;
+  } else if (jerk_abs > 80.0F) {
+    score = 0.0F;
+  } else {
+    score = 1.0F - (jerk_abs - 8.0F) / 80.0F;
+  }
+
+  return score;
 }
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

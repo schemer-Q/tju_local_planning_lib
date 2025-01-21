@@ -33,6 +33,7 @@
 ### Changed
 - 跟踪目标中添加bbox confidence
 - 跟踪目标中添加bbox theta confidence
+- 跟踪目标中添加velocity confidence
 - 跟踪目标中添加目标相对于自车的运动方向
 - 跟踪算法中滤除速度异常的跟踪目标以减少检测不稳定导致的跟踪异常目标
 - 跟踪算法中对目标预测添加约束已解决目标预测横飞的问题[VTI-14421][VTI-14688][VTI-14471]

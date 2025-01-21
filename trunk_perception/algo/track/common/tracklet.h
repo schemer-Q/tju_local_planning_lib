@@ -59,6 +59,7 @@ class Tracklet {
 
  private:
   static MotionDirection checkObjectMotionDirection(const std::deque<float>& distances);
+  static float checkVelocityConfidence(const std::deque<std::pair<double, Eigen::Vector3f>>& velocities);
 
  public:
   Object current_tracking_object;
@@ -66,8 +67,9 @@ class Tracklet {
   TrackletState state = TrackletState::UNCONFIRMED;
 
  private:
-  SimpleTrackParams params_;                   // track param
-  std::deque<float> history_object_distance_;  // history object distance
+  SimpleTrackParams params_;                                                // track param
+  std::deque<float> history_object_distance_;                               // history object distance
+  std::deque<std::pair<double, Eigen::Vector3f>> history_object_velocity_;  // history object velocity
 };
 
 TRUNK_PERCEPTION_LIB_NAMESPACE_END

@@ -190,8 +190,9 @@ struct alignas(32) Object {
   Eigen::Vector3f acceleration = Eigen::Vector3f::Zero();      ///< object acceleration
   Eigen::Vector3f track_point = Eigen::Vector3f::Zero();       ///< track point
   Eigen::Matrix4f state_covariance = Eigen::Matrix4f::Zero();  ///< state covariance matrix
-  float bbox_confidence = 1.0F;   ///< bbox confidence 范围：[0.0, 1.0] 值越大，置信度越高
-  float theta_confidence = 1.0F;  ///< bbox theta confidence 范围：[0.0, 1.0] 值越大，置信度越高
+  float bbox_confidence = 1.0F;      ///< bbox confidence 范围：[0.0, 1.0] 值越大，置信度越高
+  float theta_confidence = 1.0F;     ///< bbox theta confidence 范围：[0.0, 1.0] 值越大，置信度越高
+  float velocity_confidence = 0.0F;  ///< velocity confidence 范围：[0.0, 1.0] 值越大，置信度越高
   MotionDirection motion_direction = MotionDirection::UNKNOWN;  ///< 物体相对自车的运行方向
 };
 

@@ -18,6 +18,7 @@
 #include "trunk_perception/common/data_manager/data_wrapper/ld_frame.h"
 #include "trunk_perception/common/data_manager/data_wrapper/od_lidar_frame.h"
 #include "trunk_perception/common/data_manager/data_wrapper/side_od_vision_frame.h"
+#include "trunk_perception/common/data_manager/data_wrapper/od_front_mm_frame.h"
 #include "trunk_perception/common/data_manager/data_wrapper/odometry_data.h"
 #include "trunk_perception/common/data_manager/data_wrapper/pointcloud_data.h"
 #include "trunk_perception/common/data_manager/data_wrapper/target_fusion_frame.h"
@@ -141,6 +142,10 @@ class DataManager {
     return side_od_vision_frame_;
   }
 
+  void updateOdFrontMmFrame(const std::shared_ptr<OdFrontMmFrame>& od_front_mm_frame) { od_front_mm_frame_ = od_front_mm_frame; }
+
+  std::shared_ptr<OdFrontMmFrame> getOdFrontMmFrame() const { return od_front_mm_frame_; }
+
  private:
   DataManager();
 
@@ -161,6 +166,7 @@ class DataManager {
   std::shared_ptr<FodVisionFrame> fod_vision_frame_ = nullptr; ///< 前向视觉目标检测数据帧
   mutable std::mutex side_od_vision_frame_mutex_; ///< 为了主从机数据同步，增加锁保证线程安全
   std::shared_ptr<SideOdVisionFrame> side_od_vision_frame_ = nullptr;  ///< 环视视觉目标检测数据帧
+  std::shared_ptr<OdFrontMmFrame> od_front_mm_frame_ = nullptr;  ///< 前向毫米波雷达目标检测数据帧
 };
 
 TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
@@ -402,3 +408,16 @@ TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE_END
  */
 #define GET_SIDE_OD_VISION_FRAME() DATA_MANAGER.getSideOdVisionFrame()
 
+/**
+ * @def UPDATE_OD_FRONT_MM_FRAME
+ * @brief 更新od_front_mm帧，线程不安全
+ * @param od_front_mm_frame od_front_mm帧
+ */
+#define UPDATE_OD_FRONT_MM_FRAME(od_front_mm_frame) DATA_MANAGER.updateOdFrontMmFrame(od_front_mm_frame)
+
+/**
+ * @def GET_OD_FRONT_MM_FRAME
+ * @brief 获取od_front_mm帧，线程不安全
+ * @return od_front_mm帧
+ */
+#define GET_OD_FRONT_MM_FRAME() DATA_MANAGER.getOdFrontMmFrame()

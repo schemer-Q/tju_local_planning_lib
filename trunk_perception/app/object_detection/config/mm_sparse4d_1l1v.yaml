@@ -1,3 +1,3 @@
 Type: ODMMSparse4D
 Config: 
-  ModelConfig: /home/wangxu/Code/1_dev/A_COMMON/sparse4dsdk/test/pointpillar_sparse4d/config/pointpillar_sparse4d.toml
+  ModelConfig: /opt/trunk_master/model/pointpillar-sparse4d-1l1v/pointpillar-sparse4d-1l1v.toml

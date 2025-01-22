@@ -1,10 +1,10 @@
 #include "trunk_perception/app/object_detection/od_mm_sparse4d_impl.h"
 
+#include "trunk_perception/app/object_detection/detection_det_sdk_utils.h"
 #include "trunk_perception/common/data_manager/data_manager.h"
 #include "trunk_perception/common/data_manager/data_wrapper/od_front_mm_frame.h"
 #include "trunk_perception/common/error/code.hpp"
 #include "trunk_perception/tools/log/t_log.h"
-#include "trunk_perception/app/object_detection/detection_det_sdk_utils.h"
 
 #include "detection_net_sdk/data.h"
 #include "detection_net_sdk/object_detector.h"
@@ -12,7 +12,6 @@
 TRUNK_PERCEPTION_LIB_APP_NAMESPACE_BEGIN
 
 using namespace TRUNK_PERCEPTION_LIB_COMMON_NAMESPACE;
-
 
 OdMMSparse4DImpl::OdMMSparse4DImpl() {}
 
@@ -86,7 +85,9 @@ std::uint32_t OdMMSparse4DImpl::Run(const double& ts) {
     TERROR << "OdMMSparse4DImpl::Run failed: get LIDAR_0 tf points data is nullptr";
     return ErrorCode::POINT_CLOUD_INVALID;
   }
-  auto xyzi = points_data->data->getMatrixXfMap(4, 8, 0);
+  const size_t num_points = points_data->data->points.size();
+  Eigen::Map<const Eigen::Matrix<float, -1, -1, Eigen::RowMajor>> xyzi(
+      reinterpret_cast<const float*>(points_data->data->points.data()), num_points, 4);
   input_->points = xyzi;
   refer_ts = points_data->time;
 
@@ -135,7 +136,8 @@ std::uint32_t OdMMSparse4DImpl::Run(const double& ts) {
     obj.confidence = bbox.confidence;
     od_front_mm_frame->detected_objects.emplace_back(obj);
   }
-
+  od_front_mm_frame->timestamp = refer_ts;
+  
   UPDATE_OD_FRONT_MM_FRAME(od_front_mm_frame);
 
   return ErrorCode::SUCCESS;

@@ -303,10 +303,9 @@ float TrackObjectDistance::Compute(const TrackerPtr& tracker_ptr,
   }
 
   if (use_position_filter_) {
-    Eigen::Vector2f position_distance =
-        ComputeOrthogonalDistance(fused_object->center, side_vision_object->center, side_vision_object->theta);
-    if (position_distance.x() > position_filter_orthogonal_thresh_ ||
-        position_distance.y() > position_filter_longitudinal_thresh_) {
+    float position_distance =
+        Compute2DEuclideanDistance(fused_object->center, side_vision_object->center);
+    if (position_distance > position_filter_orthogonal_thresh_) {
       return distance;
     }
   }

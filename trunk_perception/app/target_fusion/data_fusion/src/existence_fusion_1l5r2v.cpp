@@ -19,6 +19,7 @@ float ExistenceFusion1L5R2V::Compute(const FusedObject::Ptr& fused_object_ptr) {
   const int& front_radar_consecutive_lost = fused_object_ptr->front_radar_consecutive_lost;
   const int& front_vision_consecutive_hit = fused_object_ptr->front_vision_consecutive_hit;
   const int& side_vision_consecutive_hit = fused_object_ptr->side_vision_consecutive_hit;
+  const int& side_vision_consecutive_lost = fused_object_ptr->side_vision_consecutive_lost;
 
   float score = 0.0;
 
@@ -68,6 +69,11 @@ float ExistenceFusion1L5R2V::Compute(const FusedObject::Ptr& fused_object_ptr) {
     }
 
     if ((side_vision_consecutive_hit >= 1) && (front_vision_consecutive_hit >= 1)) {
+      score = 0.3;
+    }
+
+    // 侧向、后向环视目标闪烁（短暂丢失）导致融合目标丢失 VTI-15127
+    if ((side_vision_consecutive_lost < 6) && (IsObjectHasNFrameRadar(fused_object_ptr, 1))) {
       score = 0.3;
     }
 

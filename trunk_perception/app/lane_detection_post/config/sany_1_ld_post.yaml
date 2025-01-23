@@ -10,7 +10,7 @@ Config:
       MaxId: 254
       MinHits: 5
       MinWorldPtsNumThresh: 10
-      MaxStartDistThresh: 15
+      MaxStartDistThresh: 40
       
     TrackletBasic:
       OccupiedGridXStart: 5
@@ -23,12 +23,18 @@ Config:
       NearXLimit: -10.0
       YLimit: 20.0
       FitPtNumLimit: 5
-      MaxFusionPtAge: 120000    
-      OutputQualityMinThresh: 0.6
+      MaxFusionPtAge: 120000  
+      # output criteria
+      OutputQualityMinThresh: 0.7
+      OutputMinHitsThresh: 5
+      OutputMinAgeThresh: 5
+      # bad tracklet standard
+      MaxLostAgeThresh: 5  # 连续丢检测，删除tracklet
+      MinFusionPtsNumThresh: 5  # 有效融合点太少，删除tracklet
 
     LaneQuality:
       CheckRangeNearX: -5.0
-      CheckRangeFarX: 70
+      CheckRangeFarX: 120
       LineOutlinerThres: 1.0
       NormMaxStdDeviation: 1.0
     

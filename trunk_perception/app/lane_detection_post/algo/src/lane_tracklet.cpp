@@ -28,8 +28,13 @@ void LaneTracklet::InitParam(const std::shared_ptr<LaneTrackLetInitParam>& param
   y_limit_ = param_ptr->y_limit;
   fit_pt_num_limit_ = param_ptr->fit_pt_num_limit;
   max_fusion_pt_age_ = param_ptr->max_fusion_pt_age;
+  // output criteria
   output_min_quality_thresh_ = param_ptr->output_min_quality_thresh;
   output_min_hits_thresh_ = param_ptr->output_min_hits_thresh;
+  output_min_age_thresh_ = param_ptr->output_min_age_thresh;
+  // del criteria
+  max_lost_age_thresh_ = param_ptr->max_lost_age_thresh;
+  min_fusion_pt_num_thresh_ = param_ptr->min_fusion_pt_num_thresh;
 }
 
 void LaneTracklet::Predict(const Eigen::Matrix4d& cur_pose) {
@@ -45,7 +50,7 @@ void LaneTracklet::Predict(const Eigen::Matrix4d& cur_pose) {
 
   // 计算latest_pose到current_pose的变换矩阵
   Eigen::Matrix4d latest_to_cur_pose = cur_pose.inverse() * latest_pose_;
-  TDEBUG << "latest_to_cur_pose: \n" << latest_to_cur_pose;
+  // TDEBUG << "latest_to_cur_pose: \n" << latest_to_cur_pose;
 
   // 通过预测anchor位置并重新拟合，将车道线方程预测到当前帧
   PredictFusionPts(latest_to_cur_pose);
@@ -452,17 +457,20 @@ int LaneTracklet::UpdateBevState() {
 }
 
 bool LaneTracklet::IsLost() {
-  // // 外部直接设置为lost
-  // if (is_lost_) {
-  //   return true;
-  // }
+  // lost_age thresholding
+  if (lost_age_ > max_lost_age_thresh_) {
+    TDEBUG<< "[IsLost ] delete lost_age_:" << lost_age_ << " max_lost_age_thresh_:" << max_lost_age_thresh_;
+    return true;
+  }
 
   // TODO: 这里需要参数化
   //  pts过少
-  if (fusion_pts_.size() < 5) {
+  if (fusion_pts_.size() < min_fusion_pt_num_thresh_) {
+    TDEBUG<< "[IsLost ] delete fusion_pts_.size(): " << fusion_pts_.size() << min_fusion_pt_num_thresh_;
     return true;
   }
-  // 已经跑到车辆后方
+
+  // 已经跑到车辆后方  TODO CJS 
   for (const auto& fusion_pt : fusion_pts_) {
     if (fusion_pt.loc.x > 5) {
       return false;
@@ -473,18 +481,20 @@ bool LaneTracklet::IsLost() {
 
 
 bool LaneTracklet::IsMature() const{
-  bool res = false;
+
+  bool res = bev_anchor_kf_.errorCovPre.at<float>(0, 0) < 0.25;  // TODO CJS 
   // tracked param good enough
-  bool param_matrue = lost_age_ <= 0 && 
-                      age_ > 1 && 
+  bool param_matrue = age_ > 5 && 
                       hits_ >= output_min_hits_thresh_ && 
                       update_valid_;
-  res = is_hold_on_ || param_matrue;
-  
+  res = res && param_matrue;
+
   // quality high enough
   bool quality_mature = latest_lane_.lane_conf> output_min_quality_thresh_;
   res = res && quality_mature;
-
+  TDEBUG<<"[ISMATURE] "<< "id: "<< tracklet_id_ << " is_hold_on_: " << is_hold_on_ << " lost_age_: " 
+        << lost_age_ << " age_:" << age_ << " hits_: " << hits_ << " update_valid_:" << update_valid_ << " param_matrue: " << param_matrue
+        << "error_cov_pre: " << bev_anchor_kf_.errorCovPre.at<float>(0, 0) << " lane_conf: " << latest_lane_.lane_conf << " res: "<< res;
   return res;
 }
 }  // namespace ld_post

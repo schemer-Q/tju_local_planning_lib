@@ -383,7 +383,8 @@ void Tracker::Update(const cubtektar::RadarMeasureFrame::ConstPtr& corner_radar_
       (std::fabs(corner_radar_position.y()) < 1.25)) {
     return;
   }
-  if ((corner_radar_position.x() > -20 || corner_radar_position.x() < 15) &&
+  // @author zzg 2025-01-23 此处先做限制，后续调优
+  if ((corner_radar_position.x() > -20 && corner_radar_position.x() < 15) &&
       (std::fabs(corner_radar_position.y()) < 1.6)) {
     return;
   }

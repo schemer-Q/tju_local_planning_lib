@@ -48,6 +48,7 @@ float LaneQualityEvaluator::EvaluateLaneQuality(const LaneLineVision& lane_line)
 
 float LaneQualityEvaluator::PointDispersionQuality(const LaneLineVision& lane_line) {
     if (lane_line.OriginPointsWorld.empty()) {
+        TDEBUG<< "[Quality] lane_line.id: " << lane_line.track_id <<" empty points";
         return 0.0f; // 如果点集为空，返回最低质量
     }
 
@@ -84,6 +85,7 @@ float LaneQualityEvaluator::PointDispersionQuality(const LaneLineVision& lane_li
 
     // 如果有效点数量不足，返回最低质量
     if (valid_num <= 2) {
+        TDEBUG<<"[Quality] lane_line.id: " << lane_line.track_id << " not enough valid points";
         return 0.0f;
     }
 
@@ -92,6 +94,7 @@ float LaneQualityEvaluator::PointDispersionQuality(const LaneLineVision& lane_li
 
     // 如果没有非外点，返回最低质量
     if (deviations.empty()) {
+        TDEBUG<<"[Quality] no non-outlier points";
         return 0.0f;
     }
 

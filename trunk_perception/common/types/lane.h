@@ -41,10 +41,29 @@ enum LaneLineType {
   DOUBLELANE = 8   ///< 双车道
 };
 
+static std::unordered_map<LaneLineType, std::string> LaneLineTypeDict = {
+    {UNINITED_TYPE, "UNINITED_TYPE"},
+    {SOLID, "SOLID"},
+    {DASHED, "DASHED"},
+    {RESERVED1, "RESERVED1"},
+    {BOTTS_DOTS, "BOTTS_DOTS"},
+    {RESERVED2, "RESERVED2"},
+    {INVALID, "INVALID"},
+    {UNDECIDED, "UNDECIDED"},
+    {DOUBLELANE, "DOUBLELANE"}
+};
+
 /**
  * @brief Laneline color
  */
 enum LaneLineColor { YELLOW = 0, WHITE = 1, OTHER_COLOR = 2, UNINITED_COLOR = 255 };
+
+static std::unordered_map<LaneLineColor, std::string> LaneLineColorDict = {
+  {YELLOW, "YELLOW"},
+  {WHITE, "WHITE"},
+  {OTHER_COLOR, "OTHER_COLOR"},
+  {UNINITED_COLOR, "UNINITED_COLOR"}
+};
 
 /**
  * @brief Laneline confidence

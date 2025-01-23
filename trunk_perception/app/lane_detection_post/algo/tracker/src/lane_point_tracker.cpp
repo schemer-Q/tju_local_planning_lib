@@ -29,13 +29,20 @@ int LanePointTracker::Init(const YAML::Node& config){
     float y_limit = config["TrackletBasic"]["YLimit"].as<float>();
     size_t fit_pt_num_limit = config["TrackletBasic"]["FitPtNumLimit"].as<size_t>();
     int max_fusion_pt_age = config["TrackletBasic"]["MaxFusionPtAge"].as<int>();
+    // output criteria
     float output_min_quality_thresh = config["TrackletBasic"]["OutputQualityMinThresh"].as<float>();
+    size_t output_min_hits_thresh = config["TrackletBasic"]["OutputMinHitsThresh"].as<size_t>();
+    size_t output_min_age_thresh = config["TrackletBasic"]["OutputMinAgeThresh"].as<size_t>();
+    // del criteria
+    size_t max_lost_age_thresh = config["TrackletBasic"]["MaxLostAgeThresh"].as<size_t>();
+    size_t min_fusion_pt_num_thresh = config["TrackletBasic"]["MinFusionPtsNumThresh"].as<size_t>();
 
     lane_tracklet_init_param_ptr_ = std::make_shared<ld_post::LaneTrackLetInitParam>(
       occ_grid_x_start, occ_grid_x_middle, occ_grid_x_end,
       occ_x_step_dense, occ_x_step_sparse, queue_size,
       far_x_limit, near_x_limit, y_limit, fit_pt_num_limit, max_fusion_pt_age,
-      output_min_quality_thresh);
+      output_min_quality_thresh, output_min_hits_thresh, output_min_age_thresh,
+      max_lost_age_thresh, min_fusion_pt_num_thresh);
 
     // id pool manager
     id_pool_ptr_ = std::make_unique<IDPool>(max_id_);
@@ -119,6 +126,12 @@ void LanePointTracker::Match(const std::vector<LaneLineVision>& lanelines_detect
       // use 1 - similarity because the hungarian algorithm
       cost_matrix[i][j] = 1 - similarity;
     }
+    // std::string match_similarity = std::to_string(tracklet->GetTrackletId()) + " -> [ ";
+    // for (size_t j = 0; j < det_num; j++) {
+    //   match_similarity = match_similarity+ std::to_string(cost_matrix[i][j])+" ";
+    // }
+    // match_similarity = match_similarity + "]";
+    // TDEBUG<<match_similarity;
   }
 
   std::vector<int> assignment;  // assignment保存为每个pred_bbox分配的检测目标的索引
@@ -133,8 +146,6 @@ void LanePointTracker::Match(const std::vector<LaneLineVision>& lanelines_detect
     }
   }
 
-  TDEBUG << ">>>>>>>>>> associate_tracklet_ids_: " << associate_tracklet_ids_;
-  TDEBUG << ">>>>>>>>>> associate_det_ids_: " << associate_det_ids_;
   TDEBUG << "BevLanePostImpl::Associate() end";
 }
 
@@ -145,6 +156,7 @@ void LanePointTracker::Update(const std::vector<LaneLineVision>& lanelines_detec
     int detect_index = associate_det_ids_[i];
     auto& tracklet = tracklets_[tracklet_index];
     auto& det_obj = lanelines_detected[detect_index];
+    TDEBUG<<"[TRK Update] match, trk: "<< tracklet->GetTrackletId() << " to det:" << detect_index;
     // 更新目标
     tracklet->Update(det_obj);
   }
@@ -163,7 +175,7 @@ void LanePointTracker::Update(const std::vector<LaneLineVision>& lanelines_detec
     auto new_tracklet = std::make_shared<LaneTracklet>(new_id, lanelines_detected[j], cur_pose_, camera_name_, 
                                                        lane_quality_evaluator_ptr_, lane_tracklet_init_param_ptr_);
     tracklets_.push_back(new_tracklet);
-    TDEBUG << "create new tracklet " << new_tracklet->GetTrackletId();
+    TDEBUG << "[====== create new target===]: " << "new id: " << new_id << ", detect index: " << j;
   }
 
 }
@@ -171,7 +183,7 @@ void LanePointTracker::Update(const std::vector<LaneLineVision>& lanelines_detec
 void LanePointTracker::Output(std::vector<LaneLineVision>& lanelines_tracked){
   lanelines_tracked.clear();
   lanelines_tracked.reserve(tracklets_.size());
-
+  TDEBUG <<" [Output debug] tracklets_ size: " << tracklets_.size();
   for (const auto& tracklet : tracklets_) {
     if (tracklet->IsMature()) {
       auto res = tracklet->GetLaneWithFusedPts();
@@ -232,7 +244,7 @@ void LanePointTracker::Output(std::vector<LaneLineVision>& lanelines_tracked){
   //   }
   // }
 
-  TDEBUG << "GenerateTracklets: " << lanelines_tracked.size() << " lanes";
+  TDEBUG << "[Output debug] GenerateTracklets: " << lanelines_tracked.size() << " lanes";
 }
 
 void LanePointTracker::PostProcess(){
@@ -252,55 +264,63 @@ void LanePointTracker::ClearInvalidTracklets() {
 
 
 float LanePointTracker::LaneSimilarity(const LaneTrackletPtr& tracklet, const LaneLineVision& lanelines_detected) {
-  float iou = 0.;
-
-  // x-axis IOU check
+  // 1. Calculate x-axis overlap (IOU)
   float det_min_x = lanelines_detected.OriginPointsWorld.front().x;
   float det_max_x = lanelines_detected.OriginPointsWorld.back().x;
   LaneLineVision tracked_lane = tracklet->GetLaneWithFusedPts();
   float trk_min_x = std::max(0.0f, tracked_lane.OriginPointsWorld.front().x);
   float trk_max_x = tracked_lane.OriginPointsWorld.back().x;
 
-  float min_of_max_xs = std::min(det_max_x, trk_max_x);
-  float max_of_min_xs = std::max(det_min_x, trk_min_x);
-  float max_x = std::max(det_max_x, trk_max_x);
-  float min_x = std::min(det_min_x, trk_min_x);
+  float overlap_start = std::max(det_min_x, trk_min_x);
+  float overlap_end = std::min(det_max_x, trk_max_x);
+  float overlap_length = overlap_end - overlap_start;
 
-  // Check if there is an overlap on the x-axis
-  if (min_of_max_xs <= max_of_min_xs + 1e-6) {
+  // No overlap, return 0
+  if (overlap_length <= 1e-6) {
     return 0.0f;
   }
 
-  // Calculate IOU on the x-axis
-  float iou_x = (min_of_max_xs - max_of_min_xs) / (max_x - min_x);
-  if (iou_x < 0.2f) {
-    return 0.0f;
+  // Calculate IOU on x-axis
+  float total_length = std::max(det_max_x, trk_max_x) - std::min(det_min_x, trk_min_x);
+  float iou_x = overlap_length / total_length;
+
+  // 2. Calculate y-axis deviation ONLY in the overlapping region
+  float y_dis = 0.0f;
+  int valid_anchor_count = 0;
+  const int num_anchor = 10;  
+
+  // Generate anchors within the overlapping region
+  float anchor_step = overlap_length / (num_anchor - 1);
+  for (int i = 0; i < num_anchor; ++i) {
+    float anchor_x = overlap_start + i * anchor_step;
+
+    // Interpolate y-values for both lanes at anchor_x
+    float y_det = ld_algo::CalculateXValue(lanelines_detected, anchor_x);
+    float y_trk = ld_algo::CalculateXValue(tracklet->GetLaneFitParam(), anchor_x);
+
+    // Weighted distance (e.g., prioritize near-field with decay)
+    float decay = std::max(0.1f, 1 - anchor_x / 60.0f);  // TODO CJS magic number
+    y_dis += std::abs(y_trk - y_det) * decay;
+    valid_anchor_count++;
   }
 
-  // anchor dis_offset
-  auto& bev_pts_det = lanelines_detected.OriginPointsWorld;
-  float anchor_step_det = (bev_pts_det.back().x - bev_pts_det.front().x) / num_anchor_;
-  float y_dis = 1e-6;
-  for (int i = 0; i < num_anchor_; ++i) {
-    float anchor_x_det = bev_pts_det.front().x + i * anchor_step_det;
-    float anchor_y_det = ld_algo::CalculateXValue(lanelines_detected, anchor_x_det);
-    float anchor_y_pred = ld_algo::CalculateXValue(tracklet->GetLaneFitParam(), anchor_x_det);
-    float decay = std::max(0.1f, 1 - anchor_x_det / 70.0f);
-    y_dis += fabs(anchor_y_pred - anchor_y_det) * decay;
-  }
-  float avg_y_dis = y_dis / num_anchor_;
+  if (valid_anchor_count == 0) return 0.0f;
 
-  if (avg_y_dis >= 1) {
-    return iou;
-  }
-  iou = 1 - avg_y_dis;
+  // 3. Dynamic threshold based on overlap ratio
+  float avg_y_dis = y_dis / valid_anchor_count;
 
-  if (iou > tracklet->GetAssociateScore()) {
-    tracklet->SetAssociateScore(iou);
+  // 4. Combine IOU and y-axis deviation
+  float similarity = iou_x * std::max(0.0f, 1 - avg_y_dis);
+  similarity = std::clamp(similarity, 0.0f, 1.0f);
+
+  // Update tracklet score if higher
+  if (similarity > tracklet->GetAssociateScore()) {
+    tracklet->SetAssociateScore(similarity);
   }
 
-  return iou;
+  return similarity;
 }
+
 
 }  // ld_post
 

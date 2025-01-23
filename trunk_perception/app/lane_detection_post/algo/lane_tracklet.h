@@ -45,14 +45,22 @@ struct LaneTrackLetInitParam {
   float y_limit = 20.0;
   size_t fit_pt_num_limit = 5;
   int max_fusion_pt_age = 120000;  ///< 最大融合点年龄, 100min
+  
+  // tracklet output criteria
   float output_min_quality_thresh = 0.5;
-  int output_min_hits_thresh = 5;
+  size_t output_min_hits_thresh = 5;
+  size_t output_min_age_thresh = 5;
+  
+  // tracklet del criteia
+  size_t max_lost_age_thresh = 5;
+  size_t min_fusion_pt_num_thresh = 5;
 
   LaneTrackLetInitParam(int grid_x_start = 5, int grid_x_middle = 15, int grid_x_end = 80,
                       float x_step_dense = 0.05, float x_step_sparse = 0.3,
                       size_t q_size = 5, float far_x = 100.0, float near_x = -10.0,
                       float y_lim = 20.0, size_t fit_pt_num = 5, int max_fusion_age = 120000,
-                      float min_quality_thresh = 0.5, int min_hits_thresh = 5)
+                      float min_quality_thresh = 0.5, size_t min_hits_thr = 5, size_t output_min_age_thr = 5,
+                      size_t max_lost_age_thr = 5, size_t min_fusion_pt_num_thr = 5)
     : occupied_grid_x_start(grid_x_start),
       occupied_grid_x_middle(grid_x_middle),
       occupied_grid_x_end(grid_x_end),
@@ -65,7 +73,10 @@ struct LaneTrackLetInitParam {
       fit_pt_num_limit(fit_pt_num),
       max_fusion_pt_age(max_fusion_age),
       output_min_quality_thresh(min_quality_thresh),
-      output_min_hits_thresh(min_hits_thresh) {}
+      output_min_hits_thresh(min_hits_thr),
+      output_min_age_thresh(output_min_age_thr),
+      max_lost_age_thresh(max_lost_age_thr),
+      min_fusion_pt_num_thresh(min_fusion_pt_num_thr) {}
 };
 
 /**
@@ -312,8 +323,13 @@ class LaneTracklet {
   float y_limit_ = 20.0;
   size_t fit_pt_num_limit_ = 5;
   int max_fusion_pt_age_ = 120000;  ///< 最大融合点年龄, 100min
+  
   float output_min_quality_thresh_ = 0.5; 
-  int output_min_hits_thresh_ = 5;
+  size_t output_min_hits_thresh_ = 5;
+  size_t output_min_age_thresh_ = 5;
+  
+  size_t max_lost_age_thresh_ = 5;  //< 大于最大连续丢帧数，删除
+  size_t min_fusion_pt_num_thresh_ = 5;  //< 小于最小融合点数，删除
 };
 
 };  // namespace ld_post

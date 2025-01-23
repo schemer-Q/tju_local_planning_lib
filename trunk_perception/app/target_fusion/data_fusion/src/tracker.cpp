@@ -383,6 +383,11 @@ void Tracker::Update(const cubtektar::RadarMeasureFrame::ConstPtr& corner_radar_
       (std::fabs(corner_radar_position.y()) < 1.25)) {
     return;
   }
+  // @author zzg 2025-01-23 此处先做限制，后续调优
+  if ((corner_radar_position.x() > -20 && corner_radar_position.x() < 15) &&
+      (std::fabs(corner_radar_position.y()) < 1.6)) {
+    return;
+  }
   // 该区域可以使用角毫米波目标更新融合目标的运动属性，但反射点是在目标车辆的侧边，需要修改后使用，后续修改
   // 目前该区域不使用角毫米波目标更新融合目标的运动属性
   if ((corner_radar_position.x() < 10) && (corner_radar_position.x() > -8)) {

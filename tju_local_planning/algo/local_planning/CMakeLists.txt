@@ -1,3 +1,3 @@
 add_subdirectory(QuinticPolynomialPlanner)
-
+add_subdirectory(hybrid_astar)
 

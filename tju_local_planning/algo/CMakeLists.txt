@@ -1,1 +1,2 @@
 add_subdirectory(local_planning)
+add_subdirectory(cost_map)

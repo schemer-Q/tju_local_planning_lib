@@ -1,8 +1,7 @@
 
 #自动查找指定目录中的所有源文件，并将这些文件的路径添加到指定的变量中
-aux_source_directory(QuinticPolynomial SRCS)
-# aux_source_directory(HybridAStar SRCS)
-# aux_source_directory(hybrid_astar SRCS)
+aux_source_directory(HybridAStar SRCS)
+aux_source_directory(hybrid_astar SRCS)
 
 add_library(tju_algo_local_planner SHARED 
   ${SRCS}

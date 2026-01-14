@@ -1,26 +1,14 @@
-# SuntaePerception
+# 夹抱车局部路径规划库
 
 [![PIPELINE](http://git-rd.suntae.tech/txs/tju_local_planning_lib/badges/master/pipeline.svg)](http://git-rd.suntae.tech/txs/tju_local_planning_lib)  [![代码覆盖率](https://img.shields.io/codecov/c/github/username/SuntaePerception.svg)](http://git-rd.suntae.tech/txs/tju_local_planning_lib)
 
-`SuntaePerception`负责为自动驾驶系统提供感知算法实现，包括物体检测跟踪功能、车道线检测跟踪功能等。
+`tju_local_planning` 是一个面向夹抱车（夹抱/叉装车）局部路径规划的算法包，旨在为狭窄场景下的运输车辆提供可靠的局部路径规划与避障能力。主要功能包括：
 
-## 文档
+1. 可完成狭窄通道安全路径规划。
+2. 可处理决策层与执行层的中间通信。
+3. 可根据感知算法结果绘制动态地图。
+4. 可根据车辆模型和外形规划避障路径。
 
-[SuntaePerception 说明文档](http://10.11.3.9:8888/pplib/html/index.html)
-
-## 使用示例
-
-- [工程TAD](http://git-rd.SUNTAE.tech/suntaepilot/tad_soc_release/-/tree/release/src/per)
-
-## 开发进度
-
-### V0.1.0版本
-
-- [x] 传感器抽象/数据管理/功能任务抽象/故障码管理
-- [x] 图像预处理功能
-- [x] 激光预处理功能
-- [x] 视觉车道线跟踪功能
-- [x] CI[编译&发版]
 
 ### BackLog
 

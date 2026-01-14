@@ -1,4 +1,0 @@
-Type: OdLidarLidarNetSdk
-Config: 
-  ModelConfig: /opt/hw_dsvt_model/config/dsvt_config.toml
-  Lidar: LIDAR_0

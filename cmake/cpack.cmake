@@ -30,7 +30,7 @@ function (version_numbers version major minor patch)
   set ("${patch}" "${_patch}" PARENT_SCOPE)
 endfunction ()
 
-function (trunk_make_package PACKAGE_NAME PACKAGE_VERSION PACKAGE_DESCRIPTION)
+function (tju_make_package PACKAGE_NAME PACKAGE_VERSION PACKAGE_DESCRIPTION)
   version_numbers(${PACKAGE_VERSION}
     PACKAGE_VERSION_MAJOR
     PACKAGE_VERSION_MINOR
@@ -61,8 +61,8 @@ function (trunk_make_package PACKAGE_NAME PACKAGE_VERSION PACKAGE_DESCRIPTION)
   configure_file ("${CMAKE_CURRENT_LIST_DIR}/README.md" "${CMAKE_CURRENT_BINARY_DIR}/README.txt" COPYONLY)
 
   # common package information
-  set (CPACK_PACKAGE_VENDOR              "trunk")
-  set (CPACK_PACKAGE_CONTACT             "wangxu@trunk.tech")
+  set (CPACK_PACKAGE_VENDOR              "tju")
+  set (CPACK_PACKAGE_CONTACT             "txs@tju.tech")
   set (CPACK_PACKAGE_NAME                "${PACKAGE_NAME}")
   set (CPACK_PACKAGE_VERSION             "${PACKAGE_VERSION}")
   set (CPACK_PACKAGE_VERSION_MAJOR       "${PACKAGE_VERSION_MAJOR}")

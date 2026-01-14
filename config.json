@@ -1,29 +1,10 @@
 {
   "project": {
-    "version": "0.4.1",
-
+    "version": "0.0.1",
     "dependencies": {
       "dev": {
         "jian": {
           "version": "1.0.23",
-          "enable": true
-        }
-      },
-      "sdk": {
-        "lidarnetsdk": {
-          "version": "1.0.5",
-          "enable": true
-        },
-        "sdkbevlaneconedethighway": {
-          "version": "0.3.3.8",
-          "enable": true
-        },
-        "sdkvisdetr3ddconffront": {
-          "version": "1.2.3",
-          "enable": true
-        },
-        "detectionnetsdk": {
-          "version": "0.0.4",
           "enable": true
         }
       }

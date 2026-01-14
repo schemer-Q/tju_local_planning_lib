@@ -1,0 +1,12 @@
+VEHICLE_NAME: "116"
+Sensors:
+  - Type: "ODOMETRY"
+    Name: "ODOMETRY"
+    BufferSize: 200
+    MaxTimeDelay: 0.04
+
+  - Type: "GOALPOINT"
+    Name: "GOALPOINT"
+    BufferSize: 10
+    MaxTimeDelay: 0.04
+ 

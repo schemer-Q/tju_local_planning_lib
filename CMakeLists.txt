@@ -1,23 +1,31 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.16)
 
 file(READ "${CMAKE_CURRENT_LIST_DIR}/config.json" config_json)
 
 # get project version
-string(JSON project_version GET ${config_json} project version)
-string(JSON sdk_lidarnetsdk_version GET ${config_json} project dependencies sdk lidarnetsdk version)
-string(JSON sdk_lidarnetsdk_enable GET ${config_json} project dependencies sdk lidarnetsdk enable)
-string(JSON sdkbevlaneconedethighway_version GET ${config_json} project dependencies sdk sdkbevlaneconedethighway version)
-string(JSON sdkbevlaneconedethighway_enable GET ${config_json} project dependencies sdk sdkbevlaneconedethighway enable)
-string(JSON sdkvisdetr3ddconffront_version GET ${config_json} project dependencies sdk sdkvisdetr3ddconffront version)
-string(JSON sdkvisdetr3ddconffront_enable GET ${config_json} project dependencies sdk sdkvisdetr3ddconffront enable)
-string(JSON detectionnetsdk_version GET ${config_json} project dependencies sdk detectionnetsdk version)
-string(JSON detectionnetsdk_enable GET ${config_json} project dependencies sdk detectionnetsdk enable)
+# string(JSON project_version GET ${config_json} project version)
+#string(JSON sdk_lidarnetsdk_version GET ${config_json} project dependencies sdk lidarnetsdk version)
+#string(JSON sdk_lidarnetsdk_enable GET ${config_json} project dependencies sdk lidarnetsdk enable)
+#string(JSON sdkbevlaneconedethighway_version GET ${config_json} project dependencies sdk sdkbevlaneconedethighway version)
+#string(JSON sdkbevlaneconedethighway_enable GET ${config_json} project dependencies sdk sdkbevlaneconedethighway enable)
+#string(JSON sdkvisdetr3ddconffront_version GET ${config_json} project dependencies sdk sdkvisdetr3ddconffront version)
+#string(JSON sdkvisdetr3ddconffront_enable GET ${config_json} project dependencies sdk sdkvisdetr3ddconffront enable)
+#string(JSON detectionnetsdk_version GET ${config_json} project dependencies sdk detectionnetsdk version)
+#string(JSON detectionnetsdk_enable GET ${config_json} project dependencies sdk detectionnetsdk enable)
+string(REGEX MATCH "\"version\": \"([0-9.]+)\"" _ ${config_json})
+set(project_version ${CMAKE_MATCH_1})
+# # set(CMAKE_CUDA_ARCHITECTURES "70;75;80")
+# set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_70,code=sm_70")
+# set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_75,code=sm_75")
+# set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_80,code=sm_80")
 
-project(trunk_perception
+project(tju_local_planning
         VERSION ${project_version}
-        DESCRIPTION "trunk perception library"
-        LANGUAGES CXX CUDA)
+        DESCRIPTION "tju local planning library"
+        LANGUAGES CXX )#CUDA)
 set(TARGET_NAME ${PROJECT_NAME})
+
+
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/cpack.cmake)
 include(CMakePackageConfigHelpers)
@@ -25,7 +33,7 @@ include(CMakeDependentOption)
 include(CheckCCompilerFlag)
 include(GNUInstallDirs)
 if (NOT PACKAGE_HUB)
-  trunk_make_package(${TARGET_NAME} ${PROJECT_VERSION} ${PROJECT_DESCRIPTION})
+  tju_make_package(${TARGET_NAME} ${PROJECT_VERSION} ${PROJECT_DESCRIPTION})
 endif ()
 
 
@@ -82,8 +90,8 @@ option(ENABLE_TEST "enable test" ON)
 ########################################################
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/openmp.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/trunk_basic.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/trunk.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/tju_basic.cmake)
+# include(${CMAKE_CURRENT_LIST_DIR}/cmake/tju.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/google.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/pcl.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/opencv.cmake)
@@ -95,10 +103,11 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/yaml.cmake)
 ########################################################
 # add subdirectory
 ########################################################
-add_subdirectory(trunk_perception/common)
-add_subdirectory(trunk_perception/tools/log)
-add_subdirectory(trunk_perception/app)
-add_subdirectory(trunk_perception/algo)
+add_subdirectory(tju_local_planning/common)
+add_subdirectory(tju_local_planning/tools/log)
+add_subdirectory(tju_local_planning/app)
+add_subdirectory(tju_local_planning/algo)
+# add_subdirectory(tju_local_planning/test)
 
 ########################################################
 # test
@@ -109,7 +118,7 @@ if (ENABLE_TEST)
     message(STATUS "GTEST_INCLUDE_DIRS: ${GTEST_INCLUDE_DIRS}")
     message(STATUS "GTEST_LIBRARIES: ${GTEST_LIBRARIES}")
     enable_testing()
-    add_subdirectory(trunk_perception/common/test)
+    add_subdirectory(tju_local_planning/common/test)
 endif()
 
 
@@ -117,7 +126,7 @@ endif()
 # install settings
 ########################################################
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/trunk_perception
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tju_local_planning
   DESTINATION include
   FILES_MATCHING
   PATTERN "*.hpp"

@@ -1,3 +1,0 @@
-Type: ODMMSparse4D
-Config: 
-  ModelConfig: /opt/trunk_master/model/pointpillar-sparse4d-1l1v/pointpillar-sparse4d-1l1v.toml

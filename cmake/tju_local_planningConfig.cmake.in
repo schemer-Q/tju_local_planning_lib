@@ -1,0 +1,12 @@
+@PACKAGE_INIT@
+
+set_and_check(TJU_LOCAL_PLANNING_INCLUDE_DIRS "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+set_and_check(TJU_LOCAL_PLANNING_LIBRARY_DIRS "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
+set_and_check(TJU_LOCAL_PLANNING_INSTALL_PATH "@PACKAGE_CMAKE_INSTALL_PREFIX@")
+
+set(TJU_LOCAL_PLANNING_LIBRARIES 
+  tju_local_planning_common
+  tju_local_planning_log
+  tju_app_local_planner
+  tju_algo_local_planner 
+)

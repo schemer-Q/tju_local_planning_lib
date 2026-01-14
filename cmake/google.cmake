@@ -1,5 +1,6 @@
 # glog gflags
 find_package(gflags REQUIRED)
+#find_package(Glog REQUIRED)
 find_package(GTest)
 if (NOT GTest_FOUND)
   message("GTest not found. test set off")

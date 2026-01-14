@@ -1,0 +1,22 @@
+{
+    "files.associations": {
+        "utility": "cpp",
+        "vector": "cpp",
+        "cmath": "cpp",
+        "fstream": "cpp",
+        "iostream": "cpp",
+        "sstream": "cpp",
+        "chrono": "cpp",
+        "cstdio": "cpp",
+        "istream": "cpp",
+        "limits": "cpp",
+        "memory": "cpp",
+        "ostream": "cpp",
+        "string": "cpp",
+        "type_traits": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "queue": "cpp",
+        "initializer_list": "cpp"
+    }
+}

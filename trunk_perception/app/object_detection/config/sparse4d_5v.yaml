@@ -1,9 +1,0 @@
-Type: ODSparse4D
-Config: 
-  DistortionMap:
-    MinX: -1200
-    MinY: -300
-    MaxX: 1600
-    MaxY: 1200
-  ModelConfig: /opt/trunk_master/model/sparse4d/sparse4d_config.toml
-  Cameras: ["CAMERA_0_F30", "CAMERA_0_F60", "CAMERA_0_F190", "CAMERA_3_F190", "CAMERA_9_F190"]

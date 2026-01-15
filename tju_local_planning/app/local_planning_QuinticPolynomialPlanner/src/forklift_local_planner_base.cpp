@@ -154,7 +154,7 @@ if (!global_trajectory_.trajectory.empty()) {
 }
 
 bool has_global_trajectory = !global_trajectory.trajectory.empty();
-bool has_align_target = (has_cross_goal)&&((align_target.header.stamp != 0));
+  bool has_align_target = (has_global_trajectory)&&((align_target.header.stamp != 0));
 
 // 设置起点与终点
 // std::cout<<"--------------1--------------"<<std::endl;
@@ -248,7 +248,7 @@ int ForkLiftLocalPlannerBase::plan (const PosePoint& start_pose, const PosePoint
       int ret1 = planner_ptr_->process(start_pose, mid_pose);
       if (ret1 != 0) {
         NTERROR << "ForkLiftLocalPlannerBase::Run: Failed to process planning"<< ret1;
-        printf_red("第一段路径调用a星失败\n")
+        printf_red("第一段路径调用a星失败\n");
         local_trajectory_.plan_state = 0; // 规划失败
         return ErrorCode::LOCAL_PLANNING_APP_USE_QUINTICPOLYNOMIALPLANNER;
       }
@@ -258,7 +258,7 @@ int ForkLiftLocalPlannerBase::plan (const PosePoint& start_pose, const PosePoint
       int ret2 = planner_ptr_->process(mid_pose, end_pose);
       if (ret2 != 0) {
         NTERROR << "ForkLiftLocalPlannerBase::Run: Failed to process planning"<< ret2;
-        printf_red("第二段路径调用a星失败\n")
+        printf_red("第二段路径调用a星失败\n");
         local_trajectory_.plan_state = 0; // 规划失败
         return ErrorCode::LOCAL_PLANNING_APP_USE_QUINTICPOLYNOMIALPLANNER;
       }
@@ -349,13 +349,13 @@ void ForkLiftLocalPlannerBase::updateLocalTrajectory() {
   local_trajectory_.trajectory= trajectory; // 设置轨迹点
 }
 
-bool ForkLiftLocalPlannerBase::isNearEndpoint(size_t current_idx, const TrajectoryPoints& global_trajectory) {
-  if (global_trajectory.trajectory.empty()) {
+bool ForkLiftLocalPlannerBase::isNearEndpoint(size_t current_idx, const std::vector<PosePoint>& global_trajectory) {
+  if (global_trajectory.empty()) {
     return false;
   }
-  
+
   // 使用配置的终点阈值判断是否接近终点
-  return (current_idx >= global_trajectory.trajectory.size() - end_threshold_);
+  return (current_idx >= global_trajectory.size() - end_threshold_);
 }
 
 void ForkLiftLocalPlannerBase::updateTrajectoryState(
@@ -407,12 +407,12 @@ PosePoint ForkLiftLocalPlannerBase::preprocess(const PosePoint& end_pose) {
     double dy_forward = end_pose.y - mid_forward_y;
     double desired_yaw_forward = std::atan2(dy_forward, dx_forward);
   // 规范化角度差（考虑圆周性）
-    double yaw_diff_forward = std::abs((desired_yaw_forward - mid_forward_yaw + M_PI) % (2 * M_PI) - M_PI);
+    double yaw_diff_forward = std::abs(std::fmod((desired_yaw_forward - mid_forward_yaw + M_PI), (2 * M_PI)) - M_PI);
   // 对于向后点
     double dx_backward = end_pose.x - mid_backward_x;
     double dy_backward = end_pose.y - mid_backward_y;
     double desired_yaw_backward = std::atan2(dx_backward, dy_backward);
-    double yaw_diff_backward = std::abs((desired_yaw_backward - mid_backward_yaw + M_PI) % (2 * M_PI) - M_PI);
+    double yaw_diff_backward = std::abs(std::fmod((desired_yaw_backward - mid_backward_yaw + M_PI), (2 * M_PI)) - M_PI);
   /* 3. 判断哪个点的朝向与期望行驶方向一致*/
     double tol = 0.1;
   if (yaw_diff_forward < tol) {

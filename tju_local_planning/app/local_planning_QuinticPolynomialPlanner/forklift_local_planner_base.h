@@ -94,8 +94,8 @@ struct CollisionCheckParams {
   double max_segment_length_;   // 最大分段长度
   size_t end_threshold_;       // 接近终点的阈值点数
   double min_speed_threshold_; // 最小速度阈值，用于计算匹配点
-  bool use_global_tf = true;    // 是否使用全局坐标系
-  double extension_distance = 2.0 // 两端规划的直线延申距离
+    bool use_global_tf = true;    // 是否使用全局坐标系
+    double extension_distance = 2.0; // 两端规划的直线延申距离
 
   //重规划参数
   double tolarent_cte; //CTE误差容忍度 米
@@ -145,7 +145,7 @@ struct CollisionCheckParams {
    * @param global_trajectory 全局轨迹
    * @return bool 是否接近终点
    */
-  bool isNearEndpoint(size_t current_idx, const TrajectoryPoints& global_trajectory);
+    bool isNearEndpoint(size_t current_idx, const std::vector<PosePoint>& global_trajectory);
 
   /**
    * @brief 更新状态

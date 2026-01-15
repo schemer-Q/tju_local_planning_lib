@@ -8,7 +8,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "tju_local_planning/algo/local_planning/QuinticPolynomialPlanner/local_trajectory_planner_base.h"
+#include "tju_local_planning/algo/local_planning/local_trajectory_planner_base.h"
 #include "tju_local_planning/common/macros.h"
 #include "tju_local_planning/common/types/pose_point.h"
 #include "tju_local_planning/common/types/target_pose.h"

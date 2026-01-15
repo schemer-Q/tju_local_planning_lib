@@ -1,7 +1,7 @@
-#include "tju_local_planning/algo/local_planning/QuinticPolynomialPlanner/local_trajectory_planner_manager.h"
+#include "tju_local_planning/algo/local_planning/local_trajectory_planner_manager.h"
 #include "tju_local_planning/algo/local_planning/QuinticPolynomialPlanner/QuinticPolynomial/quintic_polynomial_planner.h"
-#include "tju_local_planning/algo/local_planning/QuinticPolynomialPlanner/HybridAStar/HybridAStar.h"
-#include "tju_local_planning/algo/local_planning/QuinticPolynomialPlanner/hybrid_astar/hybrid_a_star_bridge.h"
+#include "tju_local_planning/algo/local_planning/hybrid_astar/HybridAStar/HybridAStar.h"
+#include "tju_local_planning/algo/local_planning/hybrid_astar/hybrid_astar/hybrid_a_star_bridge.h"
 #include <iostream>
 
 TJU_LOCAL_PLANNING_LIB_NAMESPACE_BEGIN

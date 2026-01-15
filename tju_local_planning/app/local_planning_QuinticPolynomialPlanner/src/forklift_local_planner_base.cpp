@@ -3,7 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include "tju_local_planning/app/local_planning_QuinticPolynomialPlanner/forklift_local_planner_base.h"
-#include "tju_local_planning/algo/local_planning/QuinticPolynomialPlanner/local_trajectory_planner_manager.h"
+#include "tju_local_planning/algo/local_planning/local_trajectory_planner_manager.h"
 #include "tju_local_planning/algo/local_planning/QuinticPolynomialPlanner/QuinticPolynomial/quintic_polynomial_planner.h"
 
 TJU_LOCAL_PLANNING_LIB_APP_NAMESPACE_BEGIN

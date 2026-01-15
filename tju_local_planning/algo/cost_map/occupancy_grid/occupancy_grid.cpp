@@ -1,6 +1,7 @@
 #include "occupancy_grid.h"
 #include <fstream>
 #include <algorithm>
+#include <cmath>
 
 namespace tju_local_planning {
 namespace cost_map {

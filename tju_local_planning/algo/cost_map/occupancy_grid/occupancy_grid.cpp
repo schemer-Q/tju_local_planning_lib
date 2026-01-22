@@ -19,7 +19,23 @@ bool OccupancyGrid::init(const GridConfig &cfg) {
 }
 
 void OccupancyGrid::update(const PointCloud &pc, const Pose &sensor_pose) {
-    (void)pc; (void)sensor_pose;
+    // 简单实现：对每个点直接将对应栅格的 log-odds 增加占据值
+    if (log_odds_.empty()) return;
+
+    for (const auto &p : pc) {
+        // 假设输入点为传感器坐标，需要变换到地图坐标（通过 sensor_pose 平移/旋转）
+        double wx = p.x + sensor_pose.x;
+        double wy = p.y + sensor_pose.y;
+
+        int ix = static_cast<int>(std::floor((wx - cfg_.origin_x) / cfg_.resolution));
+        int iy = static_cast<int>(std::floor((wy - cfg_.origin_y) / cfg_.resolution));
+        if (ix < 0 || iy < 0 || ix >= cfg_.width || iy >= cfg_.height) continue;
+        int idx = index(ix, iy);
+        int v = static_cast<int>(log_odds_[idx]) + cfg_.log_odds_occ;
+        if (v > cfg_.log_odds_max) v = cfg_.log_odds_max;
+        if (v < cfg_.log_odds_min) v = cfg_.log_odds_min;
+        log_odds_[idx] = static_cast<int8_t>(v);
+    }
 }
 
 void OccupancyGrid::setFreeRaycast(bool enable) {
